@@ -765,9 +765,17 @@ class TemplatesApp(PlotApp):
                                ## (unroll_binning[ibin]+unroll_binning[ibin+1])*0.5)
                                ibin+0.5)
         hist2d_forUnrolled=ROOT.RooDataHist("hist2d_forUnrolled","hist2d_forUnrolled",ROOT.RooArgList(isoargs), th2d)
-
         self.keep(hist2d_forUnrolled)
-            
+        if options.verbose:
+            ct=ROOT.TCanvas("ct","ct",1000,1000) 
+            ct.cd()
+            ROOT.gStyle.SetPaintTextFormat("1.1f")
+            th2d.SetMarkerSize(3.)
+            th2d.GetXaxis().SetTitle("templateNdim2Dim0")
+            th2d.GetYaxis().SetTitle("templateNdim2Dim1")
+            th2d.Draw("TEXT")
+            self.keep( [th2d,ct] )
+            self.autosave(True)
         ret=hist2d_forUnrolled
         if buildHistFunc:
             ret=ROOT.RooHistFunc(buildHistFunc,buildHistFunc,args,hist2d_forUnrolled)
@@ -838,39 +846,78 @@ class TemplatesApp(PlotApp):
         setargs.add(rooweight)
         setargs.Print()
         prob = array.array('d',[])
-        n=10
-        sieieb = array.array('d',[0.0 for i in range(n+1)])
-        for i in range(0,n+1):
-            prob.append(i/float(n))
+        #n=10
+        #sieieb = array.array('d',[0.0 for i in range(n+1)])
+       # for i in range(0,n+1):
+        #    prob.append(i/float(n))
         for cat in options.corrPlot.get("categories"):
             if cat=="EB":
-                sieielow=0.002
-                sieieup=0.024
+                sieielow=0.007
+                sieieup=0.02
+                sieieb = array.array('d',[sieielow,0.0105,0.012,sieieup])
+                ymax=0.39
             elif cat =="EE":
-                sieielow=0.002
-                sieieup=0.04
+                sieielow=0.015
+                sieieup=0.045
+                sieieb = array.array('d',[sieielow,0.028,0.035,sieieup])
+                ymax=0.26
             sieievar.setRange(sieielow,sieieup)
-            truth = self.reducedRooData("mctruth_f_singlePho_%s"% cat,setargs,False,redo=True)
+            truth = self.reducedRooData("mctruth_f_singlePho_%s"% cat,setargs,False,weight="weight < 1000.",redo=True)
             truth.Print()
-            tempdata = self.reducedRooData("template_f_singlePho_%s" %cat,setargs,False,redo=True)
+            tempdata = self.reducedRooData("template_f_singlePho_%s" %cat,setargs,False,weight="weight < 1000.",redo=True)
             tempdata.append(truth)
             tempCombined=tempdata
             tempCombined.SetName("template_allsieie_f_singlePho_%s" %cat)
             tempCombined.Print()
-            histo_sieie=ROOT.TH1F("histo_sieie_%s" %cat,"histo_sieie_%s"%cat,100,sieielow,sieieup)
+            histo_sieie=ROOT.TH1F("histo_sieie_%s" %cat,"histo_sieie_%s"%cat,30,sieielow,sieieup)
             tempCombined.fillHistogram(histo_sieie,ROOT.RooArgList(sieievar)) 
             histo_sieie.Scale(1.0/histo_sieie.Integral())
-            histo_sieie.GetQuantiles(n+1,sieieb,prob)
+        #    histo_sieie.GetQuantiles(n+1,sieieb,prob)
             sieiebins=ROOT.RooBinning(len(sieieb)-1,sieieb,"sieiebins" )
             sieievar.setBinning(sieiebins)
             histo2_sieie=ROOT.TH2F("histo2_sieie_%s" %cat,"histo2_sieie_%s"%cat,len(sieieb)-1,sieieb,len(template_binning)-1,template_binning)
             tempCombined.fillHistogram(histo2_sieie,ROOT.RooArgList(sieievar,isovar)) 
+            histo2_sieie.GetXaxis().SetNdivisions(4,3,0) 
             self.workspace_.rooImport(tempCombined)
-            prb = array.array('d',[0.99,0.8,0.7,0.6,0.5,0.3,0.1,0.05])
+            prb = array.array('d',[0.99,0.8,0.7,0.6,0.5,0.3,0.1])
             graphs=[]
             graphs=getQuantilesGraphs(histo2_sieie,prb)
             self.keep([graphs,histo2_sieie])
             self.plotQuantileGraphs(histo2_sieie,graphs,cat)
+            #TODO fix numbers x axis
+            truthp = self.reducedRooData("mctruth_p_singlePho_%s"% cat,setargs,False,redo=True)
+            #works only if json file modified accordingly
+            tempdatap = self.reducedRooData("template_p_singlePho_%s" %cat,setargs,False,redo=True)
+            tempdatap.append(truthp)
+            tempCombinedp=tempdatap
+            tempCombinedp.SetName("template_allsieie_p_singlePho_%s" %cat)
+            tempCombinedp.Print()
+            histop_sieie=ROOT.TH1F("histop_sieie_%s" %cat,"histop_sieie_%s"%cat,30,sieielow,sieieup)
+            tempCombinedp.fillHistogram(histop_sieie,ROOT.RooArgList(sieievar)) 
+            histop_sieie.Scale(1.0/histop_sieie.Integral())
+            cSide=ROOT.TCanvas("cSide_%s" %cat,"cSide_%s" %cat)
+            cSide.cd()
+        #    histo_sieie.GetQuantiles(n+1,sieieb,prob)
+            sieiebins=ROOT.RooBinning(len(sieieb)-1,sieieb,"sieiebins" )
+            lineSR=ROOT.TLine(sieieb[1],0.,sieieb[1],ymax)
+            lineSB=ROOT.TLine(sieieb[2],0.,sieieb[2],ymax)
+            histo_sieie.SetLineColor(ROOT.kRed)
+            histo_sieie.SetLineWidth(2)
+            histop_sieie.SetLineWidth(2)
+            histop_sieie.Draw("HIST")
+            lineSR.Draw("SAME")
+            lineSB.Draw("SAME")
+            histo_sieie.Draw(" same HIST")
+            leg =ROOT.TLegend(0.55,0.4,0.85,0.6)
+            leg.SetTextSize(0.03)
+            leg.SetTextFont(42);
+            leg.SetFillColor(ROOT.kWhite)
+            leg.AddEntry(histop_sieie,"prompt single photons","l")
+            leg.AddEntry(histo_sieie,"fake single photons","l")
+            leg.Draw()
+            histop_sieie.GetXaxis().SetTitle("#sigma_{i#etai#eta}") 
+            histop_sieie.GetXaxis().SetNdivisions(4,3,0) 
+            self.keep([cSide])
             self.autosave(True)
         self.saveWs(options,fout)
 
@@ -893,10 +940,11 @@ class TemplatesApp(PlotApp):
         histo.ProjectionX().Draw()
         c2.cd(2)
         histo.ProjectionY().Draw()
+        
         cQ=ROOT.TCanvas("cCorrelation_%s"%cat ,"corr chIso mass %s"% cat,10,10,700,900)
         cQ.cd()
         i=0
-        leg =ROOT.TLegend(0.6,0.65,0.9,0.9)
+        leg =ROOT.TLegend(0.55,0.65,0.85,0.9)
         leg.SetTextSize(0.03)
         leg.SetTextFont(42);
         leg.SetFillColor(ROOT.kWhite)
@@ -906,14 +954,15 @@ class TemplatesApp(PlotApp):
             gr.SetLineColor(ROOT.kRed-i)
             if i==0:
                 gr.GetXaxis().SetTitle("#sigma_{i#etai#eta}")
+                gr.GetXaxis().SetNdivisions(4,3,0) 
                 gr.GetYaxis().SetTitle("Charged PF Isolation [GeV]")
                 gr.GetYaxis().SetRangeUser(0.,24.)
                 gr.Draw("AP")
             if i>0:
                 gr.Draw("P SAME")
-            leg.AddEntry(gr.GetName()[-14:],gr.GetName()[-14:],"ple")
-            leg.Draw()
+            leg.AddEntry(gr,gr.GetName()[-14:],"ple")
             i=i+1
+        leg.Draw()
         self.keep( [c,c2,cQ] )
         self.autosave(True)
         #
@@ -921,11 +970,11 @@ class TemplatesApp(PlotApp):
     ## ------------------------------------------------------------------------------------------------------------
 
     def plotHistos(self,histlist,title,template_bins,dim1,numEntries=None):
-        leg = ROOT.TLegend(0.3,0.8,0.9,0.9)
+        leg = ROOT.TLegend(0.3,0.77,0.9,0.9)
         leg.SetTextSize(0.03)
         leg.SetTextFont(42);
         leg.SetFillColor(ROOT.kWhite)
-        leg.SetHeader("#%s " % numEntries)
+       # leg.SetHeader("#%s " % numEntries)
         canv = ROOT.TCanvas(title,title)
         canv.Divide(1,2)
         canv.cd(1)
@@ -962,6 +1011,7 @@ class TemplatesApp(PlotApp):
                 histlist[i].Draw("E SAME")
             histlist[0].GetXaxis().SetLimits(-0.1,max(template_bins))
             leg.AddEntry(histlist[i],histlist[i].GetName(),"l")  
+        leg.AddEntry(histlist[0],histlist[0].GetName(),"fl")  
         histlist[0].GetYaxis().SetRangeUser(ymin*0.5,ymax*5.)
         leg.Draw()
         canv.cd(2)
@@ -1638,12 +1688,6 @@ class TemplatesApp(PlotApp):
                 for cat in categories.keys():
                     print "tree: template %s - %s" % (component,cat)
                     tree=self.treeData("template_%s_%s_%s" % (component,name,cat) )
-                    tree.Print()
-                    print "tree entries", tree.GetEntries()
-                    h1=ROOT.TH1F("h1","h1",2,0.,1.)
-                    tree.Draw("1>>h1","weight","goff")
-                    integral=h1.Integral()
-                    print integral
                     print "template %s - %s" % (component,cat), self.rooData("template_%s_%s_%s" % (component,name,cat) ).sumEntries()
                     print "number of entries template %s - %s" % (component,cat), self.rooData("template_%s_%s_%s" % (component,name,cat) ).numEntries()
             print 
