@@ -372,7 +372,7 @@
 		"redo" : true,
 		"doDataMc" : false, "doMcTruth" : true,
                 "template_binning" : [ 0.0,0.1,5.0,15.0],
- 
+                "_template_binning" : [ 0.0,0.1,0.3,0.5,1.0,2.0,3.0,5.0,10.0,15.0], 
                 "lowerLimitSigRegion2D": "0.", 
                 "_upperLimitSigRegion2D": "4.", 
                 "_upperLimitSigRegion1D": "5.", 
@@ -381,6 +381,9 @@
 		"mass_binning" :"mass[13000,200.0,13000.0]"
 		}
 	},
+    "corrPlot":{
+                "categories" :["EB","EE"]
+    },
    "nominalFit":{
         "3_components":{
                 "dimensions" :"2D", 
