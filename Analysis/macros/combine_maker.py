@@ -1142,11 +1142,11 @@ kmax * number of nuisance parameters (source of systematic uncertainties)
                     dsetPdf.Print()
                     dset.Print()
 
+                roobsArg=ROOT.RooArgSet(roobs)
                 if options.use_templates:
                     rootempl_binning= rootempl.getBinning("templateBinning%s" % cat)
                     dset.addColumn(templfunc)
                     rootemps=ROOT.RooArgSet(roobs,rootempl)
-                    roobsArg=ROOT.RooArgSet(roobs)
                 else:
                     rootemps=ROOT.RooArgSet(roobs)
                 

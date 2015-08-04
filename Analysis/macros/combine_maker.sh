@@ -76,7 +76,7 @@ label="$shapes"
 
 input=${version}_${fitname}_final_ws.root
 input_log=${version}_${fitname}_final_ws.log
-treesdir=~musella/public/workspace/exo/
+treesdir=/afs/cern.ch/user/m/musella/public/workspace/exo/
 workdir=${version}_${fitname}_${label}_lumi_${lumi}
 
 if [[ -n $bias ]]; then
