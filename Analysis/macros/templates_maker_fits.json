@@ -236,8 +236,8 @@
             "#" : "single photon: looks at single photon selection",
 
             "ndim"       : 1,
-            "bins"       : [ "phoPt", [100,6000] ],
-            "dataset_variables" : ["phoPt","phoPhoIso","phoRndConePhoIso","phoPhoIsoEA","phoEta","phoScEta","phoPhi","phoEnergy := phoPt*cosh(phoEta)","phoSigmaIeIe","phoGenIso","phoMatchType","rho","nvtx"],
+            "bins"       : [ "phoPt", [100,7000] ],
+            "dataset_variables" : ["phoPt","phoPhoIso","phoRndConePhoIso","phoPhoIsoEA","phoEta","phoScEta","phoPhi","phoEnergy := phoPt*cosh(phoEta)","phoSigmaIeIe","phoGenIso","phoMatchType"],
 	    "template_binning" : [0.0,0.1,5.0,15.0],
             "store_trees"  : true,
             "selection"    : "cicNoChIsoSinglePho",

@@ -13,8 +13,12 @@
 		 	      "EBHighR9" : "EBLowR9",
 			      "EEHighR9" : "EELowR9"
 		  },
+<<<<<<< HEAD
 		  "weight_cut"   : "weight < 5.",
 		  "model" : "moddijet"
+=======
+		  "weight_cut"   : "weight < 5."
+>>>>>>> 7a1db9852043c085185c6eb9cd00fb3c4bf73cca
 	    },	    
 	    "ff" : { 
 	    	 "shape":"mctruth_ff", "norm":"mctruth_ff",

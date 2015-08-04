@@ -4,8 +4,10 @@
 version=$1 && shift
 
 fitname=2D 
-#www=~/www/exo/
-www=/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/
+www=~/www/exo/
+if [[ $(whoami) == "mquittna" ]]; then
+    www=/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/
+fi
 
 shapes="default_shapes"
 
@@ -20,6 +22,13 @@ while [[ -n $1 ]]; do
 	    ;;
 	--www)
 	    www=$2
+	    shift
+	    ;;
+	--verbose)
+	    verbose="--verbose"
+	    ;;
+	--redo-input)
+	    rerun="1"
 	    shift
 	    ;;
 	--label)
@@ -89,7 +98,7 @@ mkdir $workdir
 
 mkdir $www/$version
 
-if [[ ! -f $input ]]; then
+if [[ -n $rerun  ]] || [[ ! -f $input ]]; then
     echo "**************************************************************************************************************************"
     echo "creating $input"
     echo "**************************************************************************************************************************"
@@ -98,13 +107,13 @@ if [[ ! -f $input ]]; then
         subset="2D,singlePho"
         mix="--mix-templates"
     fi
-    ./templates_maker.py --load templates_maker.json,templates_maker_fits.json --only-subset $subset --input-dir $treesdir/$version -o $input 2>&1 | tee $input_log
+    ./templates_maker.py --load templates_maker.json,templates_maker_fits.json --only-subset $subset $mix --input-dir $treesdir/$version -o $input $verbose 2>&1 | tee $input_log
     echo "**************************************************************************************************************************"
 elif [[ -n $mix ]]; then
     echo "**************************************************************************************************************************"
     echo "running event mixing"
-    echo "**************************************************************************************************************************"
-    ./templates_maker.py --read-ws $input $mix 2>&1 | tee mix_$input_log
+    echo "**************************************************************************************************************************"    
+    ./templates_maker.py --load templates_maker_fits.json --read-ws $input $mix $verbose 2>&1 | tee mix_$input_log
     echo "**************************************************************************************************************************"
 fi
 
@@ -117,6 +126,7 @@ echo "**************************************************************************
     --fit-background \
     --generate-signal \
     --generate-datacard \
+    --plot-norm-dataset \
     --binned-data-in-datacard \
     --read-ws $input \
     --ws-dir $workdir \

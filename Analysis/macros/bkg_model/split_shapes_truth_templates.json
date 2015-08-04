@@ -17,7 +17,6 @@
 		  },
 		  "add_sideband" : "pf",
 		  "weight_cut"   : "weight < 5.",
-		  "model" : "moddijet"
 	    },	    
 	    "ff" : { 
 	    	 "shape":"template_pf", "norm":"mctruth_ff",

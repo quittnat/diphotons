@@ -146,7 +146,7 @@
 	}, 
 	
     "plots": [
-	      ["mass" ,[["Rebin",10],["ytitle","Events / %(binw)s GeV"],["xtitle","m_{#gamma #gamma} (GeV)"],["xrange",[100.0,6000.0]]],null,null,["data"]],
+	      ["mass" ,[["Rebin",10],["ytitle","Events / %(binw)s GeV"],["xtitle","m_{#gamma #gamma} (GeV)"],["xrange",[270.0,7000.0]]],null,null,["data"]],
 	      ["leadPt" ,[["Rebin",5],["ytitle","Events / %(binw)s GeV"],["xtitle","p_{T}(#gamma 1) (GeV)"],["xrange",[100.0,6000.0]]],null,null],
 	      ["subleadPt" ,[["Rebin",5],["ytitle","Events / %(binw)s GeV"],["xtitle","p_{T}(#gamma 2) (GeV)"],["xrange",[100.0,6000.0]]],null,null],
 	      ["leadChIso" ,   [["ytitle","Events / %(binw)s GeV"],["xtitle","#gamma_{1} charged isolation (GeV)"],["xrange",[0,20]]],null,null,["sig"]],

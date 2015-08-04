@@ -43,6 +43,23 @@ def computeShapeWithUnc(histo,extraerr=None):
     
 
 ## ----------------------------------------------------------------------------------------------------------------------------------------
+class rooImport:
+
+    def __init__(self,target):
+        self.import_ = getattr(target,"import")
+        
+    def __call__(self,*args):
+        if len(args) == 1:
+            try:
+                # workaround for https://sft.its.cern.ch/jira/browse/ROOT-6785
+                self.import_(args[0],ROOT.RooCmdArg())
+            except:
+                # for actual TObjects
+                self.import_(args[0])
+        else:
+            self.import_(*args)
+            
+## ----------------------------------------------------------------------------------------------------------------------------------------
 class LookUp:
     def __init__(self,target,method):
         self.method_ = method
@@ -65,6 +82,10 @@ class WsList:
     def append(self,what):
         self.container_.append(what)
     
+    def Print(self,opt=""):
+        for w in self.container_:
+            w.Print(opt)
+        
     def __getattr__(self,method):
         return LookUp(self,method)
     
@@ -226,7 +247,12 @@ class TemplatesApp(PlotApp):
         from ROOT import RooAbsData
         import diphotons.Utils.pyrapp.style_utils as style_utils
         ROOT.gSystem.Load("libdiphotonsUtils")
-         
+        if ROOT.gROOT.GetVersionInt() >= 60000:
+            ROOT.gSystem.Load("libdiphotonsRooUtils")
+            ROOT.gSystem.AddIncludePath("-I$CMSSW_BASE/include")
+            ROOT.gROOT.ProcessLine('#include "diphotons/Utils/interface/DataSetFiller.h"')
+            ROOT.gROOT.ProcessLine('#include "diphotons/Utils/interface/DataSetMixer.h"')
+
         ROOT.gStyle.SetOptStat(111111)
 
     ## ------------------------------------------------------------------------------------------------------------
@@ -265,7 +291,9 @@ class TemplatesApp(PlotApp):
             self.readWs(options,args)
         elif not options.skip_templates:
             self.prepareTemplates(options,args)
-
+            
+        if options.verbose:
+            print "Read workspace"
 
     ## ------------------------------------------------------------------------------------------------------------
     def __call__(self,options,args):
@@ -282,6 +310,8 @@ class TemplatesApp(PlotApp):
         self.setup(options,args)
         
         if options.mix_templates:
+            if options.verbose:
+                print "calling mix templates"
             self.mixTemplates(options,args)
             
         if options.compare_templates:
@@ -380,7 +410,8 @@ class TemplatesApp(PlotApp):
 
         if not self.workspace_:
             self.workspace_ = ws
-            self.workspace_.rooImport = getattr(self.workspace_,"import")
+            ## self.workspace_.rooImport = getattr(self.workspace_,"import")
+            self.workspace_.rooImport = rooImport(self.workspace_)
         else:
             self.rooImportItr( ws.allVars(), verbose=options.verbose )
             self.rooImportItr( ws.allFunctions(), verbose=options.verbose )
@@ -466,7 +497,8 @@ class TemplatesApp(PlotApp):
             
             self.workspace_input_ = WsList(self.workspace_)
             self.workspace_ = ROOT.RooWorkspace("wtemplates","wtemplates")
-            self.workspace_.rooImport = getattr(self.workspace_,"import")
+            ## self.workspace_.rooImport = getattr(self.workspace_,"import")
+            self.workspace_.rooImport = rooImport(self.workspace_)
             
     
     
@@ -1573,7 +1605,8 @@ class TemplatesApp(PlotApp):
             self.categories_ = options.categories
             
         ## create output workspace
-        self.workspace_.rooImport = getattr(self.workspace_,"import")
+        ## self.workspace_.rooImport = getattr(self.workspace_,"import")
+        self.workspace_.rooImport = rooImport(self.workspace_)
 
         ## read and store list of aliases. will be defined later in all trees
         for var in options.aliases:
@@ -1710,11 +1743,16 @@ class TemplatesApp(PlotApp):
     ## ------------------------------------------------------------------------------------------------------------
     def doMixTemplates(self,options,args):
         
+        print
+        print "--------------------------------------------------------------------------------------------------------------------------"
+        print "Mixing templates "
+        print 
+        
         for name, mix in options.mix.iteritems():
             if name.startswith("_"): continue
             print
             print "--------------------------------------------------------------------------------------------------------------------------"
-            print "Mixing templates %s" % name
+            print "Mixing %s" % name
             print 
 
             targetName      = mix["target"]
@@ -1863,7 +1901,8 @@ class TemplatesApp(PlotApp):
         if keepOld:
             self.workspace_input_.append(self.workspace_)
         self.workspace_ = ROOT.RooWorkspace("wtemplates","wtemplates")
-        self.workspace_.rooImport = getattr(self.workspace_,"import")
+        ## self.workspace_.rooImport = getattr(self.workspace_,"import")
+        self.workspace_.rooImport = rooImport(self.workspace_)
         
     
     ## ------------------------------------------------------------------------------------------------------------
@@ -1876,7 +1915,7 @@ class TemplatesApp(PlotApp):
 
     ## ------------------------------------------------------------------------------------------------------------
     def reducedRooData(self,name,rooset,binned=False,weight="weight",sel=None,redo=False,importToWs=True):
-        data = self.rooData("reduced_%s" % name)
+        data = self.rooData("reduced_%s" % name,quiet=True)
         if not data or redo:
             data = self.rooData(name,rooset=rooset,weight=weight,sel=sel,redo=redo)
             if binned:
@@ -1901,12 +1940,16 @@ class TemplatesApp(PlotApp):
         rooHistFunc = self.workspace_.function(name)
         if not rooHistFunc and self.store_new_:
             rooHistFunc = self.workspace_input_.function(name)            
+        if not rooHistFunc:
+            print "Warning failed to read %s" % name
+            self.workspace_.Print()
+            self.workspace_input_.Print()
         return rooHistFunc
 
 
 
     ## ------------------------------------------------------------------------------------------------------------
-    def rooData(self,name,autofill=True,rooset=None,weight="weight",sel=None,redo=False):
+    def rooData(self,name,autofill=True,rooset=None,weight="weight",sel=None,redo=False,quiet=False):
         if name in self.cache_ and not redo:
             return self.cache_[name]        
         dataset = self.workspace_.data(name)
@@ -1914,8 +1957,12 @@ class TemplatesApp(PlotApp):
             dataset = self.workspace_input_.data(name)
             if self.store_inputs_ and dataset:
                 self.workspace_.rooImport(dataset)
-
+                
         if not dataset:
+            if not quiet:
+                print "warning : dataset %s not found" % name
+                self.workspace_.Print()
+                self.workspace_input_.Print()
             return dataset
 
         if autofill and dataset.sumEntries() == 0.:

@@ -2,6 +2,6 @@
 
 gSystem->Load("libdiphotonsUtils");
 gSystem->Load("libHiggsAnalysisCombinedLimit");
-wtemplates->exportToCint("w");
+//wtemplates->exportToCint("w");
 
 }

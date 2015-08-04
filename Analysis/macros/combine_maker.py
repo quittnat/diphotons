@@ -113,6 +113,10 @@ class CombineApp(TemplatesApp):
                                     default=None,
                                     help="correlation matrix between nuisance parameters",
                                     ),
+                        ## make_option("--select-components",dest="select_components",action="callback",callback=optpars_utils.ScratchAppend(),
+                        ##             default=[],
+                        ##             help="only consider subset of background components"
+                        ##             ),
                         make_option("--bkg-shapes",dest="bkg_shapes",action="callback",callback=optpars_utils.Load(scratch=True),
                                     type="string",
                                     default={ "bkg" : {
@@ -214,6 +218,8 @@ class CombineApp(TemplatesApp):
         
         import diphotons.Utils.pyrapp.style_utils as style_utils
         ROOT.gSystem.Load("libdiphotonsUtils")
+        if ROOT.gROOT.GetVersionInt() >= 60000:
+            ROOT.gSystem.Load("libdiphotonsRooUtils")
         
         self.pdfPars_ = ROOT.RooArgSet()
 
@@ -233,6 +239,8 @@ class CombineApp(TemplatesApp):
         options.only_subset = [options.fit_name]
         options.store_new_only=True
         options.components = options.bkg_shapes.keys()
+        ### if options.select_components:
+        ###     options.components = [ comp for comp in options.components if comp in options.select_components ]
         self.use_custom_pdfs_ = options.use_custom_pdfs
         #self.save_params_.append("luminosity")
 
@@ -668,7 +676,7 @@ kmax * number of nuisance parameters (source of systematic uncertainties)
                 rootempls.add( self.buildRooVar("templateNdim%dDim%d" %(ndim,idim), fit["template_binning"]) )
                 nb = len(fit["template_binning"])-1
                 nb *= nb
-            templfunc,unrol_widths = self.histounroll_book(fit["template_binning"],rootempls,importToWs=False,buildHistFunc="templateNdim%d_unroll" % ndim)
+            templfunc,unrol_widths = self.histounroll_book(fit["template_binning"],rootempls,importToWs=False,buildHistFunc="templateNdim%d_unroll" % ndim)            
             unrol_binning = array.array( 'd', [ float(bound) for bound in range(nb+1) ] )
             unrol_widths = array.array( 'd', [ 1. for bound in range(nb) ] )
             assert( len(unrol_binning) == len(unrol_widths)+1 )
@@ -1064,7 +1072,8 @@ kmax * number of nuisance parameters (source of systematic uncertainties)
             self.workspace_.rooImport(templfunc)
             self.workspace_.rooImport(rootempl)
         
-        self.workspace_.Print()
+        if options.verbose:
+            self.workspace_.Print()
         # done
         self.saveWs(options)
        
