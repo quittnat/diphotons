@@ -39,7 +39,7 @@ while [[ -n $1 ]]; do
 	    templates="semiparam"
 	    opts="$opts $1"
 	    ;;
-        --mix-templates)
+    --mix-templates)
             mix="--mix-templates"
             ;;
 	--bkg-shapes)

@@ -36,7 +36,7 @@ class CombineApp(TemplatesApp):
                                     help="Fit to consider"),
                         make_option("--observable",dest="observable",action="store",type="string",
                                     ## default="mgg[2650,300,6000]",
-                                    default="mgg[3350,300,7000]",
+                                    default="mgg[3350,270,7000]",
                                     help="Observable used in the fit default : [%default]",
                                     ),
                         make_option("--fit-background",dest="fit_background",action="store_true",default=False,
