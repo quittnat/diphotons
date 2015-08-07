@@ -1,10 +1,10 @@
 {
 	#include <vector>
 	#include "TH1.h"
+	#include <algorithm> 
 	using namespace RooFit;
 	gSystem->Load("libHiggsAnalysisCombinedLimit");
 	gSystem->Load("libdiphotonsUtils");
- 
 	//TODO includes etc
 	//do each component per category + control
  	TFile* nomfitresfile = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_lumi_5/multidimfit_fit_self.root");
@@ -30,9 +30,9 @@
 	nomfitresfile->cd();
 	const TMatrixDSym & cov=fit->covarianceMatrix();
 	
-	//const int nsampling=500;
 	const int nsampling=500;
-    //const int nbins=191;
+//	const int nsampling=50;
+    const int nbins=140;
 	//get correct number of bins
     const int nbins=10;
 	Double_t intPdfs[nsampling][nbins];
@@ -65,18 +65,19 @@
 			*/
 	     	ws::mgg.setRange("bin_region",ws::mgg.getMin(),max);
 			intBin=randPdf.createIntegral(ws::mgg,"bin_region").getVal()  ;
-			//cout << " intBin " << intBin << " divided by intRange " << intBin/intSig << endl;
+//			cout << " intBin " << intBin << " divided by intRange " << intBin/intSig << endl;
 		 	intPdfs[r][bin]=intBin/intSig;
+
 		}
 	}
 //plot result
 	gStyle->SetOptStat(111111);
 //	std::vector< TH1F * > histVec;
-	Double_t quant28[nbins] ;	
-	Double_t quant41[nbins] ;	
+	Double_t quant2p5[nbins] ;	
+	Double_t quant16[nbins] ;	
 	Double_t quant50[nbins] ;	
-	Double_t quant59[nbins] ;	
-	Double_t quant73[nbins] ;	
+	Double_t quant84[nbins] ;	
+	Double_t quant975[nbins] ;	
 	for(int bin=0;bin< nbins;bin++)
 	{
 		cout << "---------- plot result ----------" << endl;
@@ -84,9 +85,18 @@
 			//get max min values from array
 			//throw toys to see if works
 			//
+		double xmin=1.;
+		double xmax=0.;
+		//get min and max element for histo
+		for(unsigned int j=0; j<nsampling; ++j){
+				if(intPdfs[j][bin] > xmax){
+         			xmax = intPdfs[j][bin];
+				}
+				if(intPdfs[j][bin] < xmin){
+         			xmin = intPdfs[j][bin];
+				}
+		  }
 		int nbin=100;
-		Double_t xmin=0.0;
-		Double_t xmax=1.0;
 		TH1F* hist=new TH1F("hist","hist",nbin,xmin, xmax);
   		TH1F *cum = new TH1F("cum","cum", nbin, xmin, xmax);
 		for(int samp=0; samp< nsampling; samp++)
@@ -96,9 +106,7 @@
 		}
   	//	c1->Divide(1,2);
   	//	c1->cd(1);
-	//	hist->GetXaxis()->SetLimits(hist->GetXaxis()->GetXmin(), hist->GetXaxis()->GetXmax()  );
 	//	hist->Draw();
-	//	hist->GetXaxis()->SetLimits((hist->GetMean())-(hist->GetMean()*0.9), (hist->GetMean())+(hist->GetMean()*0.9)  );
 		for(int samp=0; samp< nsampling; samp++)
 		{
 			if(intPdfs[samp][bin] < fabs(hist->GetMean()*0.05))
@@ -108,7 +116,7 @@
 	    		canvi->SetLogx();
 	    		randPdf->plotOn(framei,LineColor(kBlack));
 	    		framei->Draw();
-		  		canvi->SaveAs(Form("/afs/cern.ch/m/mquittna/www/diphoton/Phys14/plots_fit_bias/checkDiff_samp%i_bin%i.png",samp,bin));
+		  		canvi->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_fit_bias/checkDiff_samp%i_bin%i.png",samp,bin));
 			}
 		}		
   		// We compute the cumulative version of "gau"
@@ -116,32 +124,27 @@
   		for (int i=0;i<nbin;i++)
     	{
      		total += hist->GetBinContent(i);
-     		for (int k=0;k<total;k++)
+     		for (int m=0;m<total;m++)
        		{
         		cum->AddBinContent(i);
        		}
     	}
   		double norme = 1/hist->Integral();
-  		cout << norme << endl;
  		cum->Scale(norme);
   	//	c1->cd(2);
-  //	cum->Draw();
+  	//	cum->Draw();
+	//	c1->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_fit_bias/Histo_bin%i.png",bin));
 //compute 68 and 85 percent
 		const int qn=5;
 		Double_t quant[qn] ;	
 		Double_t nquant[qn] ;	
-		Double_t prob[qn]={0.275,0.41,0.5,0.59,0.725};
-        for (Int_t q =0;q<qn;q++){ 
-			cum->GetQuantiles(qn,quant,prob);
-		}
-		quant28[bin]=quant[0];	
-		quant41[bin]=quant[1];	
+		Double_t prob[qn]={0.025,0.16,0.5,0.84,0.975};
+		cum->GetQuantiles(qn,quant,prob);
+		quant2p5[bin]=quant[0];	
+		quant16[bin]=quant[1];	
 		quant50[bin]=quant[2];	
-		quant59[bin]=quant[3];	
-		quant73[bin]=quant[4];	
-		cout << quant[0] << " " << quant[1] << " " quant[2] << " " << quant[3] << " " <<  quant[4] << endl;
-//		canvi->SaveAs(Form("/afs/cern.ch/m/mquittna/www/diphoton/Phys14/plots_fit_bias/Histo_bin%i.png",bin));
-	//	histVec->push_back(hist);
+		quant84[bin]=quant[3];	
+		quant975[bin]=quant[4];	
 		delete hist;
 		delete cum;
 		
@@ -149,38 +152,50 @@
 	//plot 68 and 95 percent 	
 	TCanvas *cbias = new TCanvas("cbias","bias on model",10,10,700,900);
 	//get mass bins, set legend
-	TGraph *gr28 = new TGraph(nbins,massbins,quant28);
-	TGraph *gr41 = new TGraph(nbins,massbins,quant41);
+	TGraph *gr2p5 = new TGraph(nbins,massbins,quant2p5);
+	TGraph *gr16 = new TGraph(nbins,massbins,quant16);
 	TGraph *gr50 = new TGraph(nbins,massbins,quant50);
-	TGraph *gr59 = new TGraph(nbins,massbins,quant59);
-	TGraph *gr73 = new TGraph(nbins,massbins,quant73);
-	gr28->SetMarkerStyle(21);
-	gr41->SetMarkerStyle(21);
+	TGraph *gr84 = new TGraph(nbins,massbins,quant84);
+	TGraph *gr975 = new TGraph(nbins,massbins,quant975);
+	gr2p5->SetMarkerStyle(21);
+	gr16->SetMarkerStyle(21);
 	gr50->SetMarkerStyle(21);
-	gr59->SetMarkerStyle(21);
-	gr73->SetMarkerStyle(21);
-	gr28->SetMarkerColor(kBlue);
-	gr41->SetMarkerColor(kRed);
+	gr84->SetMarkerStyle(21);
+	gr975->SetMarkerStyle(21);
+	gr2p5->SetMarkerColor(kBlue);
+	gr16->SetMarkerColor(kRed);
 	gr50->SetMarkerColor(kBlack);
-	gr59->SetMarkerColor(kRed);
-	gr73->SetMarkerColor(kBlue);
-	gr28->Draw("ap"); 
-	gr41->Draw("p SAME"); 
+	gr84->SetMarkerColor(kRed);
+	gr975->SetMarkerColor(kBlue);
+	gr2p5->Draw("ap"); 
+	gr16->Draw("p SAME"); 
 	gr50->Draw("p SAME"); 
-	gr59->Draw("p SAME"); 
-	gr73->Draw("p SAME"); 
-    gr28->GetXaxis()->SetTitle("mass (GeV)");
+	gr84->Draw("p SAME"); 
+	gr975->Draw("p SAME"); 
+    gr2p5->GetXaxis()->SetTitle("mass (GeV)");
     TLegend* leg = new TLegend(0.55, 0.85, .9, .95);
     leg->SetFillColor(0);
 	leg->SetHeader("uncertainty");
-    leg->AddEntry(gr28,"minus 95%" ,"p");
-    leg->AddEntry(gr73,"plus 95%" ,"p");
-    leg->AddEntry(gr50,"minus 68%" ,"p");
-    leg->AddEntry(gr59,"plus 68%" ,"p");
+    leg->AddEntry(gr2p5,"minus 95%" ,"p");
+    leg->AddEntry(gr975,"plus 95%" ,"p");
+    leg->AddEntry(gr16,"minus 68%" ,"p");
+    leg->AddEntry(gr84,"plus 68%" ,"p");
     leg->AddEntry(gr50,"50 %" ,"p");
 	leg->Draw();
-	cbias->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_fit_bias/cbias_pp_EBEB.png"));
+//	cbias->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_fit_bias/cbias_pp_EBEB.png"));
+	cbias->SaveAs(Form("cbias_pp_EBEB.png"));
 }
+/*
+void max_min(int *a, int n, int *minn, int *maxx)  {
+   int i;
+   for(i = 0; i < n; i++ )  {
+      if(a[i] > maxx)
+         maxx = array[i];
+ 
+      //add the if statement for minn, here
+   }
+}
+*/
 
 /*
 void PrintProgress(Long64_t entry)
