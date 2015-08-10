@@ -7,6 +7,7 @@
 	using namespace RooFit;
 	gSystem->Load("libHiggsAnalysisCombinedLimit");
 	gSystem->Load("libdiphotonsUtils");
+	bool check= false;
 	//TODO includes etc
 	//do each component per category + control
  	TFile* nomfitresfile = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_lumi_5/multidimfit_fit_self.root");
@@ -14,31 +15,32 @@
 	fitpdffile->cd();
 	w->getSnapshot("MultiDimFit");
 	w->exportToCint("ws");
-	std::string compList[]={"pp_EBEB", "pf_EBEB", "ff_EBEB", "pp_EBEE","pf_EBEE","ff_EBEE","pf_EBEB_control","pf_EBEE_control"}; 
+//	std::string compList[]={"pp_EBEB", "pf_EBEB", "ff_EBEB", "pp_EBEE","pf_EBEE","ff_EBEE","pf_EBEB_control","pf_EBEE_control"}; 
+	std::string compList[]={"pp_EBEB"}; 
 	std::list<std::string> components(compList,compList+sizeof(compList)/sizeof(std::string)); 
-/*
+
 	for(std::list<std::string>::iterator it = components.begin(); it != components.end(); ++it) {
+		fitpdffile->cd();
 		TString comp=*it;
-		TString fitShapeName=Form("ws::shapeBkg_%s", comp.Data());
+		TString fitShapeName=Form("shapeBkg_%s", comp.Data());
+		cout << fitShapeName.Data() << endl;
 		if(comp.Data()=="pf_EBEE_control"|| comp.Data()=="pf_EBEB_control"){
-			TString j=comp.Data();
-			j.erase (j.end()-8,j.end());  
-			TString fitNormName=Form("ws::shapeBkg_%s__norm", comp.Data());
+			TString co=comp.Data();
+			co.erase (co.end()-8,co.end());  
+			TString fitNormName=Form("shapeBkg_%s__norm", comp.Data());
 		}
 		else {
-		TString fitNormName=Form("ws::shapeBkg_%s__norm", comp.Data());
+		TString fitNormName=Form("shapeBkg_%s__norm", comp.Data());
 		}	
-		*/
-		RooProdPdf& fitShape=ws::shapeBkg_pp_EBEB;
-	  RooProduct & fitNorm=ws::shapeBkg_pp_EBEB__norm;
-	//	cout << fitShapeName.Data() << endl;
-//		RooProdPdf& fitShape=fitShapeName.Data();
-//		RooProduct & fitNorm=fitNormName.Data();
-//		fitShape.Print();
-//		fitNorm.Print();
-//	return;
+		
+		RooProdPdf* fitShape=w->pdf(fitShapeName.Data());
+		RooProduct* fitNorm=w->function(fitNormName.Data());
+		cout << "----------- component " << comp.Data() << "----------------------" << endl;
+		fitShape->Print();
+		fitNorm->Print();
 	
-	RooExtendPdf* fitPdf=new RooExtendPdf("fitPdf","fitPdf",fitShape,fitNorm);
+	RooExtendPdf* fitPdf=new RooExtendPdf("fitPdf","fitPdf",*fitShape,*fitNorm);
+	fitPdf->Print();
 	ws::mgg.setRange("sig_region",ws::mgg.getMin(),ws::mgg.getMax());
 	RooPlot * framei = ws::mgg.frame(Title("check"),Bins(134),Range("sig_region"));
 	fitPdf->plotOn(framei,LineColor(kBlue));
@@ -48,11 +50,13 @@
 	RooExtendPdf* randPdf=new RooExtendPdf("randPdf","randPdf",randShape,randNorm);
  	RooArgSet & obs=RooArgSet(ws::mgg,ws::templateNdim2_unroll);
 	RooArgSet* pdfParams = randPdf->getParameters(obs) ;
+	
 	//get fitresult and randomize parameters in covariance matrix
 	nomfitresfile->cd();
 	//const TMatrixDSym & cov=fit->covarianceMatrix();
 	const int nbins=140;
-	const int nsampling=500;
+	const int nsampling=100;
+	//const int nsampling=500;
 	//get correct number of bins
 	Double_t intPdfs[nsampling][nbins];
 	Double_t massbins[nbins];
@@ -71,8 +75,8 @@
 	  	for(int bin=0; bin <nbins;++bin){
 			Double_t intBin=0.;
 			Double_t max= ws::mgg.getMin() + binning*bin +binning;
-			//massbins[bin]=max;
-			if(bin==0)
+			massbins[bin]=max;
+			/*if(bin==0)
 			{
 			massbins[bin]=(max-ws::mgg.getMin())/2.;
 			}
@@ -80,7 +84,7 @@
 			{
 			massbins[bin]=(max-massbins[bin-1])/2.;
 			}
-			
+			*/
 	     	ws::mgg.setRange("bin_region",ws::mgg.getMin(),max);
 			intBin=randPdf.createIntegral(ws::mgg,"bin_region").getVal()  ;
 		 	intPdfs[r][bin]=intBin/intSig;
@@ -93,7 +97,7 @@
 	Double_t quant95[nbins] ;	
 	for(int bin=0;bin< nbins;bin++)
 	{
-		cout << "---------- plot result ----------" << endl;
+		cout << "---------- plot result "<< bin << " ----------" << endl;
 		double xmin=1.;
 		double xmax=0.;
 		//get min and max element for histo
@@ -129,8 +133,8 @@
 	    		canvi->SetLogx();
 	    		randPdf->plotOn(framei,LineColor(kBlack));
 	    		framei->Draw();
-		  		canvi->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_fit_bias/checkDiff_samp%i_bin%i.png",samp,bin));
-		  		canvi->SaveAs(Form("checkDiff_samp%i_bin%i.png",samp,bin));
+		  		canvi->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_fit_bias/checkDiff_%s__samp_%i_bin%i.png",comp.Data(),samp,bin));
+		  		canvi->SaveAs(Form("checkDiff_%s_samp_%i_bin%i.png",comp.Data(),samp,bin));
 			}
 		}		
   		// We compute the cumulative
@@ -149,8 +153,8 @@
 		{
   			c1->cd(2);
   			cum->Draw();
-			c1->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_fit_bias/Histo_bin%i.png",bin));
-			c1->SaveAs(Form("Histo_bin%i.png",bin));
+			c1->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_fit_bias/Histo_%s_bin%i.png",comp.Data(),bin));
+			c1->SaveAs(Form("Histo_%s_bin%i.png",comp.Data(),bin));
 		}
 		//compute 68 and 85 percent
 		const int qn=5;
@@ -164,7 +168,6 @@
 		delete cum;
 		
 	}
-	Double_t quant68=
 	//plot 68 and 95 percent 	
 	TCanvas *cbias = new TCanvas("cbias","bias on model",10,10,700,900);
 	//get mass bins, set legend
@@ -172,34 +175,27 @@
 	TGraph *gr95 = new TGraph(nbins,massbins,quant95);
 	gr68->SetMarkerStyle(21);
 	gr95->SetMarkerStyle(21);
-	gr68->SetMarkerColor(kBlue);
-	gr95->SetMarkerColor(kRed);
-	gr68->Draw("ap"); 
-	gr95->Draw("p SAME"); 
+	gr68->SetMarkerColor(kYellow);
+	gr68->SetLineColor(gr68->GetMarkerColor);
+	gr68->SetFillColor(gr68->GetMarkerColor());
+	gr95->SetMarkerColor(kGreen+1);
+	gr95->SetMarkerColor(gr95->GetMarkerColor);
+	gr95->SetFillColor(gr95->GetMarkerColor());
+	gr68->Draw("alpC"); 
+	gr95->Draw("lpC SAME"); 
     gr68->GetXaxis()->SetTitle("mass (GeV)");
     TLegend* leg = new TLegend(0.55, 0.85, .9, .95);
     leg->SetFillColor(0);
 	leg->SetHeader("uncertainty");
-    leg->AddEntry(gr68,"68%" ,"p");
-    leg->AddEntry(gr95,"95%" ,"p");
+    leg->AddEntry(gr68,"68%" ,"l");
+    leg->AddEntry(gr95,"95%" ,"l");
 	leg->Draw();
-	cbias->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_fit_bias/cbias_pp_EBEB.png"));
-	cbias->SaveAs(Form("cbias_pp_EBEB.png"));
-	cbias->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_fit_bias/cbias_pp_EBEB.root"));
-	cbias->SaveAs(Form("cbias_pp_EBEB.root"));
-//	}
+	cbias->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_fit_bias/cbias_%s.png",comp.Data()));
+	cbias->SaveAs(Form("cbias_%s.png",comp.Data()));
+	cbias->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_fit_bias/cbias_%s.root",comp.Data()));
+	cbias->SaveAs(Form("cbias_%s.root",comp.Data()));
+	}
 }
-/*
-void max_min(int *a, int n, int *minn, int *maxx)  {
-   int i;
-   for(i = 0; i < n; i++ )  {
-      if(a[i] > maxx)
-         maxx = array[i];
- 
-      //add the if statement for minn, here
-   }
-}
-*/
 
 /*
 void PrintProgress(Long64_t entry)
