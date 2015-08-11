@@ -21,7 +21,7 @@
 
 	//const int nbins=135;
 	const int nbins=100;
-	const int nsampling=100;
+	const int nsampling=10;
 	
 	for(std::list<std::string>::iterator it = components.begin(); it != components.end(); ++it) {
 		TString comp=*it;
@@ -39,11 +39,11 @@
 		fittruthShape->Print();
 		fittruthNorm->Print();
 		wTruth::mgg.setRange("sigTruth_region",wTruth::mgg.getMin(),wTruth::mgg.getMax());
+		wTruth::templateNdim2_unroll.setRange("sigTruth_region",wTruth::templateNdim2_unroll.getMin(),wTruth::templateNdim2_unroll.getMax());
+		//wTruth::templateNdim2_unroll.setRange(0.,4.);
 		RooExtendPdf* fittruthPdf=new RooExtendPdf("fittruthPdf","fittruthPdf",*fittruthShape,*fittruthNorm);
 		Double_t inttruthSig=fittruthPdf.createIntegral(obsTruth,"sigTruth_region").getVal()  ;
 		fittruthPdf->Print();
-		RooPlot * framei = wTruth::mgg.frame(Title("check"),Bins(nbins),Range("sigTruth_region"));
-		fittruthPdf->plotOn(framei,LineColor(kRed));
 
 		//load nominal pdf
 		nompdffile->cd();
@@ -51,6 +51,9 @@
 		w->exportToCint("wNom");
 		RooArgSet & obsNom=RooArgSet(wNom::mgg,wNom::templateNdim2_unroll);
 		wNom::mgg.setRange("sig_region",wNom::mgg.getMin(),wNom::mgg.getMax());
+		wNom::templateNdim2_unroll.setRange("sig_region",wNom::templateNdim2_unroll.getMin(),wNom::templateNdim2_unroll.getMax());
+//		wNom::templateNdim2_unroll.setRange(0.,9.);
+		RooPlot * framei = wNom::mgg.frame(Title("check"),Bins(nbins),Range("sigTruth_region"));
 		RooProdPdf* fitnomShape=w->pdf(fitShapeName.Data());
 		RooProduct* fitnomNorm=w->function(fitNormName.Data());
 		fitnomShape->Print();
@@ -60,6 +63,7 @@
 		intnomSig=fitnomPdf.createIntegral(obsNom,"sig_region").getVal()  ;
 		fitnomPdf->Print();
 		fitnomPdf->plotOn(framei,LineColor(kBlue));
+		fittruthPdf->plotOn(framei,LineColor(kRed));
 		w->loadSnapshot("MultiDimFit");
 		RooProdPdf* randShape=w->pdf(fitShapeName.Data());
 		RooProduct* randNorm=w->function(fitNormName.Data());
@@ -81,8 +85,7 @@
 				Double_t intBin=0.;
 				max[bin]= wNom::mgg.getMin() + binning*bin +binning;
 				min[bin]= wNom::mgg.getMin() + binning*bin;
-				if(bin==0){ massbins[bin]=(max[bin]+wNom::mgg.getMin())/2.;}
-				else{massbins[bin]=(max[bin]+massbins[bin-1])/2.;}
+				massbins[bin]=(max[bin]+min[bin])/2.;
 				
 				wNom::mgg.setRange("bin_region",min[bin],max[bin]);
 				intnomBin[bin]=(fitnomPdf.createIntegral(obsNom,"bin_region").getVal())/intnomSig  ;
@@ -90,7 +93,7 @@
 				inttruthBin[bin]=(fittruthPdf.createIntegral(obsTruth,"binTruth_region").getVal())/inttruthSig ;
 		}
 		for(int r=0;r< nsampling;++r){	
-			if(r==100 || r==300 || r==450){cout << "---------------------------------  sampling" << r << "----------" << endl;}
+			if(r==10 || r==40 ||r==100 || r==300 || r==450){cout << "---------------------------------  sampling" << r << "----------" << endl;}
 		//square root method for decomposition automatically applied
 			RooArgList & randParams=fit.randomizePars();
 			*pdfParams = randParams ;
@@ -102,7 +105,7 @@
 				intBin=randPdf.createIntegral(obsNom,"binRand_region").getVal()  ;
 				intPdfs[r][bin]=intBin/intSig;
 				//if(check && r==0){cout << intPdfs[r][bin] << " "<< intSig << " truth "<<inttruthBin[bin] <<" " << inttruthSig <<"  nom "<< intnomBin[bin] << " "<< intnomSig << endl;}
-				if( r==0){cout << massbins[bin] << " : " << intPdfs[r][bin]  << " truth "<<inttruthBin[bin] <<"  nom "<< intnomBin[bin]<< endl;}
+				//if( r==4){cout << massbins[bin] << " : " << intPdfs[r][bin]  << " truth "<<inttruthBin[bin] <<"  nom "<< intnomBin[bin]<< endl;}
 			}
 		}
 		cout << "finished randomizing + integration " << endl;
@@ -148,15 +151,15 @@
 			{
 				//if(intPdfs[samp][bin] < fabs(hist->GetMean()*0.05))
 				//if(check && (intPdfs[samp][bin] < fabs(hist->GetMean()*0.05)))
-				if(check)
-			//	if(samp==3 ||samp==50)
+			//	if(check)
+				if(bin==0 && (samp==3 ||samp==50))
 				{
 					TCanvas * canvi = new TCanvas("check","check");
 					canvi->SetLogy();
-					//canvi->SetLogx();
+					canvi->SetLogx();
 					randPdf->plotOn(framei,LineColor(kBlack));
 					framei->Draw();
-					canvi->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_fit_bias/checkDiff_%s__samp_%i_bin%i.png",comp.Data(),samp,bin));
+					canvi->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_fit_bias/checkDiff_%s__samp_%i.png",comp.Data(),samp));
 				}
 			}		
 			// We compute the cumulative
@@ -188,7 +191,7 @@
 			quant68m[bin]=intnomBin[bin]-quant[1];	
 			quant95m[bin]=intnomBin[bin]-quant[0];	
 			//pull function if diff positiv, take positv value
-			if (intnomBin[bin]<= inttruthBin[bin]){
+			if (intnomBin[bin]>= inttruthBin[bin]){
 				pull68[bin]=(intnomBin[bin]-inttruthBin[bin])/(quant[2]-intnomBin[bin]);
 				pull95[bin]=(intnomBin[bin]-inttruthBin[bin])/(quant[3]-intnomBin[bin]);
 			}
@@ -208,7 +211,7 @@
 		TGraph *grmean = new TGraph(nbins,massbins,mean);
 		gr68->SetMarkerStyle(21);
 		gr95->SetMarkerStyle(21);
-		gr68->SetMarkerColor(kYellow);
+		gr68->SetMarkerColor(kYellow+1);
 		gr68->SetLineColor(gr68->GetMarkerColor());
 		gr68->SetFillColor(gr68->GetMarkerColor());
 		gr68->SetFillStyle(3001);
