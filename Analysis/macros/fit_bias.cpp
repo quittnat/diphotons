@@ -1,28 +1,25 @@
 {
-	#include <vector>
-	#include "TH1.h"
-	#include <algorithm>
-	#include <list>
-	
+	# include <list>	
 	using namespace RooFit;
 	gSystem->Load("libHiggsAnalysisCombinedLimit");
 	gSystem->Load("libdiphotonsUtils");
 	bool check= false;
+	TString dir="/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_fit_bias_test/";
 	//TODO includes etc
  //	TFile* nomfitresfile = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_lumi_5/multidimfit_fit_self.root");
 	//TFile* truthpdffile = new TFile("full_analysis_anv0_v19_2D_truth_shapes_truth_templates_semiparam_lumi_5/higgsCombine_fit_truth.MultiDimFit.mH0.root");
 //	TFile* truthpdffile = new TFile("full_analysis_anv1_v19_2D_truth_shapes_truth_templates_semiparam_lumi_5/datacard_truth.root");
 //	TFile* nompdffile = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_lumi_5/higgsCombine_fit_self.MultiDimFit.mH0.root");
- 	TFile* nomfitresfile = new TFile("PasqualeFit/full_analysis_anv1_v19_2D_split_shapes_semiparam_lumi_5/multidimfit_fit_self.root");
-	TFile* truthpdffile = new TFile("PasqualeFit/full_analysis_anv1_v19_2D_truth_shapes_truth_templates_semiparam_lumi_5/higgsCombine_truth.GenerateOnly.mH0.123456.root");
-	TFile* nompdffile = new TFile("PasqualeFit/full_analysis_anv1_v19_2D_split_shapes_semiparam_lumi_5/higgsCombine_fit_self.MultiDimFit.mH0.root");
+ 	TFile* nomfitresfile = new TFile("PasqualeFit/full_analysis_anv1_v19_2D_split_shapes_semiparam_lumi_5/multidimfit_fit_truth.root");
+	TFile* truthpdffile =  new TFile("PasqualeFit/full_analysis_anv1_v19_2D_split_shapes_semiparam_lumi_5/higgsCombine_fit_truth.MultiDimFit.mH0.root");
+	//TFile* nompdffile = new TFile("PasqualeFit/full_analysis_anv1_v19_2D_split_shapes_semiparam_lumi_5/higgsCombine_fit_self.MultiDimFit.mH0.root");
 
 	//bkg only
 //	std::string compList[]={"pp_EBEB", "pf_EBEB", "ff_EBEB", "pp_EBEE","pf_EBEE","ff_EBEE"}; 
 	std::string compList[]={"pp_EBEB"}; 
 	std::list<std::string> components(compList,compList+sizeof(compList)/sizeof(std::string)); 
 
-	const int nsampling=300;
+	const int nsampling=200;
 	int nbins=0;
 	double binning =50.;
 	
@@ -36,47 +33,51 @@
 
 		truthpdffile->cd();
 		w->exportToCint("wTruth");
+		w->loadSnapshot("clean");
 		RooArgSet  obsTruth=RooArgSet(wTruth::mgg, wTruth::templateNdim2_unroll);
 		wTruth::templateNdim2_unroll.setRange("sigTruth_region",wTruth::templateNdim2_unroll.getMin(),wTruth::templateNdim2_unroll.getMax());
 		wTruth::templateNdim2_unroll.setRange("binTruth_region",wTruth::templateNdim2_unroll.getMin(),wTruth::templateNdim2_unroll.getMax());
+		wTruth::mgg.setRange("sigTruth_region",wTruth::mgg.getMin(),wTruth::mgg.getMax());
 		RooProdPdf* fittruthShape=w->pdf(fitShapeName.Data());
 		RooProduct* fittruthNorm=w->function(fitNormName.Data());
-		wTruth::mgg.setRange("sigTruth_region",wTruth::mgg.getMin(),wTruth::mgg.getMax());
-		
-		
 		RooExtendPdf* fittruthPdf=new RooExtendPdf("fittruthPdf","fittruthPdf",*fittruthShape,*fittruthNorm);
+		RooArgSet* truthParams = fittruthPdf->getParameters(obsTruth) ;
+		truthParams.Print("v");	
 		fittruthPdf.Print();
 		Double_t inttruthSig=fittruthPdf.createIntegral(obsTruth,"sigTruth_region").getVal()  ;
 		
+		nbins=(wTruth::mgg.getMax()-wTruth::mgg.getMin())/binning;
+		RooPlot * framei = wTruth::mgg.frame(Title("check"),Bins(nbins),Range("sigTruth_region"));
+		fittruthPdf->plotOn(framei,LineColor(kRed),Project(wTruth::templateNdim2_unroll));
+		
+		//RooArgList fitPdfs=RooArgList() 
+//		RooExtendedPdf* fitAllPdf= new RooExtendedPdf("fitAllPdf","fitAllPdf",)
+		
 		//load nominal pdf
-		nompdffile->cd();
 		w->loadSnapshot("MultiDimFit");
 		w->exportToCint("wNom");
 		RooArgSet obsNom=RooArgSet(wNom::mgg, wNom::templateNdim2_unroll);
 		wNom::mgg.setRange("sig_region",wNom::mgg.getMin(),wNom::mgg.getMax());
 		wNom::templateNdim2_unroll.setRange("sig_region",wNom::templateNdim2_unroll.getMin(),wNom::templateNdim2_unroll.getMax());
 		wNom::templateNdim2_unroll.setRange("bin_region",wNom::templateNdim2_unroll.getMin(),wNom::templateNdim2_unroll.getMax());
-		nbins=(wNom::mgg.getMax()-wNom::mgg.getMin())/binning;
-		RooPlot * framei = wNom::mgg.frame(Title("check"),Bins(nbins),Range("sigTruth_region"));
+		
 		RooProdPdf* fitnomShape=w->pdf(fitShapeName.Data());
 		RooProduct* fitnomNorm=w->function(fitNormName.Data());
-		//fitnomShape->Print();
-		//fitnomNorm->Print();	
 		RooExtendPdf* fitnomPdf=new RooExtendPdf("fitnomPdf","fitnomPdf",*fitnomShape,*fitnomNorm);
 		Double_t exptruthEvents= fittruthPdf->expectedEvents(obsTruth);
 		fitnomPdf.Print();
 		Double_t intnomSig=0. ;
 		intnomSig=fitnomPdf.createIntegral(obsNom,"sig_region").getVal()  ;
 //		cout << "truth expEvent " << fittruthPdf->expectedEvents(obsTruth) << " inttruthSig " << inttruthSig << "nom expEvent " << fitnomPdf->expectedEvents(obsNom) <<" intnomSig " << intnomSig << endl;
-		fitnomPdf->plotOn(framei,LineColor(kBlue));
-		fittruthPdf->plotOn(framei,LineColor(kRed));
+		fitnomPdf->plotOn(framei,LineColor(kBlue),Project(wNom::templateNdim2_unroll));
 		w->loadSnapshot("MultiDimFit");
 		RooProdPdf* randShape=w->pdf(fitShapeName.Data());
 		RooProduct* randNorm=w->function(fitNormName.Data());
 		RooExtendPdf* randPdf=new RooExtendPdf("randPdf","randPdf",*randShape,*randNorm);
 		Double_t expnomEvents= fitnomPdf->expectedEvents(obsNom);
 		RooArgSet* pdfParams = randPdf->getParameters(obsNom) ;
-		//pdfParams.Print("v");	
+		pdfParams.Print("v");	
+		
 		//get fitresult and randomize parameters in covariance matrix
 		nomfitresfile->cd();
 		//const TMatrixDSym & cov=fit->covarianceMatrix();
@@ -131,16 +132,16 @@
 					cout <<bin << " : " <<  intPdfs[r][bin]  << " truth "<< inttruthBin[bin] <<"  nom "<< intnomBin[bin]<< endl;
 				}
 			}
-			if( r==4 ){
+			if( r==4 && check){
 					TCanvas * canvi = new TCanvas("ccheck","ccheck");
 					canvi->SetLogy();
 					canvi->SetGridy();
 					canvi->SetGridx();
 				//	canvi->SetLogx();
-					randPdf->plotOn(framei,LineColor(kBlack));
+					randPdf->plotOn(framei,LineColor(kBlack),Project(wNom::templateNdim2_unroll));
 	    			framei->GetYaxis()->SetRangeUser(1e-7,1000);
 					framei->Draw();
-					canvi->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_fit_bias/checkDiff_%s__samp_4.png",comp.Data()));
+					canvi->SaveAs(Form("%scheckDiff_%s__samp_4.png",dir.Data(),comp.Data()));
 					delete canvi;
 			}
 		}
@@ -148,17 +149,14 @@
 		//plot result histo per bin for integral values from randomized pdfs
 		gStyle->SetOptStat(111111);
 		Double_t diff[nbins] ;	
-		Double_t quant68[nbins] ;	
 		Double_t quant50[nbins] ;	
-		Double_t quant95[nbins] ;	
-		Double_t quant68m[nbins] ;	
-		Double_t quant95m[nbins] ;	
+		Double_t err2Plus[nbins] ;	
+		Double_t err2Min[nbins] ;	
 		
 		Double_t pull[nbins] ;	
 		Double_t errPlus[nbins] ;	
 		Double_t errMin[nbins] ;	
 		Double_t difffrac[nbins] ;	
-		Double_t quant68n[nbins] ;	
 		
 		for(int bin=0;bin< nbins;bin++)
 		{
@@ -183,51 +181,43 @@
 			hist->GetQuantiles(qn,quant,prob);
 			diff[bin]= intnomBin[bin]-inttruthBin[bin];	
 			difffrac[bin]= diff[bin]/intnomBin[bin];	
-			quant68[bin]= quant[3]+intnomBin[bin];	
-			quant95[bin]= quant[4]+intnomBin[bin];	
-			quant68n[bin]= 0.;	
-			quant68m[bin]=intnomBin[bin]-quant[1];	
-			quant95m[bin]=intnomBin[bin]-quant[0];	
 			quant50[bin]=quant[2];
 			errPlus[bin]= quant[3]-intnomBin[bin];	
 			errMin[bin]= intnomBin[bin]-quant[1];	
+			err2Plus[bin]= quant[4]-intnomBin[bin];	
+			err2Min[bin]=intnomBin[bin]-quant[0];	
 			
 			//pull function if diff positiv, take positv value
-				cout << bin << " : diff " << diff[bin] << " quantm68 "<< quant68m[bin]<< "       quantm95  "<< quant95m[bin] << endl;
-				cout << bin << " : diff " << diff[bin] << " quant68  "<< quant68[bin] << "       quant95   "<< quant95[bin] << endl;
 			if (intnomBin[bin]>= inttruthBin[bin]){
-				pull[bin]=diff[bin]/errPlus[bin];
-				cout << bin << " : diff " << diff[bin] << " errPlus "<< errPlus[bin] <<  "       pull "<< pull[bin] << endl;
+				pull[bin]=diff[bin]/errMin[bin];
 			}
 			else {
-				pull[bin]=diff[bin]/(errMin[bin]);
-				cout << bin << " : diff " << diff[bin] << " errMin   "<< errMin[bin]  << "       pull "<< pull[bin] << endl;
+				pull[bin]=diff[bin]/errPlus[bin];
 			}
-			cout << " "  << endl;
 			
-			if(check || bin>100)
+			if(check)
 			{
 				TCanvas* chisto= new TCanvas("chisto","chisto");
 				chisto->cd(1);
 				hist->Draw();
-				TLine *lmean = new TLine(intnomBin[bin],0.,intnomBin[bin],nsampling/10.);
+				TLine *lmean = new TLine(intnomBin[bin],0.,intnomBin[bin], hist->GetBinContent(hist->GetMaximumBin()));
 				lmean->SetLineColor(kGreen+1);
 				lmean->SetLineWidth(3);
-			n->SetLineStyle(4);
-				TLine *lmeanTruth = new TLine(inttruthBin[bin],0.,inttruthBin[bin],nsampling/10.);
+				lmean->SetLineStyle(4);
+				TLine *lmeanTruth = new TLine(inttruthBin[bin],0.,inttruthBin[bin],hist->GetBinContent(hist->GetMaximumBin()));
 				lmeanTruth->SetLineColor(kYellow+1);
 				lmeanTruth->SetLineWidth(3);
 				lmeanTruth->SetLineStyle(4);
-				TLine *lm2s = new TLine(quant[0],0.,quant[0],nsampling/10.);
+				TLine *lm2s = new TLine(quant[0],0.,quant[0],hist->GetBinContent(hist->GetMaximumBin()));
 				lm2s->SetLineColor(kMagenta);
 				lm2s->SetLineWidth(3);
-				TLine *lm1s = new TLine(quant[1],0.,quant[1],nsampling/10.);
+				TLine *lm1s = new TLine(quant[1],0.,quant[1],hist->GetBinContent(hist->GetMaximumBin()));
 				lm1s->SetLineColor(kMagenta+1);
 				lm1s->SetLineWidth(3);
-				TLine *lm = new TLine(quant[2],0.,quant[2],nsampling/10.);
+				TLine *lm = new TLine(quant[2],0.,quant[2],hist->GetBinContent(hist->GetMaximumBin()));
 				lm->SetLineColor(kMagenta+2);
 				lm->SetLineWidth(3);
-				TLine *l1s = new TLine(quant[3],0.,quant[3],nsampling/10.);
+				TLine *l1s = new TLine(quant[3],0.,quant[3],hist->GetBinContent(hist->GetMaximumBin()));
 				l1s->SetLineColor(kMagenta+3);
 				l1s->SetLineWidth(3);
 				TLine *l2s = new TLine(quant[4],0.,quant[4],nsampling/10.);
@@ -250,7 +240,7 @@
 				leg3->AddEntry(l1s,"84 %" ,"l");
 				leg3->AddEntry(l2s,"97.5 %" ,"l");
 				leg3->Draw();
-				chisto->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_fit_bias/Histo_%s_bin%i.png",comp.Data(),bin));
+				chisto->SaveAs(Form("%s/Histo_%s_bin%i.png",comp.Data(),bin));
 				delete chisto;
 				delete lm2s;
 				delete lm1s;
@@ -275,52 +265,51 @@
 		//get mass bins, set legend
 		cbias->cd();
 		cbias->SetLogy();
+		cbias->SetLogx();
 		cbias->SetGridy();
 		cbias->SetGridx();
-		//TGraphAsymmErrors *gr68 = new TGraphAsymmErrors(nbins,massbins,intnomBin,masserrl,masserrh,quant68m,quant68);
-		//TGraphAsymmErrors *gr95 = new TGraphAsymmErrors(nbins,massbins,intnomBin,masserrl,masserrh,quant95m,quant95);
-		TGraphAsymmErrors *gr68 = new TGraphAsymmErrors(nbins,massbins,intnomBin,masserrl,masserrh,quant68m,quant68m);
-		TGraphAsymmErrors *gr95 = new TGraphAsymmErrors(nbins,massbins,intnomBin,masserrl,masserrh,quant95m,quant68n);
-		TGraph *grmean = new TGraph(nbins,massbins,quant50);
+		TGraphAsymmErrors *gr1sigma = new TGraphAsymmErrors(nbins,massbins,intnomBin,masserrl,masserrh,errMin,errPlus);
+		TGraphAsymmErrors *gr2sigma = new TGraphAsymmErrors(nbins,massbins,intnomBin,masserrl,masserrh,err2Min,err2Plus);
+		TGraph *grmean = new TGraph(nbins,massbins,intnomBin);
+
 		TGraph *grmeanTruth = new TGraph(nbins,massbins,inttruthBin);
-		gr68->SetMarkerStyle(21);
-		gr68->SetTitle("uncertainty of model");
-		gr95->SetMarkerStyle(21);
-		grmean->SetMarkerStyle(21);
-		grmean->SetMarkerColor(kCyan+1);
+		gr1sigma->SetTitle("uncertainty of model");
 	
-		grmeanTruth->SetMarkerStyle(21);
-		grmeanTruth->SetMarkerColor(kRed+1);
-		grmeanTruth->SetLineColor(grmeanTruth->GetMarkerColor());
+		grmeanTruth->SetLineWidth(3);
+		grmeanTruth->SetLineColor(kBlack);
+		grmean->SetLineColor(kBlue);
+		grmean->SetLineWidth(3);
 	
-		gr68->SetMarkerColor(kBlack);
-		gr68->SetFillColor(kYellow+1);
-		gr68->SetLineColor(gr68->GetFillColor());
-		gr68->SetFillStyle(3001);
-		gr95->SetMarkerColor(kBlack);
-		gr95->SetFillColor(kGreen+1);
-		gr95->SetLineColor(gr95->GetFillColor());
-		gr95->SetFillStyle(3001);
+		gr1sigma->SetFillColor(kYellow+1);
+		gr1sigma->SetLineColor(kBlue);
+		gr1sigma->SetLineWidth(3);
+		gr2sigma->SetMarkerColor(kBlue);
+		gr2sigma->SetLineColor(kBlue);
+		gr2sigma->SetLineWidth(3);
+		gr2sigma->SetFillColor(kGreen+1);
 		
-		gr95->Draw("a pC "); 
-		grmeanTruth->Draw("pC SAME"); 
-		grmean->Draw("pC SAME"); 
-		gr68->Draw("pC  SAME"); 
-		gr95->GetXaxis()->SetTitle("mass [GeV]");
-		TLegend* leg = new TLegend(0.45, 0.6, .9, .9);
+		gr2sigma->Draw("a l C E3"); 
+		gr1sigma->Draw("C  E3 SAME"); 
+		grmean->Draw("C l SAME"); 
+		grmeanTruth->Draw("C l SAME"); 
+		
+		gr2sigma->GetXaxis()->SetTitle("mass [GeV]");
+		gr2sigma->GetXaxis()->SetRangeUser(wTruth::mgg.getMin(),4000.);
+		TLegend* leg = new TLegend(0.55, 0.75, .9, .9);
 		leg->SetFillColor(0);
-		leg->AddEntry(grmeanTruth,"# exp Events truth fit" ,"p");
-		leg->AddEntry(grmean,"# median from randomized events" ,"p");
-		leg->AddEntry(gr68,"# exp Events nominal fit" ,"p");
-		leg->AddEntry(gr68,"68%" ,"l");
-		leg->AddEntry(gr95,"95%" ,"l");
+		leg->AddEntry(grmeanTruth,"true distribution" ,"l");
+		leg->AddEntry(grmean,"fit projection" ,"l");
+		leg->AddEntry(gr1sigma,"68%" ,"f");
+		leg->AddEntry(gr2sigma,"95%" ,"f");
 		leg->Draw();
-		cbias->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_fit_bias/testcbias_%s.png",comp.Data()));
-		cbias->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_fit_bias/testcbias_%s.root",comp.Data()));
+		cbias->SaveAs(Form("%scbias_%s.png",dir.Data(),comp.Data()));
+		cbias->SaveAs(Form("%scbias_%s.eps",dir.Data(),comp.Data()));
+		cbias->SaveAs(Form("%scbias_%s.root",dir.Data(),comp.Data()));
 		
 		//pull distribution
 		TCanvas *cpull = new TCanvas("cpull","pull distribution",10,10,700,900);
 		cpull->cd();
+		cpull->SetLogx();
 		cpull->SetGridx();
 		cpull->SetGridy();
 		TGraph *grpull = new TGraph(nbins,massbins,pull);
@@ -329,12 +318,16 @@
 		grpull->SetMarkerColor(kBlue+1);
 		grpull->Draw("p a "); 
 		grpull->GetXaxis()->SetTitle("mass [GeV]");
+		grpull->GetXaxis()->SetRangeUser(wTruth::mgg.getMin(),4000.);
 		grpull->GetYaxis()->SetTitle("pull");
-		cpull->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_fit_bias/cpull_%s.png",comp.Data()),"png");
+		cpull->SaveAs(Form("%scpull_%s.png",dir.Data(),comp.Data()));
+		cpull->SaveAs(Form("%scpull_%s.root",dir.Data(),comp.Data()));
+		cpull->SaveAs(Form("%scpull_%s.eps",dir.Data(),comp.Data()));
 		
 		
 		TCanvas *cfrac = new TCanvas("cfrac","bias on model",10,10,700,900);
 		cfrac->cd();
+		cfrac->SetLogx();
 		
 		cfrac->SetGridx();
 		cfrac->SetGridy();
@@ -345,7 +338,8 @@
 		grfrac->Draw("p a"); 
 		grfrac->GetXaxis()->SetTitle("mass [GeV]");
 		grfrac->GetYaxis()->SetTitle("(Nnom-Ntruth)/Nnom");
-		cfrac->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_fit_bias/cfrac_%s.png",comp.Data()),"png");
+		grfrac->GetXaxis()->SetRangeUser(wTruth::mgg.getMin(),4000.);
+		cfrac->SaveAs(Form("%scfrac_%s.png",dir.Data(),comp.Data()));
 		
 		fittruthPdf=NULL;
 		fittruthShape=NULL;
