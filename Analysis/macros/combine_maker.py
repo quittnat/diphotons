@@ -35,8 +35,8 @@ class CombineApp(TemplatesApp):
                                     default="cic",
                                     help="Fit to consider"),
                         make_option("--observable",dest="observable",action="store",type="string",
-                                    ## default="mgg[2650,300,6000]",
-                                    default="mgg[3350,270,7000]",
+                                    default="mgg[3350,300,7000]",
+                                    ##default="mgg[3350,270,7000]",
                                     help="Observable used in the fit default : [%default]",
                                     ),
                         make_option("--fit-background",dest="fit_background",action="store_true",default=False,
@@ -1760,6 +1760,23 @@ kmax * number of nuisance parameters (source of systematic uncertainties)
             pdf = ROOT.RooGenericPdf( pname, pname, "pow(1+@1*@0+@2*@0*@0,@3)", roolist )
             
             self.keep( [pdf,slo,qua,alp] )
+        elif model== "adhoclognorm":
+            pname = "adhoclognorm_%s" % name
+            mu = self.buildRooVar("%s_mu" % pname,[], importToWs=False)
+            twovar = self.buildRooVar("%s_twovar" % pname,[], importToWs=False)
+            mu.setVal(5.44)
+            twovar.setVal(0.517)
+            mu.setConstant(True)
+            twovar.setConstant(True)
+
+            self.pdfPars_.add(mu)
+            self.pdfPars_.add(twovar)
+            
+            roolist = ROOT.RooArgList( xvar, mu, twovar )
+            pdf = ROOT.RooGenericPdf( pname, pname, "exp(-pow(log(@0)-@1,2)/@2)", roolist )
+            self.keep( [pdf,mu,twovar] )
+
+
 
         if load:
             sname,snap = load

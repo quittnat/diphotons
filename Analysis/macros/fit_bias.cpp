@@ -6,8 +6,8 @@
 	bool check= false;
 	TString dir="/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_fit_bias_tryout/";
 	//TODO includes etc
- 	TFile* nomfitresfile = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_lumi_5/multidimfit_fit_truth.root");
-	TFile* nompdffile = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_lumi_5/higgsCombine_fit_truth.MultiDimFit.mH0.root");
+ 	TFile* nomfitresfile = new TFile("full_analysis_anv1_v19_0_0_2D/full_analysis_anv1_v19_2D_split_shapes_semiparam_lumi_5/multidimfit_fit_truth.root");
+	TFile* nompdffile = new TFile("full_analysis_anv1_v19_0_0_2D/full_analysis_anv1_v19_2D_split_shapes_semiparam_lumi_5/higgsCombine_fit_truth.MultiDimFit.mH0.root");
 	TFile* truthpdffile = new TFile("higgsCombine_truth.GenerateOnly.mH0.123456.root");
 //	TFile* nompdffile = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_lumi_5/higgsCombine_fit_self.MultiDimFit.mH0.root");
 // 	TFile* nomfitresfile = new TFile("PasqualeFitOldf/full_analysis_anv1_v19_2D_split_shapes_semiparam_test_lumi_5/multidimfit_fit_truth.root");
@@ -38,7 +38,7 @@
 	std::string compList[]={"pf_EBEB"}; 
 	std::list<std::string> components(compList,compList+sizeof(compList)/sizeof(std::string)); 
 
-	const int nsampling=30;
+	const int nsampling=200;
 	int nbins=0;
 	double binning =50.;
 	
@@ -65,7 +65,7 @@
 		RooProduct* fittruthNorm=w->function(fitNormName.Data());
 		RooExtendPdf* fittruthPdf=new RooExtendPdf("fittruthPdf","fittruthPdf",*fittruthShape,*fittruthNorm);
 		RooArgSet* truthParams = fittruthPdf->getParameters(obsTruth) ;
-		//truthParams.Print("v");	
+		truthParams.Print();	
 		//fittruthPdf.Print();
 		Double_t inttruthSig=fittruthPdf.createIntegral(obsTruth,"sigTruth_region").getVal()  ;
 		if(inttruthSig==0){cout << "integral for " << comp.Data() << " is zero" << endl; continue;}
@@ -113,7 +113,8 @@
 		if(intnomSig==0){cout << "integral for " << comp.Data() << " is zero" << endl; continue;}
 //		cout << "truth expEvent " << fittruthPdf->expectedEvents(obsTruth) << " inttruthSig " << inttruthSig << "nom expEvent " << fitnomPdf->expectedEvents(obsNom) <<" intnomSig " << intnomSig << endl;
 		fitnomPdf->plotOn(framei,LineColor(kBlue),Project(wNom::templateNdim2_unroll));
-		w->loadSnapshot("MultiDimFit");
+		
+		//w->loadSnapshot("MultiDimFit");
 		RooProdPdf* randShape=w->pdf(fitShapeName.Data());
 		RooProduct* randNorm=w->function(fitNormName.Data());
 		RooExtendPdf* randPdf=new RooExtendPdf("randPdf","randPdf",*randShape,*randNorm);
@@ -123,6 +124,7 @@
 		
 		//get fitresult and randomize parameters in covariance matrix
 		nomfitresfile->cd();
+		fit.Print("v");
 		//const TMatrixDSym & cov=fit->covarianceMatrix();
 		Double_t intPdfs[nsampling][nbins];
 		
@@ -160,7 +162,8 @@
 //				NormParams.Print("v");
 			}
 		//square root method for decomposition automatically applied
-			RooArgList & randParams=fit.randomizePars();
+		//	pdfParams.Print("v");
+			const RooArgList & randParams=fit.randomizePars();
 			*pdfParams = randParams ;
 		//	*NormParams = randParams ;
 			Double_t intSig=0., exprandEvents=0.;
@@ -234,7 +237,7 @@
 			const int qn=5;
 			Double_t quant[qn] ;	
 			Double_t prob[qn]={0.025,0.16,0.5,0.84,0.975};
-			TH1D* hist=new TH1D("hist","hist",100,xmin, xmax);
+			TH1D* hist=new TH1D("hist","hist",100000,xmin, xmax);
 			for(int samp=0; samp< nsampling; samp++){hist->Fill(intPdfs[samp][bin]);}
 			histmean[bin]=hist->GetMean();
 			hist->GetQuantiles(qn,quant,prob);
@@ -259,7 +262,7 @@
 				pull[bin]=diff[bin]/errPlus[bin];
 			}
 			
-			if(check)
+			if(bin > 60)
 			{
 				TCanvas* chisto= new TCanvas("chisto","chisto");
 				chisto->cd(1);
