@@ -40,7 +40,7 @@ using namespace RooFit;
 	std::string compList[]={"pp_EBEE"}; 
 	std::list<std::string> components(compList,compList+sizeof(compList)/sizeof(std::string)); 
 
-	const int nsampling=500;
+	const int nsampling=300;
 	
 	//for(int it=0; it < components.size(); it++) {
 	//for(std::vector<std::string>::iterator it = components.begin(); it != components.end(); ++it) {
@@ -222,32 +222,13 @@ using namespace RooFit;
 		
 		for(int bin=0;bin< nbins;bin++)
 		{
-			double xmin=0.;
-			double xmax=0.;
-			//get min and max element for histo
-			for(unsigned int j=0; j<nsampling; ++j){
-					if(intPdfs[j][bin] > xmax){
-						xmax = intPdfs[j][bin];
-					}
-					if(intPdfs[j][bin] < xmin){
-						xmin = intPdfs[j][bin];
-					}
-			}
-			
 			//compute 68 and 95 percent 
-			const int qn=5;
-			Double_t quant[qn] ;	
-			Double_t prob[qn]={0.025,0.16,0.5,0.84,0.975};
-			TH1D* hist=new TH1D("hist","hist",100000,xmin, xmax);
- 			//quantiles per bin over all samplings
 			vector<double> quantile;
 
-			for(int samp=0; samp< nsampling; samp++){
-				hist->Fill(intPdfs[samp][bin]);
+			for(int samp=0; samp< nsampling; samp++)
+			{
 				quantile.push_back(intPdfs[samp][bin]);
 			}
-			
-			
  			sort(quantile.begin(), quantile.end());
    			int size = quantile.size();
     		int mid = size/2;
@@ -270,115 +251,23 @@ using namespace RooFit;
         	errmin2 =  (quantile[perrmin2+3]+quantile[perrmin2+2] + quantile[perrmin2+1]+ quantile[perrmin2] + quantile[perrmin2-1] + quantile[perrmin2-2]+quantile[perrmin2-3])/7;
         	errmax2 =  (quantile[perrmax2+3]+quantile[perrmax2+2] + quantile[perrmax2+1]+ quantile[perrmax2] + quantile[perrmax2-1] + quantile[perrmax2-2]+quantile[perrmax2-3])/7;
 
-
-    		streamsize prec = cout.precision();
-    		cout<<  " " << endl;
-			cout << " bin " << bin   << " 2.5%:  "
-        		<<errmin2 << " 16%  " << errmin1 <<  " median "<< median << "84%: "
-        		<<errmax1 <<   " 97.5%: "<< errmax2  << endl;
-
-
-
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			histmean[bin]=hist->GetMean();
-			hist->GetQuantiles(qn,quant,prob);
 			diff[bin]= intnomBin[bin]-inttruthBin[bin];	
 			difffrac[bin]= diff[bin]/intnomBin[bin];	
-			errPlus[bin]= quant[3]-intnomBin[bin];	
-			errMin[bin]= intnomBin[bin]-quant[1];	
-			err2Plus[bin]= quant[4]-intnomBin[bin];	
-			err2Min[bin]=intnomBin[bin]-quant[0];	
-			cout << " quant[0] " << quant[0] << " quant[1] " << quant[1]<< " quant[2] " << quant[2]<< " quant[3] " << quant[3] << " quant[4] " << quant[4] << endl;
-
-			
+			errPlus[bin]= errmax1-intnomBin[bin];	
+			errMin[bin]= intnomBin[bin]-errmin1;	
+			err2Plus[bin]= errmax2-intnomBin[bin];	
+			err2Min[bin]=intnomBin[bin]-errmin2;	
 			
 			//pull function if diff positiv, take positv value
-			if (intnomBin[bin]>= inttruthBin[bin]){
+			if (intnomBin[bin]>= inttruthBin[bin])
+			{
 				pull[bin]=diff[bin]/errMin[bin];
 			}
-			else {
+			else 
+			{
 				pull[bin]=diff[bin]/errPlus[bin];
 			}
-			
-			if(check)
-			{
-				TCanvas* chisto= new TCanvas("chisto","chisto");
-				chisto->cd(1);
-				hist->Draw();
-				TLine *lmean = new TLine(intnomBin[bin],0.,intnomBin[bin], hist->GetBinContent(hist->GetMaximumBin()));
-				lmean->SetLineColor(kGreen+1);
-				lmean->SetLineWidth(3);
-				lmean->SetLineStyle(4);
-				TLine *lmeanTruth = new TLine(inttruthBin[bin],0.,inttruthBin[bin],hist->GetBinContent(hist->GetMaximumBin()));
-				lmeanTruth->SetLineColor(kYellow+1);
-				lmeanTruth->SetLineWidth(3);
-				lmeanTruth->SetLineStyle(4);
-				TLine *lm2s = new TLine(quant[0],0.,quant[0],hist->GetBinContent(hist->GetMaximumBin()));
-				lm2s->SetLineColor(kMagenta);
-				lm2s->SetLineWidth(3);
-				TLine *lm1s = new TLine(quant[1],0.,quant[1],hist->GetBinContent(hist->GetMaximumBin()));
-				lm1s->SetLineColor(kMagenta+1);
-				lm1s->SetLineWidth(3);
-				TLine *lm = new TLine(quant[2],0.,quant[2],hist->GetBinContent(hist->GetMaximumBin()));
-				lm->SetLineColor(kMagenta+2);
-				lm->SetLineWidth(3);
-				TLine *l1s = new TLine(quant[3],0.,quant[3],hist->GetBinContent(hist->GetMaximumBin()));
-				l1s->SetLineColor(kMagenta+3);
-				l1s->SetLineWidth(3);
-				TLine *l2s = new TLine(quant[4],0.,quant[4],hist->GetBinContent(hist->GetMaximumBin()));
-				l2s->SetLineColor(kMagenta+4);
-				l2s->SetLineWidth(3);
-				lm2s->Draw("SAME");
-				lm1s->Draw("SAME");
-				lm->Draw("SAME");
-				l1s->Draw("SAME");
-				l2s->Draw("SAME");
-				lmean->Draw("SAME");
-				lmeanTruth->Draw("SAME");
-				TLegend* leg3 = new TLegend(0.45, 0.8, .9, .9);
-				leg3->SetFillColor(0);
-				leg3->AddEntry(lmeanTruth,"mean truth" ,"l");
-				leg3->AddEntry(lmean,"mean nominal start fit" ,"l");
-				leg3->AddEntry(lm2s,"2.5 %" ,"l");
-				leg3->AddEntry(lm1s,"16 %" ,"l");
-				leg3->AddEntry(lm,"50 %" ,"l");
-				leg3->AddEntry(l1s,"84 %" ,"l");
-				leg3->AddEntry(l2s,"97.5 %" ,"l");
-				leg3->Draw();
-				chisto->SaveAs(Form("%s/Histo_%s_bin%i.png",dir.Data(),comp.Data(),bin));
-				delete chisto;
-				delete lm2s;
-				delete lm1s;
-				delete lm;
-				delete l1s;
-				delete l2s;
-			
-			}
-			delete hist;
 			quantile.clear();
-			//delete [] quant;
-			//delete [] prob;
 		}
 		/*
 		for(int b=0; b< nbins; b++){
