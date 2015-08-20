@@ -1,13 +1,15 @@
 {
+# include <vector>
 # include <list>	
-	using namespace RooFit;
+using namespace std;
+using namespace RooFit;
 	gSystem->Load("libHiggsAnalysisCombinedLimit");
 	gSystem->Load("libdiphotonsUtils");
 	bool check= false;
 	TString dir="/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_fit_bias_tryout/";
 	//TODO includes etc
- 	TFile* nomfitresfile = new TFile("full_analysis_anv1_v19_0_0_2D/full_analysis_anv1_v19_2D_split_shapes_semiparam_lumi_5/multidimfit_fit_truth.root");
-	TFile* nompdffile = new TFile("full_analysis_anv1_v19_0_0_2D/full_analysis_anv1_v19_2D_split_shapes_semiparam_lumi_5/higgsCombine_fit_truth.MultiDimFit.mH0.root");
+ 	TFile* nomfitresfile = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_adhocnormlog_lumi_5/multidimfit_fit_truth.root");
+	TFile* nompdffile = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_adhocnormlog_lumi_5/higgsCombine_fit_truth.MultiDimFit.mH0.root");
 	TFile* truthpdffile = new TFile("higgsCombine_truth.GenerateOnly.mH0.123456.root");
 //	TFile* nompdffile = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_lumi_5/higgsCombine_fit_self.MultiDimFit.mH0.root");
 // 	TFile* nomfitresfile = new TFile("PasqualeFitOldf/full_analysis_anv1_v19_2D_split_shapes_semiparam_test_lumi_5/multidimfit_fit_truth.root");
@@ -35,12 +37,10 @@
 	components.push_back("ff_EBEE");
 	cout << components[1] << endl;
 	*/
-	std::string compList[]={"pf_EBEB"}; 
+	std::string compList[]={"pp_EBEE"}; 
 	std::list<std::string> components(compList,compList+sizeof(compList)/sizeof(std::string)); 
 
-	const int nsampling=200;
-	int nbins=0;
-	double binning =50.;
+	const int nsampling=500;
 	
 	//for(int it=0; it < components.size(); it++) {
 	//for(std::vector<std::string>::iterator it = components.begin(); it != components.end(); ++it) {
@@ -120,11 +120,11 @@
 		RooExtendPdf* randPdf=new RooExtendPdf("randPdf","randPdf",*randShape,*randNorm);
 		Double_t expnomEvents= fitnomPdf->expectedEvents(obsNom);
 		RooArgSet* pdfParams = randPdf->getParameters(obsNom) ;
-		pdfParams.Print("v");	
+		//pdfParams.Print("v");	
 		
 		//get fitresult and randomize parameters in covariance matrix
 		nomfitresfile->cd();
-		fit.Print("v");
+		//fit.Print("v");
 		//const TMatrixDSym & cov=fit->covarianceMatrix();
 		Double_t intPdfs[nsampling][nbins];
 		
@@ -155,6 +155,7 @@
 				//inttruthBin[bin]=exptruthEvents*inttruthPdf ;
 		//			cout <<" intnomBin "<<intnomBin[bin] << " inttruthBin "<<inttruthBin[bin] << endl; 
 		}
+		
 		for(int r=0;r< nsampling;++r){	
 			if(r==10 || r==40 ||r==100 || r==300 || r==450){
 				cout << "---------------------------------  sampling" << r << "----------" << endl;
@@ -231,14 +232,75 @@
 					if(intPdfs[j][bin] < xmin){
 						xmin = intPdfs[j][bin];
 					}
-			  }
+			}
 			
 			//compute 68 and 95 percent 
 			const int qn=5;
 			Double_t quant[qn] ;	
 			Double_t prob[qn]={0.025,0.16,0.5,0.84,0.975};
 			TH1D* hist=new TH1D("hist","hist",100000,xmin, xmax);
-			for(int samp=0; samp< nsampling; samp++){hist->Fill(intPdfs[samp][bin]);}
+ 			//quantiles per bin over all samplings
+			vector<double> quantile;
+
+			for(int samp=0; samp< nsampling; samp++){
+				hist->Fill(intPdfs[samp][bin]);
+				quantile.push_back(intPdfs[samp][bin]);
+			}
+			
+			
+ 			sort(quantile.begin(), quantile.end());
+   			int size = quantile.size();
+    		int mid = size/2;
+    		double median;
+			// get a few values around to avoid peak
+			median = size % 2 == 0 ? (quantile[mid+2] + quantile[mid+1] + quantile[mid] + quantile[mid-1]+ quantile[mid-2])/5 : quantile[mid];
+
+        	double errmin1=0.;
+        	double errmax1=0.;
+        	double errmin2=0.;
+        	double errmax2=0.;
+
+			int perrmin1=size*0.16;
+			int perrmax1=size*0.84;
+			int perrmin2=size*0.025;
+			int perrmax2=size*0.975;
+
+        	errmin1 =  (quantile[perrmin1+3]+quantile[perrmin1+2] + quantile[perrmin1+1]+ quantile[perrmin1] + quantile[perrmin1-1] + quantile[perrmin1-2]+quantile[perrmin1-3])/7;
+        	errmax1 =  (quantile[perrmax1+3]+quantile[perrmax1+2] + quantile[perrmax1+1]+ quantile[perrmax1] + quantile[perrmax1-1] + quantile[perrmax1-2]+ quantile[perrmax1-3])/7;
+        	errmin2 =  (quantile[perrmin2+3]+quantile[perrmin2+2] + quantile[perrmin2+1]+ quantile[perrmin2] + quantile[perrmin2-1] + quantile[perrmin2-2]+quantile[perrmin2-3])/7;
+        	errmax2 =  (quantile[perrmax2+3]+quantile[perrmax2+2] + quantile[perrmax2+1]+ quantile[perrmax2] + quantile[perrmax2-1] + quantile[perrmax2-2]+quantile[perrmax2-3])/7;
+
+
+    		streamsize prec = cout.precision();
+    		cout<<  " " << endl;
+			cout << " bin " << bin   << " 2.5%:  "
+        		<<errmin2 << " 16%  " << errmin1 <<  " median "<< median << "84%: "
+        		<<errmax1 <<   " 97.5%: "<< errmax2  << endl;
+
+
+
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
 			histmean[bin]=hist->GetMean();
 			hist->GetQuantiles(qn,quant,prob);
 			diff[bin]= intnomBin[bin]-inttruthBin[bin];	
@@ -247,11 +309,8 @@
 			errMin[bin]= intnomBin[bin]-quant[1];	
 			err2Plus[bin]= quant[4]-intnomBin[bin];	
 			err2Min[bin]=intnomBin[bin]-quant[0];	
-			/*errPlus[bin]= quant[3]-intnomBin[bin];	
-			errMin[bin]= intnomBin[bin]-quant[1];	
-			err2Plus[bin]= quant[4]-intnomBin[bin];	
-			err2Min[bin]=intnomBin[bin]-quant[0];	
-			*/
+			cout << " quant[0] " << quant[0] << " quant[1] " << quant[1]<< " quant[2] " << quant[2]<< " quant[3] " << quant[3] << " quant[4] " << quant[4] << endl;
+
 			
 			
 			//pull function if diff positiv, take positv value
@@ -262,7 +321,7 @@
 				pull[bin]=diff[bin]/errPlus[bin];
 			}
 			
-			if(bin > 60)
+			if(check)
 			{
 				TCanvas* chisto= new TCanvas("chisto","chisto");
 				chisto->cd(1);
@@ -317,6 +376,7 @@
 			
 			}
 			delete hist;
+			quantile.clear();
 			//delete [] quant;
 			//delete [] prob;
 		}
