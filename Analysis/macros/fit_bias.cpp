@@ -1,53 +1,29 @@
 {
-# include <vector>
-# include <list>	
-using namespace std;
-using namespace RooFit;
+	# include <vector>
+	using namespace std;
+	using namespace RooFit;
 	gSystem->Load("libHiggsAnalysisCombinedLimit");
 	gSystem->Load("libdiphotonsUtils");
 	bool check= false;
-	TString dir="/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_fit_bias_tryout/";
+	TString dir="/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_fit_bias_pp_test2/";
 	//TODO includes etc
  	TFile* nomfitresfile = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_adhocnormlog_lumi_5/multidimfit_fit_truth.root");
 	TFile* nompdffile = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_adhocnormlog_lumi_5/higgsCombine_fit_truth.MultiDimFit.mH0.root");
 	TFile* truthpdffile = new TFile("higgsCombine_truth.GenerateOnly.mH0.123456.root");
-//	TFile* nompdffile = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_lumi_5/higgsCombine_fit_self.MultiDimFit.mH0.root");
-// 	TFile* nomfitresfile = new TFile("PasqualeFitOldf/full_analysis_anv1_v19_2D_split_shapes_semiparam_test_lumi_5/multidimfit_fit_truth.root");
-//	TFile* truthpdffile =  new TFile("PasqualeFitOldf/higgsCombine_truth.GenerateOnly.mH0.123456.root ");
-//	TFile* truthpdffile =  new TFile("PasqualeFitOldf/full_analysis_anv1_v19_2D_truth_shapes_truth_templates_semiparam_lumi_5/higgsCombine_truth.GenerateOnly.mH0.123456.root ");
-//	TFile* nompdffile =  new TFile("PasqualeFitOldf/full_analysis_anv1_v19_2D_split_shapes_semiparam_lumi_5/higgsCombine_fit_truth.MultiDimFit.mH0.root");
 
 	//bkg only
-//	std::string components[]={"pp_EBEB", "pf_EBEB", "ff_EBEB", "pp_EBEE","pf_EBEE","ff_EBEE"}; 
-	//std::string comp[]={"pp_EBEB", "pf_EBEB", "ff_EBEB", "pp_EBEE","pf_EBEE","ff_EBEE"}; 
-//	std::vector<std::string> components;
-//	std::vector<std::string> components(comp, end(comp));
+    std::vector<std::string> components;
 	
-	/*
-	for (int j=0; j< comp.size(); j++)
-	{
-		components.push_back(comp[j]);
-	}
-
 	components.push_back("pp_EBEB");
 	components.push_back("pp_EBEE");
 	components.push_back("pf_EBEB");
 	components.push_back("pf_EBEE");
-	components.push_back("ff_EBEB");
-	components.push_back("ff_EBEE");
-	cout << components[1] << endl;
-	*/
-	std::string compList[]={"pp_EBEE"}; 
-	std::list<std::string> components(compList,compList+sizeof(compList)/sizeof(std::string)); 
 
-	const int nsampling=300;
+	const int nsampling=30;
 	
-	//for(int it=0; it < components.size(); it++) {
-	//for(std::vector<std::string>::iterator it = components.begin(); it != components.end(); ++it) {
-	for(std::list<std::string>::iterator it = components.begin(); it != components.end(); ++it) {
+  for (std::vector<std::string>::iterator it = components.begin(); it != components.end(); ++it){
 		TString comp=*it;
 	
-		//TString comp(*it);
 		cout << "----------- component " << comp.Data() << "----------------------" << endl;
 		TString fitShapeName=Form("shapeBkg_%s", comp.Data());
 		TString fitNormName=Form("shapeBkg_%s__norm", comp.Data());
@@ -61,8 +37,8 @@ using namespace RooFit;
 		wTruth::templateNdim2_unroll.setRange("sigTruth_region",wTruth::templateNdim2_unroll.getMin(),wTruth::templateNdim2_unroll.getMax());
 		wTruth::templateNdim2_unroll.setRange("binTruth_region",wTruth::templateNdim2_unroll.getMin(),wTruth::templateNdim2_unroll.getMax());
 		wTruth::mgg.setRange("sigTruth_region",wTruth::mgg.getMin(),wTruth::mgg.getMax());
-		RooProdPdf* fittruthShape=w->pdf(fitShapeName.Data());
-		RooProduct* fittruthNorm=w->function(fitNormName.Data());
+		RooAbsPdf* fittruthShape=w->pdf(fitShapeName.Data());
+		RooAbsReal* fittruthNorm=w->function(fitNormName.Data());
 		RooExtendPdf* fittruthPdf=new RooExtendPdf("fittruthPdf","fittruthPdf",*fittruthShape,*fittruthNorm);
 		RooArgSet* truthParams = fittruthPdf->getParameters(obsTruth) ;
 		truthParams.Print();	
@@ -71,7 +47,7 @@ using namespace RooFit;
 		if(inttruthSig==0){cout << "integral for " << comp.Data() << " is zero" << endl; continue;}
 		
 		//variable binning
-		const int binning1=50;
+		const int binning1=20;
 		const double mggThres=4000.;
 		const int binning2=1000;
 		const int nbins=(mggThres-wTruth::mgg.getMin())/binning1 +(wTruth::mgg.getMax()-mggThres)/binning2;
@@ -103,8 +79,8 @@ using namespace RooFit;
 		wNom::templateNdim2_unroll.setRange("sig_region",wNom::templateNdim2_unroll.getMin(),wNom::templateNdim2_unroll.getMax());
 		wNom::templateNdim2_unroll.setRange("bin_region",wNom::templateNdim2_unroll.getMin(),wNom::templateNdim2_unroll.getMax());
 		
-		RooProdPdf* fitnomShape=w->pdf(fitShapeName.Data());
-		RooProduct* fitnomNorm=w->function(fitNormName.Data());
+		RooAbsPdf* fitnomShape=w->pdf(fitShapeName.Data());
+		RooAbsReal* fitnomNorm=w->function(fitNormName.Data());
 		RooExtendPdf* fitnomPdf=new RooExtendPdf("fitnomPdf","fitnomPdf",*fitnomShape,*fitnomNorm);
 		Double_t exptruthEvents= fittruthPdf->expectedEvents(obsTruth);
 		fitnomPdf.Print();
@@ -115,8 +91,8 @@ using namespace RooFit;
 		fitnomPdf->plotOn(framei,LineColor(kBlue),Project(wNom::templateNdim2_unroll));
 		
 		//w->loadSnapshot("MultiDimFit");
-		RooProdPdf* randShape=w->pdf(fitShapeName.Data());
-		RooProduct* randNorm=w->function(fitNormName.Data());
+		RooAbsPdf* randShape=w->pdf(fitShapeName.Data());
+		RooAbsReal* randNorm=w->function(fitNormName.Data());
 		RooExtendPdf* randPdf=new RooExtendPdf("randPdf","randPdf",*randShape,*randNorm);
 		Double_t expnomEvents= fitnomPdf->expectedEvents(obsNom);
 		RooArgSet* pdfParams = randPdf->getParameters(obsNom) ;
@@ -316,10 +292,10 @@ using namespace RooFit;
 		gr2sigma->SetLineWidth(3);
 		gr2sigma->SetFillColor(kGreen+1);
 		
-		gr2sigma->Draw("a l C E3"); 
+		gr2sigma->Draw("a  C E3"); 
 		gr1sigma->Draw("C  E3 SAME"); 
-		grmean->Draw("C l SAME"); 
-		grmeanTruth->Draw("C l SAME"); 
+		grmean->Draw("C  SAME"); 
+		grmeanTruth->Draw("C  SAME"); 
 		
 		gr2sigma->GetXaxis()->SetTitle("mass [GeV]");
 	//	gr2sigma->GetXaxis()->SetRangeUser(wTruth::mgg.getMin(),4000.);
@@ -369,22 +345,6 @@ using namespace RooFit;
 	//	grfrac->GetXaxis()->SetRangeUser(wTruth::mgg.getMin(),4000.);
 		cfrac->SaveAs(Form("%scfrac_%s.png",dir.Data(),comp.Data()));
 		
-		fittruthPdf=NULL;
-		fittruthShape=NULL;
-		fittruthNorm=NULL;
-		fitnomPdf=NULL;
-		fitnomShape=NULL;
-		fitnomNorm=NULL;
-
-		delete fittruthPdf;
-		delete fittruthShape;
-		delete fittruthNorm;
-		delete fitnomPdf;
-		delete fitnomShape;
-		delete fitnomNorm;
-		delete cfrac;
-		delete cbias;
-		delete cpull;
 	}
 	
 }
