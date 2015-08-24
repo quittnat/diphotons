@@ -35,8 +35,8 @@ class CombineApp(TemplatesApp):
                                     default="cic",
                                     help="Fit to consider"),
                         make_option("--observable",dest="observable",action="store",type="string",
-                                    default="mgg[3350,300,7000]",
-                                    ##default="mgg[3350,270,7000]",
+                                   ## default="mgg[3350,300,7000]",
+                                    default="mgg[3350,270,7000]",
                                     help="Observable used in the fit default : [%default]",
                                     ),
                         make_option("--fit-background",dest="fit_background",action="store_true",default=False,
@@ -55,9 +55,12 @@ class CombineApp(TemplatesApp):
                                     help="Use this template for signal modeling",
                                     ),                        
                         make_option("--obs-template-binning",dest="obs_template_binning",action="callback",callback=optpars_utils.Load(scratch=True),
-                                    default={ "EBEB" : [270.,295.,325.,370.,450.,7000.],
-                                              "EBEE" : [270.,310.,355.,420.,535.,7000.]
-                                              },
+                                    default={ 
+                                             "EBEB" : [270.,295.,325.,370.,450.,7000.],
+                                             "EBEE" : [270.,310.,355.,420.,535.,7000.]
+                                  ##           "EBEB" : [300.,322.,352.,396.,481.,7000.],
+                                   ##          "EBEE" : [300.,339.,382.,448.,565.,7000.]
+                                             },
                                     help="Binning of the parametric observable to be used for templates",
                                     ),                        
                         make_option("--template-binning",dest="template_binning",action="callback",callback=optpars_utils.ScratchAppend(float),
@@ -72,7 +75,8 @@ class CombineApp(TemplatesApp):
                                     ),                        
                         make_option("--plot-binning",dest="plot_binning",action="callback",callback=optpars_utils.ScratchAppend(float),
                                     ## type="string",default=[114,300,6000],
-                                    type="string",default=[134,300,7000],
+                                   ##type="string",default=[134,300,7000],
+                                    type="string",default=[136,270,7000],
                                     help="Binning to be used for plots",
                                     ),
                         make_option("--plot-signal-binning",dest="plot_signal_binning",action="callback",callback=optpars_utils.ScratchAppend(float),
@@ -1775,6 +1779,22 @@ kmax * number of nuisance parameters (source of systematic uncertainties)
             roolist = ROOT.RooArgList( xvar, mu, twovar )
             pdf = ROOT.RooGenericPdf( pname, pname, "exp(-pow(log(@0)-@1,2)/@2)", roolist )
             self.keep( [pdf,mu,twovar] )
+        
+        elif model== "fixtruth270":
+            pname = "fixtruth270_%s" % name
+            linc = self.buildRooVar("%s_lin" % pname,[-100.0,100.0], importToWs=False)
+            logc = self.buildRooVar("%s_log" % pname,[-100.0,100.0], importToWs=False)
+            linc.setVal(14.7202)
+            logc.setVal(-1.59571)
+            linc.setConstant(True)
+            logc.setConstant(True)
+
+            self.pdfPars_.add(linc)
+            self.pdfPars_.add(logc)
+            
+            roolist = ROOT.RooArgList( xvar, linc, logc )
+            pdf = ROOT.RooGenericPdf( pname, pname, "TMath::Max(1e-50,pow(@0,@1+@2*log(@0)))", roolist )
+            self.keep( [pdf,linc,logc] )
 
 
 

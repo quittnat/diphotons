@@ -5,11 +5,12 @@
 	gSystem->Load("libHiggsAnalysisCombinedLimit");
 	gSystem->Load("libdiphotonsUtils");
 	bool check= false;
-	TString dir="/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_fit_bias_pp_test2/";
+	TString dir="/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_fixtruth270/";
 	//TODO includes etc
- 	TFile* nomfitresfile = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_adhocnormlog_lumi_5/multidimfit_fit_truth.root");
-	TFile* nompdffile = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_adhocnormlog_lumi_5/higgsCombine_fit_truth.MultiDimFit.mH0.root");
-	TFile* truthpdffile = new TFile("higgsCombine_truth.GenerateOnly.mH0.123456.root");
+ 	TFile* nomfitresfile = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_adhocnormlog270_lumi_5/multidimfit_fit_fixtruth.root");
+	TFile* nompdffile = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_adhocnormlog270_lumi_5/higgsCombine_fit_fixtruth.MultiDimFit.mH0.root");
+	TFile* truthpdffile = new TFile("higgsCombine_fixtruth270.GenerateOnly.mH0.123456.root");
+//	TFile* truthpdffile = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_adhoclognnorm270_lumi_50/higgsCombine_fit_self.GenerateOnly.mH0.123456.root");
 
 	//bkg only
     std::vector<std::string> components;
@@ -19,7 +20,7 @@
 	components.push_back("pf_EBEB");
 	components.push_back("pf_EBEE");
 
-	const int nsampling=30;
+	const int nsampling=300;
 	
   for (std::vector<std::string>::iterator it = components.begin(); it != components.end(); ++it){
 		TString comp=*it;
@@ -47,7 +48,7 @@
 		if(inttruthSig==0){cout << "integral for " << comp.Data() << " is zero" << endl; continue;}
 		
 		//variable binning
-		const int binning1=20;
+		const int binning1=50;
 		const double mggThres=4000.;
 		const int binning2=1000;
 		const int nbins=(mggThres-wTruth::mgg.getMin())/binning1 +(wTruth::mgg.getMax()-mggThres)/binning2;
