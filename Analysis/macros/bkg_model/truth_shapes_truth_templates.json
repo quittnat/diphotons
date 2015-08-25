@@ -14,8 +14,7 @@
 			      "EEHighR9" : "EELowR9"
 		  },
 		  "weight_cut"   : "weight < 5.",
-		 "_model" : "moddijet"
-		 "model_cats" : { "EBEE" : "adhoclognorm" }
+		 "model_cats" : { "EBEB" : "fixtruth270" ,"EBEE" : "adhoclognorm" }
 	    },	    
 	    "ff" : { 
 	    	 "shape":"mctruth_ff", "norm":"mctruth_ff",
