@@ -35,7 +35,7 @@ class CombineApp(TemplatesApp):
                                     default="cic",
                                     help="Fit to consider"),
                         make_option("--observable",dest="observable",action="store",type="string",
-                                   ## default="mgg[3350,300,7000]",
+                                    ##default="mgg[3350,300,7000]",
                                     default="mgg[3350,270,7000]",
                                     help="Observable used in the fit default : [%default]",
                                     ),
@@ -58,7 +58,7 @@ class CombineApp(TemplatesApp):
                                     default={ 
                                              "EBEB" : [270.,295.,325.,370.,450.,7000.],
                                              "EBEE" : [270.,310.,355.,420.,535.,7000.]
-                                  ##           "EBEB" : [300.,322.,352.,396.,481.,7000.],
+                                   ##          "EBEB" : [300.,322.,352.,396.,481.,7000.],
                                    ##          "EBEE" : [300.,339.,382.,448.,565.,7000.]
                                              },
                                     help="Binning of the parametric observable to be used for templates",
@@ -897,6 +897,7 @@ kmax * number of nuisance parameters (source of systematic uncertainties)
                     print "throwing asimov dataset for %1.4g expected events (computed from %1.4g events in enlarged range)" % ( nexp, ndset.sumEntries() )
                     ## build a new pdf which depends on roobs instead of asimobs and use it to throw the asimov dataset
                     tpdf = self.buildPdf(model,"extra_asimov_model_%s%s" % (comp,cat), roobs, load=snap )
+                    origdset = dset
                     dset = ROOT.DataSetFiller.throwAsimov(nexp,tpdf,roobs)
                     ndset = dset
                     print
@@ -905,12 +906,14 @@ kmax * number of nuisance parameters (source of systematic uncertainties)
                     
                 ## if needed cut away high weight events for the fit, but keep the uncut dataset
                 if weight_cut:                    
-                    uncut        = dset.reduce(RooFit.SelectVars(rooset),RooFit.Range("fullRange"))
-                    binned_uncut = uncut.binnedClone() if not useAsimov else uncut
                     if useAsimov:
-                        dset = uncut
+                        # dset = uncut
+                        uncut        = origdset.reduce(RooFit.SelectVars(rooset),RooFit.Range("fullRange"))
+                        binned_uncut = uncut
                     else:
-                        dset = self.reducedRooData(treename,rooset,weight="%s * weight" % options.luminosity,sel=weight_cut,redo=True,importToWs=False)                    
+                        uncut        = dset.reduce(RooFit.SelectVars(rooset),RooFit.Range("fullRange"))
+                        dset         = self.reducedRooData(treename,rooset,weight="%s * weight" % options.luminosity,sel=weight_cut,redo=True,importToWs=False)                    
+                        binned_uncut = uncut.binnedClone()
 
                 ## reduce datasets to required range
                 reduced  = dset.reduce(RooFit.SelectVars(rooset),RooFit.Range("fullRange"))
@@ -977,7 +980,7 @@ kmax * number of nuisance parameters (source of systematic uncertainties)
                     yb = rootempl.getBinning("templateBinning%s"%cat)
                     templhist = ROOT.TH2F("hist_template_%s%s" % (comp,cat), "hist_template_%s%s" % (comp,cat), xb.numBins(), xb.array(), yb.numBins(), yb.array() )
                     templset.fillHistogram(templhist, ROOT.RooArgList(roobs,rootempl) )
-                    ## make slice pdf out of TH2
+                    ## make slice pdf TH2
                     self.keep(pdf)
                     templpdf = ROOT.RooSlicePdf("model_%s_%s%s" % (rootempl.GetName(),comp,cat),"model_%s_%s%s" % (rootempl.GetName(),comp,cat),
                                                 templhist,unrol_widths,rootempl,roobs)
