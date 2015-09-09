@@ -3,11 +3,13 @@
 
 	gSystem->Load("libHiggsAnalysisCombinedLimit");
 	gSystem->Load("libdiphotonsUtils");
-	TString dir="/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/test_asimovi_splitshapes/";
-//	TFile* _file0 = new TFile("higgsCombine_truth270.GenerateOnly.mH0.123456.root");
+	TString dir="/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_300test/";
+	TFile* _file1 = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_300_lumi_5/higgsCombine_fit_self.MultiDimFit.mH0.123456.root");
+	TFile* _file0 = new TFile("full_analysis_anv1_v19_2D_truth_shapes_truth_templates_semiparam_noweightcuts_300_lumi_5/higgsCombine_fit_self.MultiDimFit.mH0.123456.root");
+//	TFile* _file0 = new TFile("higgsCombine_300noweightcut_truth_nopp.GenerateOnly.mH0.123456.root ");
 //	TFile* _file1 = new TFile("higgsCombine_fixtruth270.GenerateOnly.mH0.123456.root");
-	TFile* _file0 = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_adhocnormlog270_lumi_5/higgsCombine_truth.GenerateOnly.mH0.123456.root");
-	TFile* _file1 = new TFile("full_analysis_anv1_v19_2D_split_shapes_asimovfixtruthpfEBEB270_lumi_5/higgsCombine_truth.GenerateOnly.mH0.123456.root");
+//	TFile* _file0 = new TFile("PasqualeFit/higgsCombine_truth.GenerateOnly.mH0.123456.root");
+//	TFile* _file1 = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_adhocnormlog300_lumi_5/higgsCombine_fit_truth.MultiDimFit.mH0.123456.root");
 //	TFile* _file1 = new TFile("higgsCombine_fixtruth270.GenerateOnly.mH0.123456.root");
 	_file0->cd();
 	
@@ -36,41 +38,44 @@
 		    
 	    RooPlot * framei = ws::mgg.frame(Title(ds->GetName()),Bins(134));
 		TLegend* leg = new TLegend(0.55, 0.75, .9, .9);
+	    TH1D*fhisto = new TH1D("fhisto","fhisto", 134,ws::mgg.getMin(),ws::mgg.getMax());
+	    TH1D*dhisto = new TH1D("dhisto","dhisto", 134,ws::mgg.getMin(),ws::mgg.getMax());
+		fds->fillHistogram(fhisto,RooArgList(ws::mgg));
+		ds->fillHistogram(dhisto,RooArgList(ws::mgg));
+	   	fhisto->Divide(dhisto); 
+	 //   if( TString(ds->GetName()).Contains("control") ) {
+		//fds->plotOn(framei,MarkerStyle(kOpenCircle),Name("redBkg"),MarkerColor(kRed),Rescale(1./fds->numEntries()));//Rescale(1./fds->numEntries()),DataError(RooAbsData::Poisson),LineColor(kRed-1),MarkerColor(kRed-1));
+		//ds->plotOn(framei,Name("totBkg"),MarkerStyle(kOpenTriangleUp),Rescale(1./ds->numEntries()));
+		ds->plotOn(framei,Name("totBkg"),MarkerStyle(kOpenTriangleUp));
+		fds->plotOn(framei,MarkerStyle(kOpenCircle),Name("redBkg"),MarkerColor(kRed));//Rescale(1./fds->numEntries()),DataError(RooAbsData::Poisson),LineColor(kRed-1),MarkerColor(kRed-1));
 	    
-		    fds->plotOn(framei,MarkerStyle(kOpenCircle),Name("redBkg"),MarkerColor(kRed-1));//,DataError(RooAbsData::Poisson),LineColor(kRed-1),MarkerColor(kRed-1));
-	    ds->plotOn(framei,Name("totBkg"),MarkerStyle(kOpenTriangleUp));
-	    
-	    TCanvas * canvi = new TCanvas(ds->GetName(),ds->GetName());
+	    TCanvas * canvi = new TCanvas(Form("asimov%s",ds->GetName()),Form("asimov%s",ds->GetName()));
 	    
 	    canvi->SetLogy();
 	    canvi->SetLogx();
+	    canvi->SetGridy();
+	    canvi->SetGridx();
 	    
-	    framei->GetYaxis()->SetRangeUser(1e-5,700);
+	    framei->GetYaxis()->SetRangeUser(1e-7,700);
 	    
-	    framei->Draw();
+	     framei->Draw();
 		leg->SetFillColor(0);
-		leg->AddEntry(totBkg,"fixedtruth270" ,"p");
-		leg->AddEntry(redBkg,"truth270" ,"p");
+		leg->AddEntry(totBkg,"me split shapes self fit" ,"p");
+		leg->AddEntry(redBkg,"me truth self fit" ,"p");
 		leg->Draw();
 	    
 	    canvi->SaveAs(Form("%s%s.png", dir.Data(),canvi->GetName()));
 	    /// canvi->SaveAs(Form("template_%s.png", canvi->GetName()));
 		//
-/*
-	    RooPlot * framej = ws::templateNdim2_unroll.frame(Title(Form("template%s",ds->GetName())),Bins(9));
-	    ws::templateNdim2_unroll.setRange("full_region",0.,9.);
-	    ws::mgg.setRange("full_region",ws::mgg.getMin(),ws::mgg.getMax());
+
 	    
-		    fds->plotOn(framej,MarkerStyle(kOpenCircle));//,DataError(RooAbsData::Poisson),LineColor(kRed-1),MarkerColor(kRed-1));
-	    ds->plotOn(framej,DataError(RooAbsData::Poisson),MarkerStyle(kOpenTriangleUp));
+	    TCanvas * canvj = new TCanvas(Form("asimov_ratio%s",ds->GetName()),Form("asimov_ratio%s",ds->GetName()));
+		fhisto->Draw();
 	    
-	    TCanvas * canvj = new TCanvas(Form("template%s",ds->GetName()),Form("template%s",ds->GetName()));
-	    
-	    framej->Draw();
-		leg->Draw();
 	    
 	    canvj->SaveAs(Form("%s%s.png", dir.Data(),canvj->GetName()));
-	*/
+	
+	//	}
 		}
 }
 

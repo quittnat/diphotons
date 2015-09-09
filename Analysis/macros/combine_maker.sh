@@ -124,14 +124,12 @@ echo "**************************************************************************
 ./combine_maker.py \
     --fit-name $fitname  --luminosity $lumi  \
     --fit-background \
-    --generate-signal \
     --generate-datacard \
-    --plot-norm-dataset \
+    --generate-signal \
     --binned-data-in-datacard \
     --read-ws $input \
     --ws-dir $workdir \
     -O $www/$version/$workdir \
     -o $workdir.root  \
     --cardname datacard_${workdir}.txt $opts 2>&1 | tee $workdir/combine_maker.log
-
 echo "**************************************************************************************************************************"

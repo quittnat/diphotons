@@ -1,30 +1,52 @@
 {
-	# include <vector>
-	using namespace std;
+# include <list>	
 	using namespace RooFit;
 	gSystem->Load("libHiggsAnalysisCombinedLimit");
 	gSystem->Load("libdiphotonsUtils");
 	bool check= false;
-	TString dir="/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/fit_frozenShapes/";
+	TString dir="/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_300";
 	//TODO includes etc
- 	TFile* nomfitresfile = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_adhocpf_lumi_5/multidimfit_fit_truth.root");
-	TFile* nompdffile = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_adhocpf_lumi_5/higgsCombine_fit_truth.MultiDimFit.mH0.123456.root");
-	TFile* truthpdffile = new TFile("higgsCombine_truth.GenerateOnly.mH0.123456.root");
-//	TFile* truthpdffile = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_adhoclognnorm270_lumi_50/higgsCombine_fit_self.GenerateOnly.mH0.123456.root");
+ 	TFile* nomfitresfile = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_300_lumi_5/multidimfit_fitnoweightcut_truth.root");
+	TFile* nompdffile = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_300_lumi_5/higgsCombine_fitnoweightcut_truth.MultiDimFit.mH0.123456.root");
+	TFile* truthpdffile = new TFile("higgsCombine_300noweightcut_truth.GenerateOnly.mH0.123456.root");
+//	TFile* nompdffile = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_lumi_5/higgsCombine_fit_self.MultiDimFit.mH0.root");
+// 	TFile* nomfitresfile = new TFile("PasqualeFitOldf/full_analysis_anv1_v19_2D_split_shapes_semiparam_test_lumi_5/multidimfit_fit_truth.root");
+//	TFile* truthpdffile =  new TFile("PasqualeFitOldf/higgsCombine_truth.GenerateOnly.mH0.123456.root ");
+//	TFile* truthpdffile =  new TFile("PasqualeFitOldf/full_analysis_anv1_v19_2D_truth_shapes_truth_templates_semiparam_lumi_5/higgsCombine_truth.GenerateOnly.mH0.123456.root ");
+//	TFile* nompdffile =  new TFile("PasqualeFitOldf/full_analysis_anv1_v19_2D_split_shapes_semiparam_lumi_5/higgsCombine_fit_truth.MultiDimFit.mH0.root");
 
 	//bkg only
-    std::vector<std::string> components;
+//	std::string components[]={"pp_EBEB", "pf_EBEB", "ff_EBEB", "pp_EBEE","pf_EBEE","ff_EBEE"}; 
+	//std::string comp[]={"pp_EBEB", "pf_EBEB", "ff_EBEB", "pp_EBEE","pf_EBEE","ff_EBEE"}; 
+//	std::vector<std::string> components;
+//	std::vector<std::string> components(comp, end(comp));
 	
+	/*
+	for (int j=0; j< comp.size(); j++)
+	{
+		components.push_back(comp[j]);
+	}
 	components.push_back("pp_EBEB");
 	components.push_back("pp_EBEE");
 	components.push_back("pf_EBEB");
 	components.push_back("pf_EBEE");
+	components.push_back("ff_EBEB");
+	components.push_back("ff_EBEE");
+	cout << components[1] << endl;
+	*/
+	std::string compList[]={"pf_EBEB"}; 
+	std::list<std::string> components(compList,compList+sizeof(compList)/sizeof(std::string)); 
 
 	const int nsampling=300;
+	int nbins=0;
+	double binning =50.;
 	
-  for (std::vector<std::string>::iterator it = components.begin(); it != components.end(); ++it){
+	//for(int it=0; it < components.size(); it++) {
+	//for(std::vector<std::string>::iterator it = components.begin(); it != components.end(); ++it) {
+	for(std::list<std::string>::iterator it = components.begin(); it != components.end(); ++it) {
 		TString comp=*it;
 	
+		//TString comp(*it);
 		cout << "----------- component " << comp.Data() << "----------------------" << endl;
 		TString fitShapeName=Form("shapeBkg_%s", comp.Data());
 		TString fitNormName=Form("shapeBkg_%s__norm", comp.Data());
@@ -38,8 +60,8 @@
 		wTruth::templateNdim2_unroll.setRange("sigTruth_region",wTruth::templateNdim2_unroll.getMin(),wTruth::templateNdim2_unroll.getMax());
 		wTruth::templateNdim2_unroll.setRange("binTruth_region",wTruth::templateNdim2_unroll.getMin(),wTruth::templateNdim2_unroll.getMax());
 		wTruth::mgg.setRange("sigTruth_region",wTruth::mgg.getMin(),wTruth::mgg.getMax());
-		RooAbsPdf* fittruthShape=w->pdf(fitShapeName.Data());
-		RooAbsReal* fittruthNorm=w->function(fitNormName.Data());
+		RooProdPdf* fittruthShape=w->pdf(fitShapeName.Data());
+		RooProduct* fittruthNorm=w->function(fitNormName.Data());
 		RooExtendPdf* fittruthPdf=new RooExtendPdf("fittruthPdf","fittruthPdf",*fittruthShape,*fittruthNorm);
 		RooArgSet* truthParams = fittruthPdf->getParameters(obsTruth) ;
 		truthParams.Print();	
@@ -80,8 +102,8 @@
 		wNom::templateNdim2_unroll.setRange("sig_region",wNom::templateNdim2_unroll.getMin(),wNom::templateNdim2_unroll.getMax());
 		wNom::templateNdim2_unroll.setRange("bin_region",wNom::templateNdim2_unroll.getMin(),wNom::templateNdim2_unroll.getMax());
 		
-		RooAbsPdf* fitnomShape=w->pdf(fitShapeName.Data());
-		RooAbsReal* fitnomNorm=w->function(fitNormName.Data());
+		RooProdPdf* fitnomShape=w->pdf(fitShapeName.Data());
+		RooProduct* fitnomNorm=w->function(fitNormName.Data());
 		RooExtendPdf* fitnomPdf=new RooExtendPdf("fitnomPdf","fitnomPdf",*fitnomShape,*fitnomNorm);
 		Double_t exptruthEvents= fittruthPdf->expectedEvents(obsTruth);
 		fitnomPdf.Print();
@@ -92,16 +114,16 @@
 		fitnomPdf->plotOn(framei,LineColor(kBlue),Project(wNom::templateNdim2_unroll));
 		
 		//w->loadSnapshot("MultiDimFit");
-		RooAbsPdf* randShape=w->pdf(fitShapeName.Data());
-		RooAbsReal* randNorm=w->function(fitNormName.Data());
+		RooProdPdf* randShape=w->pdf(fitShapeName.Data());
+		RooProduct* randNorm=w->function(fitNormName.Data());
 		RooExtendPdf* randPdf=new RooExtendPdf("randPdf","randPdf",*randShape,*randNorm);
 		Double_t expnomEvents= fitnomPdf->expectedEvents(obsNom);
 		RooArgSet* pdfParams = randPdf->getParameters(obsNom) ;
-		//pdfParams.Print("v");	
+		pdfParams.Print("v");	
 		
 		//get fitresult and randomize parameters in covariance matrix
 		nomfitresfile->cd();
-		//fit.Print("v");
+		fit.Print("v");
 		//const TMatrixDSym & cov=fit->covarianceMatrix();
 		Double_t intPdfs[nsampling][nbins];
 		
@@ -132,7 +154,6 @@
 				//inttruthBin[bin]=exptruthEvents*inttruthPdf ;
 		//			cout <<" intnomBin "<<intnomBin[bin] << " inttruthBin "<<inttruthBin[bin] << endl; 
 		}
-		
 		for(int r=0;r< nsampling;++r){	
 			if(r==10 || r==40 ||r==100 || r==300 || r==450){
 				cout << "---------------------------------  sampling" << r << "----------" << endl;
@@ -199,52 +220,106 @@
 		
 		for(int bin=0;bin< nbins;bin++)
 		{
+			double xmin=0.;
+			double xmax=0.;
+			//get min and max element for histo
+			for(unsigned int j=0; j<nsampling; ++j){
+					if(intPdfs[j][bin] > xmax){
+						xmax = intPdfs[j][bin];
+					}
+					if(intPdfs[j][bin] < xmin){
+						xmin = intPdfs[j][bin];
+					}
+			  }
+			
 			//compute 68 and 95 percent 
-			vector<double> quantile;
-
-			for(int samp=0; samp< nsampling; samp++)
-			{
-				quantile.push_back(intPdfs[samp][bin]);
-			}
- 			sort(quantile.begin(), quantile.end());
-   			int size = quantile.size();
-    		int mid = size/2;
-    		double median;
-			// get a few values around to avoid peak
-			median = size % 2 == 0 ? (quantile[mid+2] + quantile[mid+1] + quantile[mid] + quantile[mid-1]+ quantile[mid-2])/5 : quantile[mid];
-
-        	double errmin1=0.;
-        	double errmax1=0.;
-        	double errmin2=0.;
-        	double errmax2=0.;
-
-			int perrmin1=size*0.16;
-			int perrmax1=size*0.84;
-			int perrmin2=size*0.025;
-			int perrmax2=size*0.975;
-
-        	errmin1 =  (quantile[perrmin1+3]+quantile[perrmin1+2] + quantile[perrmin1+1]+ quantile[perrmin1] + quantile[perrmin1-1] + quantile[perrmin1-2]+quantile[perrmin1-3])/7;
-        	errmax1 =  (quantile[perrmax1+3]+quantile[perrmax1+2] + quantile[perrmax1+1]+ quantile[perrmax1] + quantile[perrmax1-1] + quantile[perrmax1-2]+ quantile[perrmax1-3])/7;
-        	errmin2 =  (quantile[perrmin2+3]+quantile[perrmin2+2] + quantile[perrmin2+1]+ quantile[perrmin2] + quantile[perrmin2-1] + quantile[perrmin2-2]+quantile[perrmin2-3])/7;
-        	errmax2 =  (quantile[perrmax2+3]+quantile[perrmax2+2] + quantile[perrmax2+1]+ quantile[perrmax2] + quantile[perrmax2-1] + quantile[perrmax2-2]+quantile[perrmax2-3])/7;
-
+			const int qn=5;
+			Double_t quant[qn] ;	
+			Double_t prob[qn]={0.025,0.16,0.5,0.84,0.975};
+			TH1D* hist=new TH1D("hist","hist",100,xmin, xmax);
+			for(int samp=0; samp< nsampling; samp++){hist->Fill(intPdfs[samp][bin]);}
+			histmean[bin]=hist->GetMean();
+			hist->GetQuantiles(qn,quant,prob);
 			diff[bin]= intnomBin[bin]-inttruthBin[bin];	
 			difffrac[bin]= diff[bin]/intnomBin[bin];	
-			errPlus[bin]= errmax1-intnomBin[bin];	
-			errMin[bin]= intnomBin[bin]-errmin1;	
-			err2Plus[bin]= errmax2-intnomBin[bin];	
-			err2Min[bin]=intnomBin[bin]-errmin2;	
+			errPlus[bin]= quant[3]-intnomBin[bin];	
+			errMin[bin]= intnomBin[bin]-quant[1];	
+			err2Plus[bin]= quant[4]-intnomBin[bin];	
+			err2Min[bin]=intnomBin[bin]-quant[0];	
+			/*errPlus[bin]= quant[3]-intnomBin[bin];	
+			errMin[bin]= intnomBin[bin]-quant[1];	
+			err2Plus[bin]= quant[4]-intnomBin[bin];	
+			err2Min[bin]=intnomBin[bin]-quant[0];	
+			*/
+			
 			
 			//pull function if diff positiv, take positv value
-			if (intnomBin[bin]>= inttruthBin[bin])
-			{
+			if (intnomBin[bin]>= inttruthBin[bin]){
 				pull[bin]=diff[bin]/errMin[bin];
 			}
-			else 
-			{
+			else {
 				pull[bin]=diff[bin]/errPlus[bin];
 			}
-			quantile.clear();
+			
+			if(bin > 10)
+			{
+				TCanvas* chisto= new TCanvas("chisto","chisto");
+				chisto->cd(1);
+				gStyle->SetOptStat(111);
+				
+				hist->Draw();
+				TLine *lmean = new TLine(intnomBin[bin],0.,intnomBin[bin], hist->GetBinContent(hist->GetMaximumBin()));
+				lmean->SetLineColor(kGreen+1);
+				lmean->SetLineWidth(3);
+				lmean->SetLineStyle(4);
+				TLine *lmeanTruth = new TLine(inttruthBin[bin],0.,inttruthBin[bin],hist->GetBinContent(hist->GetMaximumBin()));
+				lmeanTruth->SetLineColor(kYellow+1);
+				lmeanTruth->SetLineWidth(3);
+				lmeanTruth->SetLineStyle(4);
+				TLine *lm2s = new TLine(quant[0],0.,quant[0],hist->GetBinContent(hist->GetMaximumBin()));
+				lm2s->SetLineColor(kMagenta);
+				lm2s->SetLineWidth(3);
+				TLine *lm1s = new TLine(quant[1],0.,quant[1],hist->GetBinContent(hist->GetMaximumBin()));
+				lm1s->SetLineColor(kMagenta+1);
+				lm1s->SetLineWidth(3);
+				TLine *lm = new TLine(quant[2],0.,quant[2],hist->GetBinContent(hist->GetMaximumBin()));
+				lm->SetLineColor(kMagenta+2);
+				lm->SetLineWidth(3);
+				TLine *l1s = new TLine(quant[3],0.,quant[3],hist->GetBinContent(hist->GetMaximumBin()));
+				l1s->SetLineColor(kMagenta+3);
+				l1s->SetLineWidth(3);
+				TLine *l2s = new TLine(quant[4],0.,quant[4],hist->GetBinContent(hist->GetMaximumBin()));
+				l2s->SetLineColor(kMagenta+4);
+				l2s->SetLineWidth(3);
+				lm2s->Draw("SAME");
+				lm1s->Draw("SAME");
+				lm->Draw("SAME");
+				l1s->Draw("SAME");
+				l2s->Draw("SAME");
+				lmean->Draw("SAME");
+				lmeanTruth->Draw("SAME");
+				TLegend* leg3 = new TLegend(0.45, 0.7, .7, .9);
+				leg3->SetFillColor(0);
+				leg3->AddEntry(lmeanTruth,"mean truth" ,"l");
+				leg3->AddEntry(lmean,"mean nominal start fit" ,"l");
+				leg3->AddEntry(lm2s,"2.5 %" ,"l");
+				leg3->AddEntry(lm1s,"16 %" ,"l");
+				leg3->AddEntry(lm,"50 %" ,"l");
+				leg3->AddEntry(l1s,"84 %" ,"l");
+				leg3->AddEntry(l2s,"97.5 %" ,"l");
+				leg3->Draw();
+				chisto->SaveAs(Form("%s/Histo_%s_bin%i.png",dir.Data(),comp.Data(),bin));
+				delete chisto;
+				delete lm2s;
+				delete lm1s;
+				delete lm;
+				delete l1s;
+				delete l2s;
+			
+			}
+			delete hist;
+			//delete [] quant;
+			//delete [] prob;
 		}
 		/*
 		for(int b=0; b< nbins; b++){
@@ -293,10 +368,10 @@
 		gr2sigma->SetLineWidth(3);
 		gr2sigma->SetFillColor(kGreen+1);
 		
-		gr2sigma->Draw("a  C E3"); 
+		gr2sigma->Draw("a l C E3"); 
 		gr1sigma->Draw("C  E3 SAME"); 
-		grmean->Draw("C  SAME"); 
-		grmeanTruth->Draw("C  SAME"); 
+		grmean->Draw("C l SAME"); 
+		grmeanTruth->Draw("C l SAME"); 
 		
 		gr2sigma->GetXaxis()->SetTitle("mass [GeV]");
 	//	gr2sigma->GetXaxis()->SetRangeUser(wTruth::mgg.getMin(),4000.);
@@ -346,6 +421,22 @@
 	//	grfrac->GetXaxis()->SetRangeUser(wTruth::mgg.getMin(),4000.);
 		cfrac->SaveAs(Form("%scfrac_%s.png",dir.Data(),comp.Data()));
 		
+		fittruthPdf=NULL;
+		fittruthShape=NULL;
+		fittruthNorm=NULL;
+		fitnomPdf=NULL;
+		fitnomShape=NULL;
+		fitnomNorm=NULL;
+
+		delete fittruthPdf;
+		delete fittruthShape;
+		delete fittruthNorm;
+		delete fitnomPdf;
+		delete fitnomShape;
+		delete fitnomNorm;
+		delete cfrac;
+		delete cbias;
+		delete cpull;
 	}
 	
 }
@@ -364,3 +455,6 @@ void PrintProgress(Long64_t entry)
         step = power;
     }   
 */
+
+
+

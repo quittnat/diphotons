@@ -35,8 +35,8 @@ class CombineApp(TemplatesApp):
                                     default="cic",
                                     help="Fit to consider"),
                         make_option("--observable",dest="observable",action="store",type="string",
-                                    ##default="mgg[3350,300,7000]",
-                                    default="mgg[3350,270,7000]",
+                                    default="mgg[3350,300,7000]",
+                               ##     default="mgg[3350,270,7000]",
                                     help="Observable used in the fit default : [%default]",
                                     ),
                         make_option("--fit-background",dest="fit_background",action="store_true",default=False,
@@ -56,10 +56,10 @@ class CombineApp(TemplatesApp):
                                     ),                        
                         make_option("--obs-template-binning",dest="obs_template_binning",action="callback",callback=optpars_utils.Load(scratch=True),
                                     default={ 
-                                             "EBEB" : [270.,295.,325.,370.,450.,7000.],
-                                             "EBEE" : [270.,310.,355.,420.,535.,7000.]
-                                   ##          "EBEB" : [300.,322.,352.,396.,481.,7000.],
-                                   ##          "EBEE" : [300.,339.,382.,448.,565.,7000.]
+                                    ##         "EBEB" : [270.,295.,325.,370.,450.,7000.],
+                                    ##         "EBEE" : [270.,310.,355.,420.,535.,7000.]
+                                             "EBEB" : [300.,322.,352.,396.,481.,7000.],
+                                             "EBEE" : [300.,339.,382.,448.,565.,7000.]
                                              },
                                     help="Binning of the parametric observable to be used for templates",
                                     ),                        
@@ -75,8 +75,8 @@ class CombineApp(TemplatesApp):
                                     ),                        
                         make_option("--plot-binning",dest="plot_binning",action="callback",callback=optpars_utils.ScratchAppend(float),
                                     ## type="string",default=[114,300,6000],
-                                   ##type="string",default=[134,300,7000],
-                                    type="string",default=[136,270,7000],
+                                   type="string",default=[134,300,7000],
+                                  ## type="string",default=[136,270,7000],
                                     help="Binning to be used for plots",
                                     ),
                         make_option("--plot-signal-binning",dest="plot_signal_binning",action="callback",callback=optpars_utils.ScratchAppend(float),
@@ -857,15 +857,22 @@ kmax * number of nuisance parameters (source of systematic uncertainties)
                 # options read
                 print "component : " , comp
                 print "model :", model
+                print "template :", tsource
                 if comp != "":
                     comp = "%s_" % comp
                     
                 # dataset used to determine shape
                 catsource = source_cats.get(cat,cat)
                 treename = "%s_%s_%s" % (source,options.fit_name,catsource)
+               # if ":" in source:
+                #    source, fitnam = source.split(":")
+                 #   treename = "%s_%s_%s" % ( source, fitnam, catsource )
                 # and normalization
                 catnsource = nsource_cats.get(cat,cat)
                 ntreename = "%s_%s_%s" % (nsource,options.fit_name,catnsource)
+              #  if ":" in source:
+              #      nsource, fitnam = source.split(":")
+              #      ntreename = "%s_%s_%s" % ( nsource, fitnam, catnsource )
 
                 if add_sideband and not catsource in sidebands:
                     sidebands[catsource] = set()
@@ -1000,7 +1007,9 @@ kmax * number of nuisance parameters (source of systematic uncertainties)
                     
                     plbinned = ROOT.RooDataHist("%s_binned_tmp" % plreduced.GetName(), "%s_binned_tmp" % plreduced.GetName(), ROOT.RooArgSet(roobs,rootempl),"templateBinning%s"%cat )
                     plbinned.add(plreduced)
-                    self.plotBkgFit(options,plbinned,templpdf,rootempl,"template_proj_%s%s" % (comp,cat),poissonErrs=True,logy=False,logx=False,
+                    tplbinned = ROOT.RooDataHist("%s_binned_tmp" % templset.GetName(), "%s_binned_tmp" % templset.GetName(), ROOT.RooArgSet(roobs,rootempl),"templateBinning%s"%cat )
+                    tplbinned.add(templset)
+                    self.plotBkgFit(options,tplbinned,templpdf,rootempl,"template_proj_%s%s" % (comp,cat),poissonErrs=True,logy=False,logx=False,
                                     plot_binning=list(unrol_binning),
                                     opts=[RooFit.ProjWData(ROOT.RooArgSet(roobs),plbinned)], bias_funcs={}, forceSkipBands=True )
                     
@@ -1429,7 +1438,7 @@ kmax * number of nuisance parameters (source of systematic uncertainties)
             ymin = fitc.GetMinimum()
             ymax = fitc.GetMaximum()
         else:
-            ymax = fitc.interpolate(frame.GetXaxis().GetXmin())*2.
+            ymax = fitc.interpolate(frame.GetXaxis().GetXmin())*3.
             ymin = fitc.interpolate(frame.GetXaxis().GetXmax())*0.25
         if not logx:
             ymin = min(0,ymin)
@@ -1767,12 +1776,12 @@ kmax * number of nuisance parameters (source of systematic uncertainties)
             pdf = ROOT.RooGenericPdf( pname, pname, "pow(1+@1*@0+@2*@0*@0,@3)", roolist )
             
             self.keep( [pdf,slo,qua,alp] )
-        elif model== "adhoclognorm":
-            pname = "adhoclognorm_%s" % name
+        elif model== "adhoclognormEB":
+            pname = "adhoclognormEB_%s" % name
             mu = self.buildRooVar("%s_mu" % pname,[], importToWs=False)
             twovar = self.buildRooVar("%s_twovar" % pname,[], importToWs=False)
-            mu.setVal(5.44)
-            twovar.setVal(0.517)
+            mu.setVal(4.914)
+            twovar.setVal(0.644)
             mu.setConstant(True)
             twovar.setConstant(True)
 
@@ -1782,6 +1791,20 @@ kmax * number of nuisance parameters (source of systematic uncertainties)
             roolist = ROOT.RooArgList( xvar, mu, twovar )
             pdf = ROOT.RooGenericPdf( pname, pname, "exp(-pow(log(@0)-@1,2)/@2)", roolist )
             self.keep( [pdf,mu,twovar] )
+        elif model== "adhoclognormEE":
+            pname = "adhoclognormEE_%s" % name
+            mu = self.buildRooVar("%s_mu" % pname,[], importToWs=False)
+            twovar = self.buildRooVar("%s_twovar" % pname,[], importToWs=False)
+            mu.setVal(5.35)
+            twovar.setVal(0.517)
+            mu.setConstant(True)
+            twovar.setConstant(True)
+
+            self.pdfPars_.add(mu)
+            self.pdfPars_.add(twovar)
+            
+            roolist = ROOT.RooArgList( xvar, mu, twovar )
+            pdf = ROOT.RooGenericPdf( pname, pname, "exp(-pow(log(@0)-@1,2)/@2)", roolist )
         
         elif model== "fixtruth270":
             pname = "fixtruth270_%s" % name
@@ -1799,6 +1822,36 @@ kmax * number of nuisance parameters (source of systematic uncertainties)
             pdf = ROOT.RooGenericPdf( pname, pname, "TMath::Max(1e-50,pow(@0,@1+@2*log(@0)))", roolist )
             self.keep( [pdf,linc,logc] )
 
+        elif model== "fixtruthppEB":
+            pname = "fixtruthppEB_%s" % name
+            linc = self.buildRooVar("%s_lin" % pname,[-100.0,100.0], importToWs=False)
+            logc = self.buildRooVar("%s_log" % pname,[-100.0,100.0], importToWs=False)
+            linc.setVal(6.37602)
+            logc.setVal(-0.844821)
+            linc.setConstant(True)
+            logc.setConstant(True)
+
+            self.pdfPars_.add(linc)
+            self.pdfPars_.add(logc)
+            
+            roolist = ROOT.RooArgList( xvar, linc, logc )
+            pdf = ROOT.RooGenericPdf( pname, pname, "TMath::Max(1e-50,pow(@0,@1+@2*log(@0)))", roolist )
+            self.keep( [pdf,linc,logc] )
+        elif model== "fixtruthppEE":
+            pname = "fixtruthppEE_%s" % name
+            linc = self.buildRooVar("%s_lin" % pname,[-100.0,100.0], importToWs=False)
+            logc = self.buildRooVar("%s_log" % pname,[-100.0,100.0], importToWs=False)
+            linc.setVal(15.1323)
+            logc.setVal(-1.47253)
+            linc.setConstant(True)
+            logc.setConstant(True)
+
+            self.pdfPars_.add(linc)
+            self.pdfPars_.add(logc)
+            
+            roolist = ROOT.RooArgList( xvar, linc, logc )
+            pdf = ROOT.RooGenericPdf( pname, pname, "TMath::Max(1e-50,pow(@0,@1+@2*log(@0)))", roolist )
+            self.keep( [pdf,linc,logc] )
 
 
         if load:
