@@ -1658,6 +1658,7 @@ class TemplatesApp(PlotApp):
             print 
             for component,cfg in fit["templates"].iteritems():
                 dataset = cfg.get("dataset","templates")
+                print dataset
                 trees = self.prepareTrees(dataset,cfg["sel"],options.verbose,"Templates selection for %s" % component)
                 cats = {}
                 presel = cfg.get("presel",preselection)
@@ -1669,14 +1670,12 @@ class TemplatesApp(PlotApp):
                     cats[cat] = config
                 self.buildRooDataSet(trees,"template_%s" % component,name,fit,cats,fulllist,weight,presel,storeTrees)
                 for cat in categories.keys():
-                    print "tree: template %s - %s" % (component,cat)
                     tree=self.treeData("template_%s_%s_%s" % (component,name,cat) )
-                    tree.Print()
-                    print "tree entries", tree.GetEntries()
-                    h1=ROOT.TH1F("h1","h1",2,0.,1.)
-                    tree.Draw("1>>h1","weight","goff")
-                    integral=h1.Integral()
-                    print integral
+                    #print "tree entries", tree.GetEntries()
+                   # h1=ROOT.TH1F("h1","h1",2,0.,1.)
+                   # tree.Draw("1>>h1","weight","goff")
+                   # integral=h1.Integral()
+                   # print integral
                     print "template %s - %s" % (component,cat), self.rooData("template_%s_%s_%s" % (component,name,cat) ).sumEntries()
                     print "number of entries template %s - %s" % (component,cat), self.rooData("template_%s_%s_%s" % (component,name,cat) ).numEntries()
             print 
