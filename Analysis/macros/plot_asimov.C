@@ -3,9 +3,9 @@
 
 	gSystem->Load("libHiggsAnalysisCombinedLimit");
 	gSystem->Load("libdiphotonsUtils");
-	TString dir="/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/plots_300test/";
-	TFile* _file1 = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_300_lumi_5/higgsCombine_fit_self.MultiDimFit.mH0.123456.root");
-	TFile* _file0 = new TFile("full_analysis_anv1_v19_2D_truth_shapes_truth_templates_semiparam_noweightcuts_300_lumi_5/higgsCombine_fit_self.MultiDimFit.mH0.123456.root");
+	TString dir="/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/fit_frozenShapesfloated/";
+	TFile* _file1 = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_adhocpf_lumi_5/higgsCombine_self.GenerateOnly.mH0.123456.root");
+	TFile* _file0 = new TFile("higgsCombine_truth.GenerateOnly.mH0.123456.root");
 //	TFile* _file0 = new TFile("higgsCombine_300noweightcut_truth_nopp.GenerateOnly.mH0.123456.root ");
 //	TFile* _file1 = new TFile("higgsCombine_fixtruth270.GenerateOnly.mH0.123456.root");
 //	TFile* _file0 = new TFile("PasqualeFit/higgsCombine_truth.GenerateOnly.mH0.123456.root");
@@ -42,6 +42,8 @@
 	    TH1D*dhisto = new TH1D("dhisto","dhisto", 134,ws::mgg.getMin(),ws::mgg.getMax());
 		fds->fillHistogram(fhisto,RooArgList(ws::mgg));
 		ds->fillHistogram(dhisto,RooArgList(ws::mgg));
+		cout << "integral fds "<< fhisto->Integral() << endl;
+		cout << "integral ds "<< dhisto->Integral() << endl;
 	   	fhisto->Divide(dhisto); 
 	 //   if( TString(ds->GetName()).Contains("control") ) {
 		//fds->plotOn(framei,MarkerStyle(kOpenCircle),Name("redBkg"),MarkerColor(kRed),Rescale(1./fds->numEntries()));//Rescale(1./fds->numEntries()),DataError(RooAbsData::Poisson),LineColor(kRed-1),MarkerColor(kRed-1));

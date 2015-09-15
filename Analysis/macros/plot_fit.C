@@ -3,13 +3,13 @@
 
 	gSystem->Load("libHiggsAnalysisCombinedLimit");
 	gSystem->Load("libdiphotonsUtils");
-	TString dir="/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/fit_frozenShapes/";
+	TString dir="/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/fit_frozenShapesfloated/";
 /// 	TFile* _file0 = new TFile("PasqualeFit/full_analysis_anv1_v19_2D_split_shapes_semiparam_lumi_5/higgsCombine_truth_nopp2.MultiDimFit.mH0.123456.root");
 //	TFile* _file1 = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_270_lumi_5/higgsCombine_fit_truth.MultiDimFit.mH0.123456.root");
 //	TFile* _file1 = new TFile("full_analysis_anv1_v19_2D_truth_shapes_truth_templates_semiparam_noweightcuts_300_lumi_5/higgsCombine_fit_self.MultiDimFit.mH0.123456.root");
 //	TFile* _file1 = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_300_lumi_5/higgsCombine_fit_self.MultiDimFit.mH0.123456.root");
 //	TFile* _file1 = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_300_lumi_5/higgsCombine_fitnoweightcutSetParRange_truth.MultiDimFit.mH0.123456.root");
-	TFile* _file0 = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_adhocpf_lumi_5/higgsCombine_truth_nopp.MultiDimFit.mH0.123456.root");
+	TFile* _file0 = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_adhocpf_lumi_5/higgsCombine_fit_truth_nopp.MultiDimFit.mH0.123456.root");
 	TFile* _file1 = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_adhocpf_lumi_5/higgsCombine_fit_truth.MultiDimFit.mH0.123456.root");
 //	TFile* _file0 = new TFile("higgsCombine_300_truth_nopp.GenerateOnly.mH0.123456.root");
 	//TFile* _file1 = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_300_lumi_5/higgsCombine_fit_self.MultiDimFit.mH0.123456.root");
@@ -48,12 +48,21 @@
 		TLegend* leg = new TLegend(0.55, 0.75, .9, .9);
 	    
 	    if(! TString(ds->GetName()).Contains("control") ) {
+			 cout << ""<< endl;
+			 cout << ""<< endl;
+			cout << " fds integral " << fds->sumEntries() << endl;
+			 cout << ""<< endl;
+			 cout << ""<< endl;
 		    fds->plotOn(framei,MarkerStyle(kOpenCircle),Name("redBkg"));//,DataError(RooAbsData::Poisson),LineColor(kRed-1),MarkerColor(kRed-1));
-	    }
+		}
 		
 		ds->plotOn(framei,Name("totBkg"));
-	    pdfi->plotOn(framei,LineColor(kBlue),Name("total"));//,ProjectionRange("sig_region"));
-	    pdfi->plotOn(framei,LineColor(kGreen),Components("*pp*"),Name("pp"));//,ProjectionRange("sig_region"));
+			 cout << ""<< endl;
+			 cout << ""<< endl;
+		cout << "nom model integral " << ds->sumEntries() << endl;
+			 cout << ""<< endl;
+			 cout << ""<< endl;
+	    pdfi->plotOn(framei,LineColor(kBlue),Name("total"));//,ProjectionRange("sig_region"));)//	    pdfi->plotOn(framei,LineColor(kGreen),Components("*pp*"),Name("pp"));//,ProjectionRange("sig_region"));
 	    pdfi->plotOn(framei,LineColor(kRed),Components("*pf*"),Name("pf"));//,ProjectionRange("sig_region"));
 
 	    pdfi->plotOn(framei,LineColor(kOrange),Components("*ff*"),Name("ff"));//,ProjectionRange("sig_region"));
@@ -69,17 +78,26 @@
 	    
 	    framei->Draw();
 		leg->SetFillColor(0);
-		leg->AddEntry(totBkg,"full background" ,"p");
-		leg->AddEntry(redBkg,"reducible background" ,"p");
-		leg->AddEntry(total,"total fit" ,"l");
-		leg->AddEntry(pp,"pp component" ,"l");
-		leg->AddEntry(pf,"pf component" ,"l");
-		leg->AddEntry(ff,"ff component" ,"l");
+	    if(! TString(ds->GetName()).Contains("control") ) {
+			leg->AddEntry(totBkg,"full background" ,"p");
+			leg->AddEntry(redBkg,"reducible background" ,"p");
+			leg->AddEntry(total,"total fit" ,"l");
+		//leg->AddEntry(pp,"pp component" ,"l");
+			leg->AddEntry(pf,"pf component" ,"l");
+			leg->AddEntry(ff,"ff component" ,"l");
+		}
+		else{
+			leg->AddEntry(totBkg,"pf control region" ,"p");
+			leg->AddEntry(pf,"pf fit control region" ,"l");
+		
+		
+		}
 		leg->Draw();
 	    
 	    canvi->SaveAs(Form("%s%s.png", dir.Data(),canvi->GetName()));
+	    canvi->SaveAs(Form("%s%s.root", dir.Data(),canvi->GetName()));
 		//
-
+/*
 	  
 	    RooPlot * framej = ws::templateNdim2_unroll.frame(Title(Form("template%s",ds->GetName())),Bins(9));
 	    ws::templateNdim2_unroll.setRange("full_region",0.,9.);
@@ -101,9 +119,10 @@
 		leg->Draw();
 	    
 	    canvj->SaveAs(Form("%s%s.png", dir.Data(),canvj->GetName()));
+	    canvj->SaveAs(Form("%s%s.root", dir.Data(),canvj->GetName()));
 		
 	}
-	
+*/	
 }
 
 	    

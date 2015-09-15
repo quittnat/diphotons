@@ -5,7 +5,7 @@
 	gSystem->Load("libHiggsAnalysisCombinedLimit");
 	gSystem->Load("libdiphotonsUtils");
 	bool check= false;
-	TString dir="/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/fit_frozenShapes/";
+	TString dir="/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/fit_frozenShapesfloated/";
 	//TODO includes etc
  	TFile* nomfitresfile = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_adhocpf_lumi_5/multidimfit_fit_truth.root");
 	TFile* nompdffile = new TFile("full_analysis_anv1_v19_2D_split_shapes_semiparam_adhocpf_lumi_5/higgsCombine_fit_truth.MultiDimFit.mH0.123456.root");
