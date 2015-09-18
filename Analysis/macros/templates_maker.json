@@ -18,8 +18,7 @@
                "GGJets_M_200To13000_sherpa_13TeV:output.root/%(sel)sGenIso",
                "GGJets_M_200To13000_sherpa_13TeV:output.root/%(sel)sNonGenIso",
                "QCD_Pt_30toInf_13TeV:output.root/%(sel)s",
-               "GJets_HT_100toInf_13TeV:output.root/%(sel)s",            
-               "DYJetsToLL_M_50_TuneCUETP8M1_amcatnloFXFX_pythia8_13TeV:output.root/%(sel)s"            
+               "GJets_HT_100toInf_13TeV:output.root/%(sel)s"        
              ],
 
     "data" : [
@@ -34,8 +33,7 @@
                "GGJets_M_200To13000_sherpa_13TeV:output.root/%(sel)s",
                "GGJets_M_200To13000_sherpa_13TeV:output.root/%(sel)s",
                "QCD_Pt_30toInf_13TeV:output.root/%(sel)s",
-               "GJets_HT_100toInf_13TeV:output.root/%(sel)s",            
-               "DYJetsToLL_M_50_TuneCUETP8M1_amcatnloFXFX_pythia8_13TeV:output.root/%(sel)s"            
+               "GJets_HT_100toInf_13TeV:output.root/%(sel)s"         
              ],
              
      "#" : "mc dataset",

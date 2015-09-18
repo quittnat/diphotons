@@ -3,10 +3,10 @@
 ## version=full_analysis_anv1_v19
 version=$1 && shift
 
-fitname=2D 
+fitname=2D_templateisData 
 www=~/www/exo/
 if [[ $(whoami) == "mquittna" ]]; then
-    www=/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/
+    www=/afs/cern.ch/user/m/mquittna/www/diphoton/Spring15
 fi
 
 shapes="default_shapes"
@@ -85,7 +85,7 @@ label="$shapes"
 
 input=${version}_${fitname}_final_ws.root
 input_log=${version}_${fitname}_final_ws.log
-treesdir=~musella/public/workspace/exo/
+treesdir=/afs/cern.ch/user/m/musella/public/workspace/exo/
 workdir=${version}_${fitname}_${label}_lumi_${lumi}
 
 if [[ -n $bias ]]; then
@@ -121,16 +121,16 @@ echo "**************************************************************************
 echo "running model creation"
 echo "**************************************************************************************************************************"
 
-./combine_maker.py \
-    --fit-name $fitname  --luminosity $lumi  \
-    --fit-background \
-    --generate-signal \
-    --generate-datacard \
-    --binned-data-in-datacard \
-    --read-ws $input \
-    --ws-dir $workdir \
-    -O $www/$version/$workdir \
-    -o $workdir.root  \
-    --cardname datacard_${workdir}.txt $opts 2>&1 | tee $workdir/combine_maker.log
+#./combine_maker.py \
+#    --fit-name $fitname  --luminosity $lumi  
+#    --fit-background \
+#    --generate-signal \
+#    --generate-datacard \
+#    --binned-data-in-datacard \
+#    --read-ws $input \
+#    --ws-dir $workdir \
+#    -O $www/$version/$workdir \
+#    -o $workdir.root  \
+#    --cardname datacard_${workdir}.txt $opts 2>&1 | tee $workdir/combine_maker.log
 
 echo "**************************************************************************************************************************"
