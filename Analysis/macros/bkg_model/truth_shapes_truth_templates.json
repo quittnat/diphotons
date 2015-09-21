@@ -3,7 +3,7 @@
 	    	 "shape":"mctruth_pp", "norm":"mctruth_pp", 
 		 "template" : "mctruth_pp",
 		 "weight_cut" : "weight < 5.",
-		 "model" : "moddijet"
+		 "_model" : "moddijet"
 	    },
 	    "pf" : { 
 	    	 "shape":"mctruth_pf", "norm":"mctruth_pf",
@@ -13,7 +13,8 @@
 		 	      "EBHighR9" : "EBLowR9",
 			      "EEHighR9" : "EELowR9"
 		  },
-		  "weight_cut"   : "weight < 5."
+		  "weight_cut"   : "weight < 5.",
+		 "model_cats" : { "EBEB" : "fixtruth270" ,"EBEE" : "adhoclognorm" }
 	    },	    
 	    "ff" : { 
 	    	 "shape":"mctruth_ff", "norm":"mctruth_ff",

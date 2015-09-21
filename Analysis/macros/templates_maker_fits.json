@@ -331,8 +331,8 @@
             "#" : "single photon: looks at single photon selection",
 
             "ndim"       : 1,
-            "bins"       : [ "phoPt", [100,6000] ],
-            "dataset_variables" : ["phoPt","phoPhoIso","phoPhoIsoEA","phoEta","phoScEta","phoPhi","phoEnergy := phoPt*cosh(phoEta)","phoSigmaIeIe","phoGenIso","phoMatchType","rho","nvtx"],
+            "bins"       : [ "phoPt", [100,7000] ],
+            "dataset_variables" : ["phoPt","phoPhoIso","phoRndConePhoIso","phoPhoIsoEA","phoEta","phoScEta","phoPhi","phoEnergy := phoPt*cosh(phoEta)","phoSigmaIeIe","phoGenIso","phoMatchType"],
 	    "template_binning" : [0.0,0.1,5.0,15.0],
             "store_trees"  : true,
             "selection"    : "cicNoChIsoSinglePho",
@@ -495,7 +495,7 @@
 		"redo" : true,
 		"doDataMc" : false, "doMcTruth" : true,
                 "template_binning" : [ 0.0,0.1,5.0,15.0],
- 
+                "_template_binning" : [ 0.0,0.1,0.3,0.5,1.0,2.0,3.0,5.0,10.0,15.0], 
                 "lowerLimitSigRegion2D": "0.", 
                 "_upperLimitSigRegion2D": "4.", 
                 "_upperLimitSigRegion1D": "5.", 
@@ -504,6 +504,9 @@
 		"mass_binning" :"mass[13000,200.0,13000.0]"
 		}
 	},
+    "corrPlot":{
+                "categories" :["EB","EE"]
+    },
    "nominalFit":{
         "3_components":{
                 "dimensions" :"2D", 

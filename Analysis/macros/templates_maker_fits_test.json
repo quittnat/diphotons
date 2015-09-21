@@ -266,36 +266,11 @@
                     "sel" : "cicNoChIsoSinglePho",
                     "dataset" : "data",
                         "fill_categories" : { 
-                            "EB" : { "phoIsEB && 1" : ["phoRndConeChIso8"],
-    								 "phoIsEB && 2" : ["phoRndConeChIso0"],
-    								 "phoIsEB && 3" : ["phoRndConeChIso1"],
-    								 "phoIsEB && 4" : ["phoRndConeChIso2"],
-    								 "phoIsEB && 5" : ["phoRndConeChIso3"],
-    								 "phoIsEB && 6" : ["phoRndConeChIso4"],
-    								 "phoIsEB && 7" : ["phoRndConeChIso5"],
-    								 "phoIsEB && 8" : ["phoRndConeChIso6"],
-    								 "phoIsEB && 9" : ["phoRndConeChIso7"]
+                            "EB" : { "phoIsEB" : ["phoRndConeChIso"]
 									},
-                            "EE" : { "!phoIsEB && 1" : ["phoRndConeChIso8"],
-                            		 "!phoIsEB && 2" : ["phoRndConeChIso0"],
-                            		 "!phoIsEB && 3" : ["phoRndConeChIso1"],
-                            		 "!phoIsEB && 4" : ["phoRndConeChIso2"],
-                            		 "!phoIsEB && 5" : ["phoRndConeChIso3"],
-                            		 "!phoIsEB && 6" : ["phoRndConeChIso4"],
-                            		 "!phoIsEB && 7" : ["phoRndConeChIso5"],
-                            		 "!phoIsEB && 8" : ["phoRndConeChIso6"],
-                            		 "!phoIsEB && 9" : ["phoRndConeChIso7"]
+                            "EE" : { "!phoIsEB" : ["phoRndConeChIso"]
 									},
-                            "eta_inclusive" : {  "phoIsEB ||!phoIsEB && 1" : ["phoRndConeChIso8"], 
-                            					 "phoIsEB ||!phoIsEB && 2" : ["phoRndConeChIso0"], 
-                            					 "phoIsEB ||!phoIsEB && 3" : ["phoRndConeChIso1"], 
-                            					 "phoIsEB ||!phoIsEB && 4" : ["phoRndConeChIso2"], 
-                            					 "phoIsEB ||!phoIsEB && 5" : ["phoRndConeChIso3"], 
-                            					 "phoIsEB ||!phoIsEB && 6" : ["phoRndConeChIso4"], 
-                            					 "phoIsEB ||!phoIsEB && 7" : ["phoRndConeChIso5"], 
-                            					 "phoIsEB ||!phoIsEB && 8" : ["phoRndConeChIso6"], 
-                            					 "phoIsEB ||!phoIsEB && 9" : ["phoRndConeChIso7"] 
-
+                            "eta_inclusive" : {  "phoIsEB ||!phoIsEB " : ["phoRndConeChIso"]
 											}
                     }
                 },
