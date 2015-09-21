@@ -1,51 +1,32 @@
 {
-    "drawopts" : ["Draw","e","hist","hist nostack"],
+    "drawopts" : ["Draw,DrawRatio[0.7]","e","hist","hist nostack"],
     "legpos"  : [0.580,0.70,0.930,0.91],
 
     "sig" : null,
-
 
     "data" : [
 	      ["Data","Data",
 	      [["SetBinErrorOption",1],["colors","kBlack"],["SetLineWidth",2],["SetFillStyle",0],["Scale",1],["legopt","pe"],["SetMarkerStyle","kFullCircle"],["SetFillColor","kWhite"]],
 	      { "Data_13TeV:output.root/%(sel)s" : [] }
 	      ]
-	      
-	     ],
-    "_bkg" : [
-	      ["Data","Data",
-	      [["SetBinErrorOption",1],["colors","kBlack"],["SetLineWidth",2],["SetFillStyle",0],["Scale",1],["legopt","pe"],["SetMarkerStyle","kFullCircle"],["SetFillColor","kWhite"]],
-	      { "Data_13TeV:output.root/%(sel)s" : [] }
-	      ]
 		],
 	      
+    "50ns" :  ["Scale",65.7e-3],
+    "25ns" :  ["Scale",15.9e-3],
 
-    "_bkg" : [
-	      ["dy","Drell-Yan #rightarrow e e",
-	      [["colors","myColorC1"],["SetLineWidth",2],["SetFillStyle",1001],["Scale",16.0e-3],["legopt","f"],["SetFillColor","kMagenta"]],
-	      { "DYJetsToLL_M_50_TuneCUETP8M1_amcatnloFXFX_pythia8:output_dy.root/%(sel)s" : [] }
-	      ]
-    ],
-	      
-    "_bkg" : [
-	      
-	      ["dy","DY #rightarrow e e",
-	      [["colors","myColorD1"],["SetLineWidth",2],["SetFillStyle",1001],["Scale",16.0e-3],["legopt","f"],["SetFillColor","myColorD3tr"]],
-	      { "DYJetsToLL_M_50_TuneCUETP8M1_amcatnloFXFX_pythia8_13TeV:output.root/%(sel)s" : [] }
-	      ],
-
-	      ["jetjet","j j",
-	      [["colors","myColorC1"],["SetLineWidth",2],["SetFillStyle",1001],["Scale",16.0e-3],["legopt","f"],["SetFillColor","myColorC3tr"]],
+    "bkg" : [
+      	      ["jetjet","j j",
+	      [["colors","myColorD1"],["SetLineWidth",2],["SetFillStyle",1001],["Scale",15.9e-3],["legopt","f"],["SetFillColor","myColorC3tr"]],
 	      { "QCD_Pt_30toInf_13TeV:output.root/%(sel)s" : [] }
 	      ],
 	      
 	      ["gjet","#gamma j",
-	      [["colors","myColorA1"],["SetLineWidth",2],["SetFillStyle",1001],["Scale",16.0e-3],["legopt","f"],["SetFillColor","myColorA3tr"]],
+	      [["colors","myColorA1"],["SetLineWidth",2],["SetFillStyle",1001],["Scale",15.9e-3],["legopt","f"],["SetFillColor","myColorA3tr"]],
 	      { "GJets_HT_100toInf_13TeV:output.root/%(sel)s" : [] }
 	      ],
 
 	      ["ggjet_iso","#gamma #gamma",
-	      [["colors","myColorB1"],["SetLineWidth",2],["SetFillStyle",1001],["Scale",16.0e-3],["legopt","f"],["SetFillColor","myColorB3tr"]],
+	      [["colors","myColorB1"],["SetLineWidth",2],["SetFillStyle",1001],["Scale",15.9e-3],["legopt","f"],["SetFillColor","myColorB3tr"]],
 	      { "GGJets_M_200To13000_sherpa_13TeV:output.root/%(sel)s" : [] }
 	      ]
 	      
@@ -53,17 +34,17 @@
     "bkg" : [
 	      
 	      ["jetjet","j j",
-	      [["colors","myColorC1"],["SetLineWidth",2],["SetFillStyle",1001],["Scale",16.0e-3],["legopt","f"],["SetFillColor","myColorC3tr"]],
+	      [["colors","myColorC1"],["SetLineWidth",2],["SetFillStyle",1001],["Scale",15.9e-3],["legopt","f"],["SetFillColor","myColorC3tr"]],
 	      { "QCD_Pt_30toInf_13TeV:output.root/%(sel)s" : [] }
 	      ],
 	      
 	      ["gjet","#gamma j",
-	      [["colors","myColorA1"],["SetLineWidth",2],["SetFillStyle",1001],["Scale",16.0e-3],["legopt","f"],["SetFillColor","myColorA3tr"]],
+	      [["colors","myColorA1"],["SetLineWidth",2],["SetFillStyle",1001],["Scale",15.9e-3],["legopt","f"],["SetFillColor","myColorA3tr"]],
 	      { "GJets_HT_100toInf_13TeV:output.root/%(sel)s" : [] }
 	      ],
 
 	      ["ggjet_iso","#gamma #gamma",
-	      [["colors","myColorB1"],["SetLineWidth",2],["SetFillStyle",1001],["Scale",16.0e-3],["legopt","f"],["SetFillColor","myColorB3tr"]],
+	      [["colors","myColorB1"],["SetLineWidth",2],["SetFillStyle",1001],["Scale",15.9e-3],["legopt","f"],["SetFillColor","myColorB3tr"]],
 	      { "GGJets_M_200To13000_sherpa_13TeV:output.root/%(sel)s" : [] }
 	      ]
 	      
@@ -72,29 +53,29 @@
 
     "_bkg" : [
 	      ["ggjet_nonIso","non iso #gamma #gamma",
-	      [["colors","myColorC1"],["SetLineWidth",2],["SetFillStyle",1001],["Scale",16.0e-3],["legopt","f"],["SetFillColor","myColorC3tr"]],
+	      [["colors","myColorC1"],["SetLineWidth",2],["SetFillStyle",1001],["Scale",15.9e-3],["legopt","f"],["SetFillColor","myColorC3tr"]],
 	      { "GGJets_M_200To13000_sherpa_13TeV:output.root/%(sel)sNonGenIso" : [] }
 	      ],
 	      
 	      ["ggjet_iso","iso #gamma #gamma",
-	      [["colors","myColorB1"],["SetLineWidth",2],["SetFillStyle",1001],["Scale",16.0e-3],["legopt","f"],["SetFillColor","myColorB3tr"]],
+	      [["colors","myColorB1"],["SetLineWidth",2],["SetFillStyle",1001],["Scale",15.9e-3],["legopt","f"],["SetFillColor","myColorB3tr"]],
 	      { "GGJets_M_200To13000_sherpa_13TeV:output.root/%(sel)sGenIso" : [] }
 	      ]
     	      ],
 
     "_sig" :  ["rsg_02_5000","G #rightarrow #gamma #gamma (k/M_{PL}=0.1 M_{G}=5TeV)",
-	      [["colors","kAzure"],["SetLineWidth",2],["SetFillStyle",0],["Scale",16.0e-3],["legopt","f"],["SetFillColor","kWhite"]],
+	      [["colors","kAzure"],["SetLineWidth",2],["SetFillStyle",0],["Scale",15.9e-3],["legopt","f"],["SetFillColor","kWhite"]],
 	      { "GGJets_M_200To13000_sherpa_13TeV:output.root/%(sel)s" : [], "QCD_HT_100toInf_13TeV:output.root/%(sel)s" : [], "GJets_HT_100toInf_13TeV:output.root/%(sel)s" : [], "RSGravToGG_kMpl_02_M_5000_13TeV:output.root/%(sel)s" : [] }
 	      ],
 	      
     "_sig" : [
 	      ["rsg_02_5000","G #rightarrow #gamma #gamma (k/M_{PL}=0.2 M_{G}=5TeV)",
-	      [["colors","kAzure"],["SetLineWidth",2],["SetFillStyle",0],["Scale",16.0e-3],["legopt","f"],["SetFillColor","kWhite"]],
+	      [["colors","kAzure"],["SetLineWidth",2],["SetFillStyle",0],["Scale",15.9e-3],["legopt","f"],["SetFillColor","kWhite"]],
 	      { "GGJets_M_200To13000_sherpa_13TeV:output.root/%(sel)s" : [], "QCD_HT_100toInf_13TeV:output.root/%(sel)s" : [], "GJets_HT_100toInf_13TeV:output.root/%(sel)s" : [], "RSGravToGG_kMpl_02_M_5000_13TeV:output.root/%(sel)s" : [] }
 	      ],
 	      
 	      ["rsg_01_3000","G #rightarrow #gamma #gamma (k/M_{PL}=0.1 M_{G}=3TeV)",
-	      [["colors","kOrange"],["SetLineWidth",2],["SetFillStyle",0],["Scale",16.0e-3],["legopt","f"],["SetFillColor","kWhite"]],
+	      [["colors","kOrange"],["SetLineWidth",2],["SetFillStyle",0],["Scale",15.9e-3],["legopt","f"],["SetFillColor","kWhite"]],
 	      { "GGJets_M_200To13000_sherpa_13TeV:output.root/%(sel)s" : [], "QCD_HT_100toInf_13TeV:output.root/%(sel)s" : [], "GJets_HT_100toInf_13TeV:output.root/%(sel)s" : [], "RSGravToGG_kMpl_01_M_3000_13TeV:output.root/%(sel)s" : [] }
 	      ],
 	      
@@ -169,9 +150,10 @@
 	"EBAnomalous"  : ["EBAnomalous"]
 	}, 
 	
-    "_plots": [
-	      ["mass"			,[["xtitle","m_{#gamma #gamma} (GeV)"],["xrange",[100.0,1000.0]],
-					  ["rebin",[[100,150,200,250,300,400,500,600,700,800,1000,1050]]],["overflow",[null]],["ytitle","Events / %(binw)s GeV"]
+    "plots": [
+	      ["mass"			,[["xtitle","m_{#gamma #gamma} (GeV)"],
+					  ["xrange",[100.0,1050.0]],["overflow",[null]],["rebin",[[100,150,200,250,300,400,500,600,700,800,1000,1050]]],
+					  "density",["ytitle","Events / %(binw)s GeV"]
 					]
 					,null,null],
 
@@ -191,9 +173,6 @@
 	      ["rapidity"		,[["Rebin",4],["ytitle","Events / %(binw)s"],["xtitle","y_{#gamma #gamma} (GeV)"],["xrange",[-3,3]],["overflow",[null]]]
 					,null,null],
 					
-	      ["cosDeltaPhi"		,[["Rebin",5],["ytitle","Events / %(binw)s"],["xtitle","cos(#Delta#phi_{#gamma #gamma})"]]
-					,null,null],
-
 	      ["leadPt"			,[["Rebin",2],["ytitle","Events / %(binw)s GeV"],["xtitle","p_{T}(#gamma 1) (GeV)"],["xrange",[100.0,1000.0]],["overflow",[null]]]
 					,null,null],
 
@@ -201,22 +180,22 @@
 					,null,null],
 
 	      ["leadChIso"		,[["xtitle","#gamma_{1} charged isolation (GeV)"],["xrange",[0,16]],
-	      				["rebin",[[0,0.25,0.5,1,1.5,5,15,16]]],["overflow",[null]],"density",["ytitle","Events / %(binw)s GeV"]
+	      				["overflow",[null]],["rebin",[[0,0.25,0.5,1,1.5,5,15,16]]],"density",["ytitle","Events / %(binw)s GeV"]
 	      				]
 					,null,null,["sig"]],
 
 	      ["subleadChIso"		,[["xtitle","#gamma_{2} charged isolation (GeV)"],["xrange",[0,16]],
-	      				["rebin",[[0,0.25,0.5,1,1.5,5,15,16]]],["overflow",[null]],"density",["ytitle","Events / %(binw)s GeV"]
+	      				["overflow",[null]],["rebin",[[0,0.25,0.5,1,1.5,5,15,16]]],"density",["ytitle","Events / %(binw)s GeV"]
 	      				]
 					,null,null,["sig"]],
 
 	      ["leadPhoIso"		,[["xtitle","#gamma_{1} photon isolation (GeV)"],["xrange",[0,16]],
-	       				["rebin",[[0,0.25,0.5,1,1.5,5,15,16]]],["overflow",[null]],"density",["ytitle","Events / %(binw)s GeV"]
+	       				["overflow",[null]],["rebin",[[0,0.25,0.5,1,1.5,5,15,16]]],"density",["ytitle","Events / %(binw)s GeV"]
 	      				]
 					,null,null,["sig"]],
 
 	      ["subleadPhoIso"		,[["xtitle","#gamma_{2} photon isolation (GeV)"],["xrange",[0,16]],
-	      				["rebin",[[0,0.25,0.5,1,1.5,5,15,16]]],["overflow",[null]],"density",["ytitle","Events / %(binw)s GeV"]
+	      				["overflow",[null]],["rebin",[[0,0.25,0.5,1,1.5,5,15,16]]],"density",["ytitle","Events / %(binw)s GeV"]
 	      				]
 
 					,null,null,["sig"]],
@@ -308,9 +287,9 @@
         ["cicNoSigmaIetaIeta","noSiEiE",["mass","leadSigmaIeIe","subleadSigmaIeIe"]],
         ["cicNoPhoIso","noPhoIso",["mass","leadPhoIso","subleadPhoIso","nvtx","rho"]],
         ["cicNoHoverE","noHoE",["mass","leadHoE","subleadHoE"]],
-        ["cicNoEleVeto","noEleVeti",["phoPt","leadPassEleVeto","subleadPassEleVeto","leadPixSeed","subleadPixSeed"]],
-        ["cicSBNoChIsoSingleSB","chIsoSingleSB",["mass","leadChIso","subleadChIso","nvtx","rho"]],
-        ["cicSBNoChIsoDoubleSB","chIsoDoubleSB",["mass","leadChIso","subleadChIso","nvtx","rho"]]
+        ["cicNoEleVeto","noEleVeto",["mass","leadPassEleVeto","subleadPassEleVeto","leadPixSeed","subleadPixSeed"]],
+        ["cicSBNoChIsoSingleSB","chIsoSingleSB",["mass","leadChIso","subleadChIso","nvtx","rho","phoRndConeChIso"]],
+        ["cicSBNoChIsoDoubleSB","chIsoDoubleSB",["mass","leadChIso","subleadChIso","nvtx","rho","phoRndConeChIso"]]
 
     ],
     "_selections" : [
@@ -332,11 +311,13 @@
     ],
 	      
     "styles": { 
-	"*mass*" : [["logy",1e-3]],
+	"*mass*" : [["logy",5e-2]],
 	"*Iso*"  : [["logy",1e-3]],
 	"*Pt*"  : [["logy",1e-1]],
 	"*pt*"  : [["logy",1e-2]],
-	"*HoE*"  : [["logy",1e-3]]
+	"*HoE*"  : [["logy",1e-3]],
+	"*rat"   : ["SetGridy"],
+	    "*ratio" : [["ytitle","Data / MC"],["applyTo",["GetYaxis",[["SetNdivisions",505],["SetRangeUser",[0.5,1.5]]]]]]
 	},	 
     "postproc" : {
     },
