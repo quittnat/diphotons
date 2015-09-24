@@ -188,14 +188,14 @@
             "#" :"Template creation.                      ",
 	    "#" :"  Format is <component> : { <settings> }",
             "templates" : {
-                "_pp" : { 
+                "pp" : { 
 		        "sel"  : "cicNoChIso", "#" : "event selection",
                         "dataset" : ["data","mc"],    "#" : "input dataset. can be data,mc or templates",
                         "#" : "How to fill different categories. Logic is the same as for the 'fill' instructions above",
                         "fill_categories" : {
-                        "EBEB" :{"TMath::Even(event) " : [ "leadRndConeChIso", "subleadRndConeChIso" ],
+                        "_EBEB" :{"TMath::Even(event) " : [ "leadRndConeChIso", "subleadRndConeChIso" ],
                                  "! TMath::Even(event)" : [ "subleadRndConeChIso", "leadRndConeChIso" ]},
-                        "_EBEB" :{"TMath::Even(event) && 1" : [ "leadRndConeChIso8", "subleadRndConeChIso8" ],
+                        "EBEB" :{"TMath::Even(event) && 1" : [ "leadRndConeChIso8", "subleadRndConeChIso8" ],
                         		 "TMath::Even(event) && 2" : [ "leadRndConeChIso0", "subleadRndConeChIso0" ],
                         		 "TMath::Even(event) && 3" : [ "leadRndConeChIso1", "subleadRndConeChIso1" ],
                         		 "TMath::Even(event) && 4" : [ "leadRndConeChIso2", "subleadRndConeChIso2" ],
@@ -214,9 +214,9 @@
                                  "! TMath::Even(event) && 8" : [ "subleadRndConeChIso6", "leadRndConeChIso6" ],
                                  "! TMath::Even(event) && 9" : [ "subleadRndConeChIso7", "leadRndConeChIso7" ]
                                 },
-                        "EBEE" :{"leadIsEB && !subleadIsEB" : [ "leadRndConeChIso", "subleadRndConeChIso" ], 
+                        "_EBEE" :{"leadIsEB && !subleadIsEB" : [ "leadRndConeChIso", "subleadRndConeChIso" ], 
                                  "!leadIsEB && subleadIsEB" : [ "subleadRndConeChIso", "leadRndConeChIso" ]}, 
-                        "_EBEE" :{"leadIsEB && !subleadIsEB && 1" : [ "leadRndConeChIso8", "subleadRndConeChIso8" ], 
+                        "EBEE" :{"leadIsEB && !subleadIsEB && 1" : [ "leadRndConeChIso8", "subleadRndConeChIso8" ], 
                                  "leadIsEB && !subleadIsEB && 2" : [ "leadRndConeChIso0", "subleadRndConeChIso0" ], 
                                  "leadIsEB && !subleadIsEB && 3" : [ "leadRndConeChIso1", "subleadRndConeChIso1" ], 
                                  "leadIsEB && !subleadIsEB && 4" : [ "leadRndConeChIso2", "subleadRndConeChIso2" ], 
@@ -243,9 +243,11 @@
                         "#" : "pseudo-random swap, but taking care to take the random cone isolation for the signal-region photon",
                         "#" : "  and the photon isolation for the side-band one                                                  ",
                         "fill_categories" : { 
-                        "EBEB" :{ "leadIsSB  && TMath::Even(event)   && subleadPhoIsoEB " :    [ "leadChIso", "subleadRndConeChIso8" ],
+                        "_EBEB" :{ "leadIsSB  && TMath::Even(event)   && subleadPhoIsoEB &&  " :    [ "leadChIso", "subleadRndConeChIso8" ],
                          "leadIsSB  && !TMath::Even(event)   && subleadPhoIsoEB" :    [ "subleadRndConeChIso", "leadChIso" ]},
-                        "_EBEB" :{ "leadIsSB  && TMath::Even(event)   && subleadPhoIsoEB && 1" :    [ "leadChIso", "subleadRndConeChIso8" ],
+                       
+
+ "EBEB" :{ "leadIsSB  && TMath::Even(event)   && subleadPhoIsoEB && 1" :    [ "leadChIso", "subleadRndConeChIso8" ],
                         		  "leadIsSB  && TMath::Even(event)   && subleadPhoIsoEB && 2" :    [ "leadChIso", "subleadRndConeChIso0" ],
                         		  "leadIsSB  && TMath::Even(event)   && subleadPhoIsoEB && 3" :    [ "leadChIso", "subleadRndConeChIso1" ],
                         		  "leadIsSB  && TMath::Even(event)   && subleadPhoIsoEB && 4" :    [ "leadChIso", "subleadRndConeChIso2" ],
@@ -282,11 +284,11 @@
                                 "subleadIsSB && ! TMath::Even(event) && leadPhoIsoEB    && 8" : [ "leadRndConeChIso6", "subleadChIso" ],
                                 "subleadIsSB && ! TMath::Even(event) && leadPhoIsoEB    && 9" : [ "leadRndConeChIso7", "subleadChIso" ]
                         },
-                        "EBEE" :{ "leadIsEB  &&  subleadPhoIsoEE&& leadIsSB " : [ "leadChIso", "subleadRndConeChIso" ], 
+                        "_EBEE" :{ "leadIsEB  &&  subleadPhoIsoEE&& leadIsSB " : [ "leadChIso", "subleadRndConeChIso" ], 
              "leadPhoIsoEB  &&  !subleadIsEB&& subleadIsSB" : [ "leadRndConeChIso", "subleadChIso" ],
                                 "leadPhoIsoEE&& subleadIsEB &&   subleadIsSB " : [ "subleadChIso", "leadRndConeChIso" ], 
                                 "! leadIsEB  && subleadPhoIsoEB && leadIsSB " : [ "subleadRndConeChIso", "leadChIso" ]},
-                        "_EBEE" :{ "leadIsEB  &&  subleadPhoIsoEE&& leadIsSB && 1" : [ "leadChIso", "subleadRndConeChIso8" ], 
+                        "EBEE" :{ "leadIsEB  &&  subleadPhoIsoEE&& leadIsSB && 1" : [ "leadChIso", "subleadRndConeChIso8" ], 
                         		  "leadIsEB  &&  subleadPhoIsoEE&& leadIsSB && 2" : [ "leadChIso", "subleadRndConeChIso0" ], 
                         		  "leadIsEB  &&  subleadPhoIsoEE&& leadIsSB && 3" : [ "leadChIso", "subleadRndConeChIso1" ], 
                         		  "leadIsEB  &&  subleadPhoIsoEE&& leadIsSB && 4" : [ "leadChIso", "subleadRndConeChIso2" ], 
@@ -373,6 +375,7 @@
                     "sel" : "cicNoChIsoSinglePho",
                     "dataset" : ["data","mc"],
                         "fill_categories" : { 
+                            "_EB" : { "phoIsEB  " : ["phoRndConeChIso"]},
                             "EB" : { "phoIsEB && 1 " : ["phoRndConeChIso8"],
     								 "phoIsEB && 2" : ["phoRndConeChIso0"],
     								 "phoIsEB && 3" : ["phoRndConeChIso1"],
@@ -383,6 +386,7 @@
     								 "phoIsEB && 8" : ["phoRndConeChIso6"],
     								 "phoIsEB && 9" : ["phoRndConeChIso7"]
 									},
+                            "_EE" : { "!phoIsEB" : ["phoRndConeChIso"]},
                             "EE" : { "!phoIsEB && 1" : ["phoRndConeChIso8"],
                             		 "!phoIsEB && 2" : ["phoRndConeChIso0"],
                             		 "!phoIsEB && 3" : ["phoRndConeChIso1"],
@@ -393,7 +397,8 @@
                             		 "!phoIsEB && 8" : ["phoRndConeChIso6"],
                             		 "!phoIsEB && 9" : ["phoRndConeChIso7"]
 									},
-                            "eta_inclusive" : {  "phoIsEB ||!phoIsEB && 1" : ["phoRndConeChIso8"], 
+                            "eta_inclusive" : {  "phoIsEB ||!phoIsEB " : ["phoRndConeChIso8"]},
+                            "_eta_inclusive" : {  "phoIsEB ||!phoIsEB && 1" : ["phoRndConeChIso8"], 
                             					 "phoIsEB ||!phoIsEB && 2" : ["phoRndConeChIso0"], 
                             					 "phoIsEB ||!phoIsEB && 3" : ["phoRndConeChIso1"], 
                             					 "phoIsEB ||!phoIsEB && 4" : ["phoRndConeChIso2"], 
@@ -407,8 +412,8 @@
                     }
                 },
                 "f" : { 
-                    "dataset" : ["templates","templatesMC"],
                     "sel" : "cicSBNoChIsoSBSinglePho",
+                    "dataset" : ["templates","templatesMC"],
                         "fill_categories" : { 
                         "EB" : { "phoIsEB && phoIsSB" : ["phoChIso"] },
                         "EE" : { "!phoIsEB && phoIsSB" : ["phoChIso"] },

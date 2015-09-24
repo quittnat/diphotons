@@ -1594,7 +1594,7 @@ class TemplatesApp(PlotApp):
         self.datasets_["data"] = self.openDataset(None,options.data_file,options.infile,options.data)
         self.datasets_["mc"]   = self.openDataset(None,options.mc_file,options.infile,options.mc)
         self.datasets_["templates"]   = self.openDataset(None,options.data_file,options.infile,options.templates)
-        self.datasets_["templatesMC"]   = self.openDataset(None,options.data_file,options.infile,options.templates)
+        self.datasets_["templatesMC"]   = self.openDataset(None,options.mc_file,options.infile,options.templatesMC)
         for name,trees in options.signals.iteritems():
             self.datasets_[name] = self.openDataset(None,options.mc_file,options.infile,trees)        
         # used by parent class PlotApp to read in objects
@@ -1668,51 +1668,49 @@ class TemplatesApp(PlotApp):
             ## prepare data
             dataTrees = self.prepareTrees("data",selection,options.verbose,"Data trees")
             self.buildRooDataSet(dataTrees,"data",name,fit,categories,fulllist,weight,preselection,storeTrees)
-##            for cat in categories.keys():
-##                print "dataset - %s" % (cat), self.rooData("data_%s_%s" % (name,cat) ).sumEntries()
-##                print "number of entries data - %s" % (cat), self.rooData("data_%s_%s" % (name,cat) ).numEntries()
-            ## prepare mc
+            for cat in categories.keys():
+                print "dataset - %s" % (cat), self.rooData("data_%s_%s" % (name,cat) ).sumEntries()
+                print "number of entries data - %s" % (cat), self.rooData("data_%s_%s" % (name,cat) ).numEntries()
+          ## prepare mc
             mcTrees =  self.prepareTrees("mc",selection,options.verbose,"MC trees")
             self.buildRooDataSet(mcTrees,"mc",name,fit,categories,fulllist,weight,preselection,storeTrees)
+          
+          ## prepare signal
+            for sig in signals:
+                sigTrees =  self.prepareTrees(sig,selection,options.verbose,"Signal %s trees" % sig)
+                self.buildRooDataSet(sigTrees,sig,name,fit,categories,fulllist,weight,preselection,storeTrees)
             
-            ## prepare signal
-##            for sig in signals:
-##                sigTrees =  self.prepareTrees(sig,selection,options.verbose,"Signal %s trees" % sig)
-##                self.buildRooDataSet(sigTrees,sig,name,fit,categories,fulllist,weight,preselection,storeTrees)
-##            
-            ## prepare truth templates
-##            for truth,sel in truth_selection.iteritems():
-##                cut = ROOT.TCut(preselection)
-##                cut *= ROOT.TCut(sel)
-##                legs = [""]
-##                if "legs" in fit:
-##                    legs = fit["legs"]
-##                self.buildRooDataSet(mcTrees,"mctruth_%s" % truth,name,fit,categories,fulllist,weight,cut.GetTitle(),storeTrees)
-            
-                
-##            print
-            ## sanity check
-##            for cat in categories.keys():
-##                catCounts = {}
-##                catCounts["tot"] = self.rooData("mc_%s_%s" % (name,cat) ).sumEntries()
-                
-##                breakDown = 0.
-##                for truth in truth_selection.keys():
-##                    count = self.rooData("mctruth_%s_%s_%s" % (truth,name,cat) ).sumEntries()
-##                    breakDown += count
-##                    catCounts[truth] = count
-##                print "truth : ",cat, " ".join( "%s : %1.4g" % (key,val) for key,val in catCounts.iteritems() ),
-##                if breakDown != catCounts["tot"]:
-##                    print "\n   Warning : total MC counts don't match sum of truths. Difference: ", catCounts["tot"]-breakDown
-##                else:
-##                    print
-                
+          ## prepare truth templates
+            for truth,sel in truth_selection.iteritems():
+                cut = ROOT.TCut(preselection)
+                cut *= ROOT.TCut(sel)
+                legs = [""]
+                if "legs" in fit:
+                    legs = fit["legs"]
+                self.buildRooDataSet(mcTrees,"mctruth_%s" % truth,name,fit,categories,fulllist,weight,cut.GetTitle(),storeTrees)
+          
+              
+            print
+          ## sanity check
+            for cat in categories.keys():
+                catCounts = {}
+                catCounts["tot"] = self.rooData("mc_%s_%s" % (name,cat) ).sumEntries()
+              
+                breakDown = 0.
+                for truth in truth_selection.keys():
+                    count = self.rooData("mctruth_%s_%s_%s" % (truth,name,cat) ).sumEntries()
+                    breakDown += count
+                    catCounts[truth] = count
+                print "truth : ",cat, " ".join( "%s : %1.4g" % (key,val) for key,val in catCounts.iteritems() ),
+                if breakDown != catCounts["tot"]:
+                    print "\n   Warning : total MC counts don't match sum of truths. Difference: ", catCounts["tot"]-breakDown
+                else:
+                    print
+              
             ## prepare templates
             print 
             for component,cfg in fit["templates"].iteritems():
-             #   dataset = cfg.get("dataset","templates")
-              #  print dataset
-              #  return
+                if component.startswith("_"): continue
               #templates (data) is default one
                 for dat in cfg.get("dataset","templates"):
                     print dat
@@ -1721,7 +1719,6 @@ class TemplatesApp(PlotApp):
                         dat="_"
                     elif dat=="templatesMC" or dat=="mc":
                         dat="_mc_"
-                    print dat
                     cats = {}
                     presel = cfg.get("presel",preselection)
                     for cat,fill in cfg["fill_categories"].iteritems():
@@ -1731,8 +1728,10 @@ class TemplatesApp(PlotApp):
                                    }
                         cats[cat] = config
                     self.buildRooDataSet(trees,"template%s%s" % (dat,component),name,fit,cats,fulllist,weight,presel,storeTrees)
+                    
                     for cat in categories.keys():
                         tree=self.treeData("template%s%s_%s_%s" % (dat,component,name,cat) )
+                        print tree
                         print "template -%s - %s" % (component,cat), self.rooData("template%s%s_%s_%s" % (dat,component,name,cat) ).sumEntries()
                         print "number of entries template %s - %s" % (component,cat), self.rooData("template%s%s_%s_%s" % (dat,component,name,cat) ).numEntries()
                     print 
