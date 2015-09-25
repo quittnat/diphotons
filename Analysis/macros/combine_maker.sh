@@ -3,7 +3,7 @@
 ## version=full_analysis_anv1_v19
 version=$1 && shift
 
-fitname=2D_templateisData 
+fitname=2D 
 www=~/www/exo/
 if [[ $(whoami) == "mquittna" ]]; then
     www=/afs/cern.ch/user/m/mquittna/www/diphoton/Spring15

@@ -197,10 +197,20 @@ cp -p jobs_gamjets_gamgam.json myjobs.json
 emacs -nw photonIdAnalyzer.py myjobs.json
 
 # test with 100 events
-fggRunJobs.py --load myjobs.json -d myjobs ./photonIdAnalyzer.py maxEvent=100
+fggRunJobs.py --load myjobs.json -d myjobs ./photonIdAnalyzer.py maxEvents=100
 
 # submit all jobs. add -q <queue_name> to run in batch
-fggRunJobs.py --load myjobs.json -d myjobs -H -D -P -n 5 ./photonIdAnalyzer.py maxEvent=-1
+fggRunJobs.py --load myjobs.json -d myjobs -H -D -P -n 5 ./photonIdAnalyzer.py maxEvents=-1
+
+#if working on the Tier3:
+the draw-back is that you have to copy the proxy file by hand
+to location which is visible by the worker nodes
+voms-proxy-init -voms cms
+manually copy the proxy to home
+export  X509_USER_PROXY=~/proxy_file
+if it dies --cont
+```
+fggRunJobs.py --load jobs_photon_qcd_ht.json -d photon_qcd_ht -H --no-copy-proxy -n 5 ./high_mass_analysis.py  maxEvents=-1  -q all.q useAAA=True useEOS=False
 ```
 
 Configuration files
