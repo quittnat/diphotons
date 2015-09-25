@@ -521,6 +521,7 @@ class TemplatesApp(PlotApp):
             print "Comparison %s" % name
             prepfit=comparison["prepfit"] 
             ReDo=comparison["redo"] 
+            doDataMc=comparison["doDataMc"] 
             weight_cut=comparison["weight_cut"] 
             fitname=comparison["fit"]
             if fitname=="2D" : d2=True
@@ -558,10 +559,11 @@ class TemplatesApp(PlotApp):
                     rooweight=self.buildRooVar("weight",[],recycle=True)
                     setargs.add(rooweight)
                     setargs.Print()
+                    #needed to estimate true purity for alter 2dfit
                     truthname= "mctruth_%s_%s_%s" % (compname,fitname,cat)
                     truth = self.reducedRooData(truthname,setargs,False,sel=weight_cut,redo=ReDo)
-                   # truth = self.reducedRooData(truthname,setargs,False,redo=ReDo)
                     truth.Print()
+                    #if not doDataMc:
                     templates.append(truth)
 ### loop over templates
                     for template,mapping in templatesls.iteritems():
@@ -570,6 +572,10 @@ class TemplatesApp(PlotApp):
                             mixname = template.split(":")[-1]
                             print "template_mix_%s_%s_%s" % (compname,mixname,mapping.get(cat,cat))
                             templatename= "template_mix_%s_%s_%s" % (compname,mixname,mapping.get(cat,cat))
+                        elif "template_mc" in template:
+                            tempname = template.split(":")[-1]
+                            print "template_mc_%s_%s_%s" % (compname,tempname,mapping.get(cat,cat))
+                            templatename= "template_mc_%s_%s_%s" % (compname,tempname,mapping.get(cat,cat))
                         else:
                             print "template_%s_%s_%s" % (compname,template,mapping.get(cat,cat))
                             templatename= "template_%s_%s_%s" % (compname,template,mapping.get(cat,cat))
@@ -577,10 +583,15 @@ class TemplatesApp(PlotApp):
 
                         #if "mix" in template and not prepfit:
                         if "mix" in template:
-                            templatename=( "reduced_template_mix_%s_2D_%s" % (compname,mapping.get(cat,cat)))
+                            mixname=mixname[11:]
+                            templatename=( "reduced_template_mix_%s_%s_%s" % (compname,mixname,mapping.get(cat,cat)))
+                            print templatename
                             tempdata.SetName(templatename)
                         tempdata.Print()
-                        templates.append(tempdata)
+                        if tempdata.sumEntries() ==0:
+                            print "attention dataset ", templatename, " has no entries"
+                        else:
+                            templates.append(tempdata)
 ###------------------- split in massbins
                     masserror = array.array('d',[])
                     
@@ -594,6 +605,7 @@ class TemplatesApp(PlotApp):
                     dset_data.Print()
                     mass_split= [int(x) for x in options.fit_massbins]
                     diphomass=self.massquantiles(dset_data,massargs,mass_b,mass_split)
+                   # if not doDataMc:
                     truth_pp= "mctruth_%s_%s_%s" % (compname,fitname,cat)
                     if d2:
                         tp_mcpu = ROOT.TNtuple("tree_truth_purity_all_%s_%s_%s" % (compname,fitname,cat),"tree_truth_purity_%s_%s_%s" % (compname,fitname,cat),"number_pu:frac_pu:massbin:masserror" )
@@ -654,7 +666,7 @@ class TemplatesApp(PlotApp):
                                 histls.append(tempHisto)
                            # if not prepfit: 
                            # print "plot 1d histos"
-                            self.plotHistos(histls,tit,template_binning,True,numEntries_s)
+                            self.plotHistos(histls,tit,template_binning,True,True,numEntries_s)
                         ## roll out for combine tool per category
                         if fit["ndim"]>1:
                             self.histounroll(templates_massc,template_binning,isoargs,compname,cat,cut_s,prepfit,sigRegionlow2D,sigRegionup2D,extra_shape_unc=options.extra_shape_unc)
@@ -764,9 +776,9 @@ class TemplatesApp(PlotApp):
                 self.workspace_.rooImport(roodatahist_1dunroll,ROOT.RooFit.RecycleConflictNodes())
         if len(histlistunroll) >1:
             title="histo_%s_%s_%s" %(comp,cat,mcut_s)
-            self.plotHistos(histlsX,"%s_X" %title,template_binning,False)
-            self.plotHistos(histlsY,"%s_Y" %title,template_binning,False)
-            self.plotHistos(histlistunroll,"%s_unrolled" % (title),tempunroll_binning,False)
+            self.plotHistos(histlsX,"%s_X" %title,template_binning,False,True)
+            self.plotHistos(histlsY,"%s_Y" %title,template_binning,False,True)
+            self.plotHistos(histlistunroll,"%s_unrolled" % (title),tempunroll_binning,False,True)
             self.keep( [c1] )
             self.autosave(True)
 
@@ -1001,7 +1013,7 @@ class TemplatesApp(PlotApp):
 
     ## ------------------------------------------------------------------------------------------------------------
 
-    def plotHistos(self,histlist,title,template_bins,dim1,numEntries=None):
+    def plotHistos(self,histlist,title,template_bins,dim1,doDataMc,numEntries=None):
         leg = ROOT.TLegend(0.3,0.77,0.9,0.9)
         leg.SetTextSize(0.03)
         leg.SetTextFont(42);
@@ -1016,35 +1028,51 @@ class TemplatesApp(PlotApp):
         ROOT.gPad.SetPad(0., 0., 1., 0.35)
         ROOT.gPad.SetGridy()
         canv.cd(1)
-        
-        histlist[0].SetFillColor(ROOT.kRed)
-        histlist[0].SetFillStyle(3004)
-        histlist[0].SetLineColor(ROOT.kRed)
-        histlist[0].Draw("E2")
-        histlist[0].GetXaxis().SetLimits(-0.1,max(template_bins))
-        #histlist[0].SetStats()
+        # for dataMc plot MC as filled and data as points
+        if doDataMc:
+            histstart=2
+            if "mc" and "MC" in histlist:
+                histend=4
+            elif "mc" or "MC" in histlist:
+                histend=3
+            else:
+                histend=2
+        else:
+            histstart=0
+            histend=1
+        k=1
+        for i in range(histstart,histend):
+
+            k+=1
+            histlist[i].SetFillColor(1+k)
+            histlist[i].SetFillStyle(3004)
+            histlist[i].SetLineColor(histlist[i].GetFillColor())
+            if i>0:
+                histlist[i].Draw("E2 SAME")
+            #histlist[0].SetStats()
         ymax = 0.
         ymin = 1.e+5
-        histlist[0].GetYaxis().SetLabelSize( histlist[0].GetYaxis().GetLabelSize() * canv.GetWh() / ROOT.gPad.GetWh() )
+        histlist[histstart].GetYaxis().SetLabelSize( histlist[histstart].GetYaxis().GetLabelSize() * canv.GetWh() / ROOT.gPad.GetWh() )
         if dim1:
-            histlist[0].GetXaxis().SetTitle(title[-17:])
+            histlist[histstart].GetXaxis().SetTitle(title[-17:])
         else:
-            histlist[0].GetXaxis().SetTitle("charged isolation")
-        #for i in range(0,len(histlist)):
-        for i in range(1,len(histlist)):
+            histlist[histstart].GetXaxis().SetTitle("charged isolation")
+        
+        for i in range(histend,len(histlist)):
             histlist[i].GetXaxis().SetLimits(-0.1,max(template_bins))
             ymax = max(ymax,histlist[i].GetMaximum())
             if histlist[i].GetMinimum() != 0.:
                 ymin = min(ymin,histlist[i].GetMinimum())
             if i>0:
-                histlist[i].SetLineColor(ROOT.kAzure+i)
-                histlist[i].SetMarkerColor(ROOT.kAzure+i)
+                histlist[i].SetLineColor(ROOT.kAzure+i*2)
+                histlist[i].SetMarkerColor(ROOT.kAzure+i*2)
                 histlist[i].SetMarkerStyle(20)
                 histlist[i].Draw("E SAME")
-            histlist[0].GetXaxis().SetLimits(-0.1,max(template_bins))
-            leg.AddEntry(histlist[i],histlist[i].GetName(),"l")  
-        leg.AddEntry(histlist[0],histlist[0].GetName(),"fl")  
-        histlist[0].GetYaxis().SetRangeUser(ymin*0.5,ymax*5.)
+            leg.AddEntry(histlist[i],histlist[i].GetName(),"lp")  
+        histlist[histstart].GetXaxis().SetLimits(-0.1,max(template_bins))
+        for i in range(histstart,histend):
+            leg.AddEntry(histlist[i],histlist[i].GetName(),"fl")  
+        histlist[histstart].GetYaxis().SetRangeUser(ymin*0.5,ymax*5.)
         leg.Draw()
         canv.cd(2)
         ratios = []
