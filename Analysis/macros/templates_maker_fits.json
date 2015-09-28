@@ -151,7 +151,6 @@
             "template_binning" : [ 0.0,0.1, 5.0, 15.0 ],                                   "#" : "template varaible binning              ",
 
             "components" : [ "pp", "pf", "ff" ],                                             "#" : "list of fit components                 ",
-            "#" :"categories in which to split the fit       ",
             "#" :"format is <fit-category-name>: { <config> }",
             "categories" : {
                 "EBEB" : { 
@@ -191,9 +190,12 @@
             "templates" : {
                 "pp" : { 
 		        "sel"  : "cicNoChIso", "#" : "event selection",
-                        "dataset" : "data",    "#" : "input dataset. can be data,mc or templates",
+                        "_dataset" : ["data"],    "#" : "input dataset. can be data,mc or templates",
+                        "dataset" : ["data","mc"],    "#" : "input dataset. can be data,mc or templates",
                         "#" : "How to fill different categories. Logic is the same as for the 'fill' instructions above",
                         "fill_categories" : {
+                        "_EBEB" :{"TMath::Even(event) " : [ "leadRndConeChIso", "subleadRndConeChIso" ],
+                                 "! TMath::Even(event)" : [ "subleadRndConeChIso", "leadRndConeChIso" ]},
                         "EBEB" :{"TMath::Even(event) && 1" : [ "leadRndConeChIso8", "subleadRndConeChIso8" ],
                         		 "TMath::Even(event) && 2" : [ "leadRndConeChIso0", "subleadRndConeChIso0" ],
                         		 "TMath::Even(event) && 3" : [ "leadRndConeChIso1", "subleadRndConeChIso1" ],
@@ -213,6 +215,8 @@
                                  "! TMath::Even(event) && 8" : [ "subleadRndConeChIso6", "leadRndConeChIso6" ],
                                  "! TMath::Even(event) && 9" : [ "subleadRndConeChIso7", "leadRndConeChIso7" ]
                                 },
+                        "_EBEE" :{"leadIsEB && !subleadIsEB" : [ "leadRndConeChIso", "subleadRndConeChIso" ], 
+                                 "!leadIsEB && subleadIsEB" : [ "subleadRndConeChIso", "leadRndConeChIso" ]}, 
                         "EBEE" :{"leadIsEB && !subleadIsEB && 1" : [ "leadRndConeChIso8", "subleadRndConeChIso8" ], 
                                  "leadIsEB && !subleadIsEB && 2" : [ "leadRndConeChIso0", "subleadRndConeChIso0" ], 
                                  "leadIsEB && !subleadIsEB && 3" : [ "leadRndConeChIso1", "subleadRndConeChIso1" ], 
@@ -229,17 +233,23 @@
                                 "!leadIsEB && subleadIsEB  && 5" : [ "subleadRndConeChIso3", "leadRndConeChIso3" ],
                                 "!leadIsEB && subleadIsEB  && 6" : [ "subleadRndConeChIso4", "leadRndConeChIso4" ],
                                 "!leadIsEB && subleadIsEB  && 7" : [ "subleadRndConeChIso5", "leadRndConeChIso5" ],
-								"!leadIsEB && subleadIsEB  && 8" : [ "subleadRndConeChIso6", "leadRndConeChIso6" ],
+				"!leadIsEB && subleadIsEB  && 8" : [ "subleadRndConeChIso6", "leadRndConeChIso6" ],
                                 "!leadIsEB && subleadIsEB  && 9" : [ "subleadRndConeChIso7", "leadRndConeChIso7" ]
                                 }
                             }
                 },
                 "pf" : { 
 		        "sel"  : "cicSBNoChIsoSingleSB", 
+                        "_dataset" : ["templates"],    "#" : "input dataset. can be data,mc or templates",
+                        "dataset" : ["templates","templatesMC"],    "#" : "input dataset. can be data,mc or templates",
                         "#" : "pseudo-random swap, but taking care to take the random cone isolation for the signal-region photon",
                         "#" : "  and the photon isolation for the side-band one                                                  ",
                         "fill_categories" : { 
-                        "EBEB" :{ "leadIsSB  && TMath::Even(event)   && subleadPhoIsoEB && 1" :    [ "leadChIso", "subleadRndConeChIso8" ],
+                        "_EBEB" :{ "leadIsSB  && TMath::Even(event)   && subleadPhoIsoEB &&  " :    [ "leadChIso", "subleadRndConeChIso8" ],
+                         "leadIsSB  && !TMath::Even(event)   && subleadPhoIsoEB" :    [ "subleadRndConeChIso", "leadChIso" ]},
+                       
+
+ "EBEB" :{ "leadIsSB  && TMath::Even(event)   && subleadPhoIsoEB && 1" :    [ "leadChIso", "subleadRndConeChIso8" ],
                         		  "leadIsSB  && TMath::Even(event)   && subleadPhoIsoEB && 2" :    [ "leadChIso", "subleadRndConeChIso0" ],
                         		  "leadIsSB  && TMath::Even(event)   && subleadPhoIsoEB && 3" :    [ "leadChIso", "subleadRndConeChIso1" ],
                         		  "leadIsSB  && TMath::Even(event)   && subleadPhoIsoEB && 4" :    [ "leadChIso", "subleadRndConeChIso2" ],
@@ -276,6 +286,10 @@
                                 "subleadIsSB && ! TMath::Even(event) && leadPhoIsoEB    && 8" : [ "leadRndConeChIso6", "subleadChIso" ],
                                 "subleadIsSB && ! TMath::Even(event) && leadPhoIsoEB    && 9" : [ "leadRndConeChIso7", "subleadChIso" ]
                         },
+                        "_EBEE" :{ "leadIsEB  &&  subleadPhoIsoEE&& leadIsSB " : [ "leadChIso", "subleadRndConeChIso" ], 
+             "leadPhoIsoEB  &&  !subleadIsEB&& subleadIsSB" : [ "leadRndConeChIso", "subleadChIso" ],
+                                "leadPhoIsoEE&& subleadIsEB &&   subleadIsSB " : [ "subleadChIso", "leadRndConeChIso" ], 
+                                "! leadIsEB  && subleadPhoIsoEB && leadIsSB " : [ "subleadRndConeChIso", "leadChIso" ]},
                         "EBEE" :{ "leadIsEB  &&  subleadPhoIsoEE&& leadIsSB && 1" : [ "leadChIso", "subleadRndConeChIso8" ], 
                         		  "leadIsEB  &&  subleadPhoIsoEE&& leadIsSB && 2" : [ "leadChIso", "subleadRndConeChIso0" ], 
                         		  "leadIsEB  &&  subleadPhoIsoEE&& leadIsSB && 3" : [ "leadChIso", "subleadRndConeChIso1" ], 
@@ -316,6 +330,8 @@
                         }
                  },
                  "ff" : { "sel"  : "cicSBNoChIsoDoubleSB",        
+                        "_dataset" : ["templates"],    "#" : "input dataset. can be data,mc or templates",
+                        "dataset" : ["templates","templatesMC"],    "#" : "input dataset. can be data,mc or templates",
                          "fill_categories" : {
                          "EBEB" :{ "TMath::Even(event)  &&  leadIsSB && subleadIsSB  " : [ "leadChIso", "subleadChIso" ],
                                  "! TMath::Even(event)  && leadIsSB && subleadIsSB ": [ "subleadChIso", "leadChIso" ]
@@ -360,18 +376,21 @@
             "templates" : {
                 "p" : {
                     "sel" : "cicNoChIsoSinglePho",
-                    "dataset" : "data",
+                    "_dataset" : ["data"],
+                    "dataset" : ["data","mc"],
                         "fill_categories" : { 
-                            "EB" : { "phoIsEB && 1" : ["phoRndConeChIso8"],
+                            "_EB" : { "phoIsEB  " : ["phoRndConeChIso"]},
+                            "EB" : { "phoIsEB && 1 " : ["phoRndConeChIso8"],
     								 "phoIsEB && 2" : ["phoRndConeChIso0"],
     								 "phoIsEB && 3" : ["phoRndConeChIso1"],
     								 "phoIsEB && 4" : ["phoRndConeChIso2"],
     								 "phoIsEB && 5" : ["phoRndConeChIso3"],
-    								 "phoIsEB && 6" : ["phoRndConeChIso4"],
+    				                 		 "phoIsEB && 6" : ["phoRndConeChIso4"],
     								 "phoIsEB && 7" : ["phoRndConeChIso5"],
     								 "phoIsEB && 8" : ["phoRndConeChIso6"],
     								 "phoIsEB && 9" : ["phoRndConeChIso7"]
 									},
+                            "_EE" : { "!phoIsEB" : ["phoRndConeChIso"]},
                             "EE" : { "!phoIsEB && 1" : ["phoRndConeChIso8"],
                             		 "!phoIsEB && 2" : ["phoRndConeChIso0"],
                             		 "!phoIsEB && 3" : ["phoRndConeChIso1"],
@@ -382,7 +401,8 @@
                             		 "!phoIsEB && 8" : ["phoRndConeChIso6"],
                             		 "!phoIsEB && 9" : ["phoRndConeChIso7"]
 									},
-                            "eta_inclusive" : {  "phoIsEB ||!phoIsEB && 1" : ["phoRndConeChIso8"], 
+                            "eta_inclusive" : {  "phoIsEB ||!phoIsEB " : ["phoRndConeChIso8"]},
+                            "_eta_inclusive" : {  "phoIsEB ||!phoIsEB && 1" : ["phoRndConeChIso8"], 
                             					 "phoIsEB ||!phoIsEB && 2" : ["phoRndConeChIso0"], 
                             					 "phoIsEB ||!phoIsEB && 3" : ["phoRndConeChIso1"], 
                             					 "phoIsEB ||!phoIsEB && 4" : ["phoRndConeChIso2"], 
@@ -397,6 +417,8 @@
                 },
                 "f" : { 
                     "sel" : "cicSBNoChIsoSBSinglePho",
+                    "_dataset" : ["templates"],
+                    "dataset" : ["templates","templatesMC"],
                         "fill_categories" : { 
                         "EB" : { "phoIsEB && phoIsSB" : ["phoChIso"] },
                         "EE" : { "!phoIsEB && phoIsSB" : ["phoChIso"] },
@@ -405,6 +427,8 @@
 				},
                 "f1" : { 
                     "sel" : "cicSBNoChIsoSBSinglePho",
+                    "_dataset" : ["templates"],
+                    "dataset" : ["templates","templatesMC"],
                         "fill_categories" : { 
                         "EB" : { "TMath::Even(event) && phoIsEB && phoIsSB" : ["phoChIso"] },
                         "EE" : { "TMath::Even(event) && !phoIsEB && phoIsSB" : ["phoChIso"] },
@@ -413,6 +437,8 @@
                 },
                 "f2" : { 
                     "sel" : "cicSBNoChIsoSBSinglePho",
+                    "_dataset" : ["templates"],
+                    "dataset" : ["templates","templatesMC"],
                         "fill_categories" : { 
                         "EB" : { "!TMath::Even(event) && phoIsEB && phoIsSB" : ["phoChIso"] },
                         "EE" : { "!TMath::Even(event) && !phoIsEB && phoIsSB" : ["phoChIso"] },
@@ -423,6 +449,7 @@
 	    "_templates" : {
 	    	"_fwhigh" : { 
                     "sel" : "cicSBNoChIsoSBSinglePho",
+                    "dataset" : ["templates","templatesMC"],
                         "fill_categories" : { 
                         	"EB" : { "phoIsSB && weight >=1." : ["phoChIso"] },
                         	"EE" : { "phoIsSB && weight >=1." : ["phoChIso"] },
@@ -431,6 +458,7 @@
 				},
                 "_fwlow" : { 
                     "sel" : "cicSBNoChIsoSBSinglePho",
+                    "dataset" : ["templates","templatesMC"],
                         "fill_categories" : { 
                         	"EB" : { "phoIsSB && weight <1." : ["phoChIso"] },
                         	"EE" : { "phoIsSB && weight <1." : ["phoChIso"] },
@@ -453,6 +481,43 @@
 		"sources" : { 
 		    "pf" : [ "singlePho:p", "singlePho:f" ],
                     "ff" : [ "singlePho:f1", "singlePho:f2" ]
+		    }, 
+		"replace" : "pho",
+		"type" : "kdtree",
+                "transfer_variables" :["mass", "weightTarget:= weight", "mgg := mass"],
+		"fill_categories" : {
+		    "EBEB" : { "legs" : ["EB","EB"], "rndswap" : true,"rndmatch":0.8, "nNeigh" : 10, "matchWithThreshold" : false,
+			    "useCdfDistance" : true,"targetFraction" : 1.0, "maxWeightTarget" :1.0, "maxWeightCache":1.0 ,
+				"axesWeights" : [1.0,1.0,-1.0],
+			    "match1"  : ["nvtx","log(phoPt)"    ,"TMath::Abs(phoScEta)"    ], 
+			    "match2"  : ["nvtx","log(phoPt)"    ,"TMath::Abs(phoScEta)"    ], 
+			    "target1" : ["nvtx","log(leadPt)"   ,"TMath::Abs(leadScEta)[0.2]"   ], 
+			    "target2" : ["nvtx","log(subleadPt)","TMath::Abs(subleadScEta)[0.2]"]
+			    },
+		    "EBEE" : { "legs" : ["eta_inclusive","eta_inclusive"], "rndswap" : false, "nNeigh" : 10, "matchWithThreshold" : false,
+			    "useCdfDistance" : true, "targetFraction" : 1.0, "maxWeightTarget" :1.0, "maxWeightCache":1.0 ,"rndmatch":0.5,
+			    "axesWeights" : [1.0,1.0,-1.0],
+			    "match1"  : ["phoPhoIso","log(phoPt)" ,"TMath::Abs(phoScEta)"    ], 
+			    "match2"  : ["phoPhoIso","log(phoPt)" ,"TMath::Abs(phoScEta)"    ], 
+			    "target1" : ["(TMath::Abs(leadScEta)<TMath::Abs(subleadScEta))*leadPhoIso + (TMath::Abs(leadScEta)>=TMath::Abs(subleadScEta))*subleadPhoIso[10]",
+					 "log((TMath::Abs(leadScEta)<TMath::Abs(subleadScEta))*leadPt       + (TMath::Abs(leadScEta)>=TMath::Abs(subleadScEta))*subleadPt)",
+					 "(TMath::Abs(leadScEta)<TMath::Abs(subleadScEta))*TMath::Abs(leadScEta)    + (TMath::Abs(leadScEta)>=TMath::Abs(subleadScEta))*TMath::Abs(subleadScEta)"
+					 ],
+			    "target2" : ["(TMath::Abs(leadScEta)<TMath::Abs(subleadScEta))*subleadPhoIso + (TMath::Abs(leadScEta)>=TMath::Abs(subleadScEta))*leadPhoIso[10]",
+					 "log((TMath::Abs(leadScEta)<TMath::Abs(subleadScEta))*subleadPt    + (TMath::Abs(leadScEta)>=TMath::Abs(subleadScEta))*leadPt)",
+					 "(TMath::Abs(leadScEta)<TMath::Abs(subleadScEta))*TMath::Abs(subleadScEta) + (TMath::Abs(leadScEta)>=TMath::Abs(subleadScEta))*TMath::Abs(leadScEta)"
+					 ]
+				}
+		}
+	},
+
+	"kDSinglePho2DMC" : {
+		"target" : "2D:mc",
+		"ptLeadMin" : 100.0, "ptSubleadMin" : 100.0, "massMin" : 200.0,
+		"pt" : "phoPt", "eta" : "phoEta", "phi" : "phoPhi", "energy" : "phoEnergy",
+		"sources" : { 
+		    "pf" : [ "singlePho:mc_p", "singlePho:mc_f" ],
+                    "ff" : [ "singlePho:mc_f1", "singlePho:mc_f2" ]
 		    }, 
 		"replace" : "pho",
 		"type" : "kdtree",
@@ -482,19 +547,20 @@
 				}
 		}
 	}
-
     },
     "comparisons" : {
 	"fit2DTruth" : { "fit" : "2D",
-		"templates" : { "mix:kDSinglePho2D" : {},"2D":{} },
+		"templates" : { "mix:kDSinglePho2DMC" : {},"template_mc:2D":{}, "mix:kDSinglePho2D" : {},"2D":{} },
+		"_templates" : { "mix:kDSinglePho2D" : {},"2D":{} },
                 "categories" : ["EBEB","EBEE"],
                 "components": ["pf","ff",  ["pp",{ "2D" : {}}] 
                 ],
                 "prepfit": true,
                 "weight_cut": "weight < 5.",
 		"redo" : true,
-		"doDataMc" : false, "doMcTruth" : true,
+		"doDataMc" :true,
                 "template_binning" : [ 0.0,0.1,5.0,15.0],
+                "_template_binning" : [ 0.0,5.0,15.0],
                 "_template_binning" : [ 0.0,0.1,0.3,0.5,1.0,2.0,3.0,5.0,10.0,15.0], 
                 "lowerLimitSigRegion2D": "0.", 
                 "_upperLimitSigRegion2D": "4.", 
@@ -508,23 +574,25 @@
                 "categories" :["EB","EE"]
     },
    "nominalFit":{
-        "3_components":{
-                "dimensions" :"2D", 
+        "_3_components":{
+                "dimensions" :"2D",
+				"data":"True", 
                 "observable": "templateNdim2d_unroll",
                 "components": ["pp","pf","ff"],
                 "lowerLimitSigRegion": "0.", 
-                "upperLimitSigRegion": "9.", 
-                "_upperLimitSigRegion": "4.", 
+                "_upperLimitSigRegion": "9.", 
+                "upperLimitSigRegion": "4.", 
 		"mass_binning" :"mass[13000,0.0,13000.0]",
                 "extended_fit":"False"
          },
-        "_2_components":{
+        "2_components":{
                 "dimensions" :"2D", 
+				"data":"True", 
                 "observable": "templateNdim2d_unroll",
                 "components": ["pp","pf"],
-                "data": "unrolled_data", 
                 "lowerLimitSigRegion": "0.", 
                 "upperLimitSigRegion": "4.", 
+                "extended_fit":"False",
 		"mass_binning" :"mass[13000,0.0,13000.0]"
         }
     },
