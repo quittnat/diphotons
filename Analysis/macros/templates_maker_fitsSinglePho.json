@@ -3,12 +3,13 @@
     "#" :"General form is <fit-name> : { <fit-config> }",
         
     "fits" : {
+
         "singlePho" : {
             "#" : "single photon: looks at single photon selection",
 
             "ndim"       : 1,
-            "bins"       : [ "phoPt", [100,6000] ],
-            "dataset_variables" : ["phoPt","phoPhoIso","phoRndConePhoIso","phoPhoIsoEA","phoEta","phoScEta","phoPhi","phoEnergy := phoPt*cosh(phoEta)","phoSigmaIeIe","phoGenIso","phoMatchType","rho","nvtx"],
+            "bins"       : [ "phoPt", [100,7000] ],
+            "dataset_variables" : ["phoPt","phoPhoIso","phoPhoIsoEA","phoEta","phoScEta","phoPhi","phoEnergy := phoPt*cosh(phoEta)","phoSigmaIeIe","phoGenIso","phoMatchType"],
 	    "template_binning" : [0.0,0.1,5.0,15.0],
             "store_trees"  : true,
             "selection"    : "cicNoChIsoSinglePho",
@@ -31,27 +32,31 @@
             },
             "truth_selection" : {
                 "p" : "phoPrompt",
-                "f" : "phoFake"
+                "f" : " phoMatchType != 1"
             },
             "templates" : {
                 "p" : {
-                    "sel" : "cicNoChIsoSBSinglePho",
+                    "sel" : "cicSBNoChIsoSBSinglePho",
+                    "dataset" : "data",
                         "fill_categories" : { 
-                            "EB" : { "phoIsEB && phoPrompt" : ["phoRndConeChIso"] },
-                            "EE" : { "!phoIsEB && phoPrompt" : ["phoRndConeChIso"] },
-                            "eta_inclusive" : { "phoPrompt" : ["phoRndConeChIso"] }
+                            "EB" : { "phoIsEB && phoPrompt" : ["phoChIso"]
+									},
+                            "eta_inclusive" : { "(!phoIsEB || phoIsEB) && phoPrompt" : ["phoChIso"]
+									},
+                            "EE" : { "!phoIsEB && phoPrompt" : ["phoChIso"]
+									}
                     }
                 },
                 "f" : { 
-                    "sel" : "cicNoChIsoSBSinglePho",
-                        "fill_categories" : { 
-                        "EB" : { "phoIsEB && phoFake" : ["phoChIso"] },
-                        "EE" : { "!phoIsEB && phoFake" : ["phoChIso"] },
-                        "eta_inclusive" : { "phoFake" : ["phoChIso"] }
+                    "sel" : "cicSBNoChIsoSBSinglePho",
+                        "fill_categories" : {  
+                        "EB" : { "phoIsEB && phoIsSB && phoMatchType!=1" : ["phoChIso"] },
+                        "EE" : { "!phoIsEB && phoIsSB && phoMatchType!=1" : ["phoChIso"] },
+                        "eta_inclusive" : { "phoIsSB && phoMatchType!=1" : ["phoChIso"] }
                     }
 				}
-                }
-            }
+				}
+	    }
 },
     "#" : "---------------------------------------------------------------------------------------------------------------------",
     "#" : "Template mixing                                                                                                      ",
@@ -80,7 +85,7 @@
 			    "target2" : ["nvtx","log(subleadPt)","TMath::Abs(subleadScEta)[0.2]"]
 			    },
 		    "EBEE" : { "legs" : ["eta_inclusive","eta_inclusive"], "rndswap" : false, "nNeigh" : 20, "matchWithThreshold" : false,
-			    "useCdfDistance" : true, "targetFraction" : 1e-2, "maxWeightTarget" :0.02, "maxWeightCache":1.0 ,"rndmatch":0.6,
+			    "useCdfDistance" : true, "targetFraction" : 1e-2, "maxWeightTarget" :0.02, "maxWeightCache":1.0 ,"rndmatch":0.5,
 			    "axesWeights" : [1.0,1.0,-1.0],
 			    "match1"  : ["phoPhoIso","log(phoPt)" ,"TMath::Abs(phoScEta)"    ], 
 			    "match2"  : ["phoPhoIso","log(phoPt)" ,"TMath::Abs(phoScEta)"    ], 

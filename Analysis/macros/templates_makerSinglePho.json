@@ -17,50 +17,118 @@
     "data" : [
                "GGJets_M_200To13000_sherpa_13TeV:output.root/%(sel)sGenIso",
                "GGJets_M_200To13000_sherpa_13TeV:output.root/%(sel)sNonGenIso",
-               "QCD_HT_100toInf_13TeV:output.root/%(sel)s",
-               "GJets_HT_100toInf_13TeV:output.root/%(sel)s"            
+               "QCD_Pt_30toInf_13TeV:output.root/%(sel)s",
+               "GJets_HT_100toInf_13TeV:output.root/%(sel)s"        
+             ],
+    "mc" : [
+               "GGJets_M_200To13000_sherpa_13TeV:output.root/%(sel)sGenIso",
+               "GGJets_M_200To13000_sherpa_13TeV:output.root/%(sel)sNonGenIso",
+               "QCD_Pt_30toInf_13TeV:output.root/%(sel)s",
+               "GJets_HT_100toInf_13TeV:output.root/%(sel)s"        
+             ],
+
+    "_data" : [
+               "Data_13TeV:output.root/%(sel)s"
              ],
 
     "#" : "data used for template making",
+    "_templates" : [
+               "Data_13TeV:output.root/%(sel)s"
+             ],
     "templates" : [
                "GGJets_M_200To13000_sherpa_13TeV:output.root/%(sel)s",
-               "QCD_HT_100toInf_13TeV:output.root/%(sel)s",
-               "GJets_HT_100toInf_13TeV:output.root/%(sel)s"            
+               "GGJets_M_200To13000_sherpa_13TeV:output.root/%(sel)s",
+               "QCD_Pt_30toInf_13TeV:output.root/%(sel)s",
+               "GJets_HT_100toInf_13TeV:output.root/%(sel)s"         
+             ],
+    "templatesMC" : [
+               "GGJets_M_200To13000_sherpa_13TeV:output.root/%(sel)s",
+               "GGJets_M_200To13000_sherpa_13TeV:output.root/%(sel)s",
+               "QCD_Pt_30toInf_13TeV:output.root/%(sel)s",
+               "GJets_HT_100toInf_13TeV:output.root/%(sel)s"         
              ],
              
      "#" : "mc dataset",
-     "mc" : [
-             "GGJets_M_200To13000_sherpa_13TeV:output.root/%(sel)sGenIso",
-               "GGJets_M_200To13000_sherpa_13TeV:output.root/%(sel)sNonGenIso",
-               "QCD_HT_100toInf_13TeV:output.root/%(sel)s",
-               "GJets_HT_100toInf_13TeV:output.root/%(sel)s"            
-            ],
+     "_mc" : null, 
+
+     "_templatesMC" : null,
 
      "#" : "mc dataset",
+      "_signals" : null, 
+      "_signals" : { 
+      "grav_001_2000": [ "RSGravToGG_kMpl_001_M_2000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)s"],
+      "grav_001_3000": [ "RSGravToGG_kMpl_001_M_3000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)s"],
+      "grav_001_500" : [ "RSGravToGG_kMpl_001_M_500_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)s"	],
+      "grav_01_1000" : [ "RSGravToGG_kMpl_01_M_1000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)s"	],
+      "grav_01_3500" : [ "RSGravToGG_kMpl_01_M_3500_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)s"	],
+      "grav_01_4000" : [ "RSGravToGG_kMpl_01_M_4000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)s"	],
+      "grav_01_5000" : [ "RSGravToGG_kMpl_01_M_5000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)s"	],
+      "grav_01_7000" : [ "RSGravToGG_kMpl_01_M_7000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)s"	],
+      "grav_02_1000" : [ "RSGravToGG_kMpl_02_M_1000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)s"	],
+      "grav_02_4000" : [ "RSGravToGG_kMpl_02_M_4000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)s"	],
+      "grav_02_5000" : [ "RSGravToGG_kMpl_02_M_5000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)s" ]
+      
+      },
       "signals" : {
-     	       	 "grav_001_750" : ["RSGravToGG_kMpl_001_M_750_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_001_M_750_13TeV:output.root/%(sel)sNonGenIso"
+     	       	 "grav_001_500" : ["RSGravToGG_kMpl_001_M_500_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
+		       		  "RSGravToGG_kMpl_001_M_500_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
 		       		  ],
-     	       	 "grav_001_1500" : ["RSGravToGG_kMpl_001_M_1500_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_001_M_1500_13TeV:output.root/%(sel)sNonGenIso"
+     	       	 "grav_001_750" : ["RSGravToGG_kMpl_001_M_750_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
+		       		  "RSGravToGG_kMpl_001_M_750_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
 		       		  ],
-      	       	 "grav_01_1500" : ["RSGravToGG_kMpl_01_M_1500_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_01_M_1500_13TeV:output.root/%(sel)sNonGenIso"
+     	       	 "grav_001_1500" : ["RSGravToGG_kMpl_001_M_1500_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
+		       		  "RSGravToGG_kMpl_001_M_1500_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
 		       		  ],
-      	       	 "grav_02_1500" : ["RSGravToGG_kMpl_02_M_1500_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_02_M_1500_13TeV:output.root/%(sel)sNonGenIso"
+      	       	 "grav_001_1000" : ["RSGravToGG_kMpl_001_M_1000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
+		       		  "RSGravToGG_kMpl_001_M_1000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
 		       		  ],
-     	       	 "grav_02_3000" : ["RSGravToGG_kMpl_02_M_3000_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_02_M_3000_13TeV:output.root/%(sel)sNonGenIso"
+      	       	 "grav_001_2000" : ["RSGravToGG_kMpl_001_M_2000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
+		       		  "RSGravToGG_kMpl_001_M_2000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
 		       		  ],
-     	       	 "grav_01_3000" : ["RSGravToGG_kMpl_01_M_3000_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_01_M_3000_13TeV:output.root/%(sel)sNonGenIso"
+      	       	 "grav_001_3000" : ["RSGravToGG_kMpl_001_M_3000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
+		       		  "RSGravToGG_kMpl_001_M_3000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
 		       		  ],
-     	       	 "grav_02_5000" : ["RSGravToGG_kMpl_02_M_5000_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_02_M_5000_13TeV:output.root/%(sel)sNonGenIso"
+      	       	 "grav_001_4000" : ["RSGravToGG_kMpl_001_M_4000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
+		       		  "RSGravToGG_kMpl_001_M_4000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
 		       		  ],
-     	       	 "grav_001_5000" : ["RSGravToGG_kMpl_001_M_5000_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_001_M_5000_13TeV:output.root/%(sel)sNonGenIso"
+      	       	 "grav_001_5000" : ["RSGravToGG_kMpl_001_M_5000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
+		       		  "RSGravToGG_kMpl_001_M_5000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
+		       		  ],
+      	       	 "grav_001_6000" : ["RSGravToGG_kMpl_001_M_6000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
+		       		  "RSGravToGG_kMpl_001_M_6000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
+		       		  ],
+      	       	 "grav_001_7000" : ["RSGravToGG_kMpl_001_M_7000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
+		       		  "RSGravToGG_kMpl_001_M_7000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
+		       		  ],
+     	       	 "grav_02_500" : ["RSGravToGG_kMpl_02_M_500_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
+		       		  "RSGravToGG_kMpl_02_M_500_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
+		       		  ],
+     	       	 "grav_02_750" : ["RSGravToGG_kMpl_02_M_750_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
+		       		  "RSGravToGG_kMpl_02_M_750_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
+		       		  ],
+     	       	 "grav_02_1500" : ["RSGravToGG_kMpl_02_M_1500_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
+		       		  "RSGravToGG_kMpl_02_M_1500_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
+		       		  ],
+      	       	 "grav_02_1000" : ["RSGravToGG_kMpl_02_M_1000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
+		       		  "RSGravToGG_kMpl_02_M_1000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
+		       		  ],
+      	       	 "grav_02_2000" : ["RSGravToGG_kMpl_02_M_2000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
+		       		  "RSGravToGG_kMpl_02_M_2000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
+		       		  ],
+      	       	 "grav_02_3000" : ["RSGravToGG_kMpl_02_M_3000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
+		       		  "RSGravToGG_kMpl_02_M_3000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
+		       		  ],
+      	       	 "grav_02_4000" : ["RSGravToGG_kMpl_02_M_4000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
+		       		  "RSGravToGG_kMpl_02_M_4000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
+		       		  ],
+      	       	 "grav_02_5000" : ["RSGravToGG_kMpl_02_M_5000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
+		       		  "RSGravToGG_kMpl_02_M_5000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
+		       		  ],
+      	       	 "grav_02_6000" : ["RSGravToGG_kMpl_02_M_6000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
+		       		  "RSGravToGG_kMpl_02_M_6000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
+		       		  ],
+      	       	 "grav_02_7000" : ["RSGravToGG_kMpl_02_M_7000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
+		       		  "RSGravToGG_kMpl_02_M_7000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
 		       		  ]
             },
 
@@ -101,11 +169,11 @@
     "aliases"  : [ 
 
                "phoIsEB    := abs(phoScEta) < 1.5",
-               "phoIsSB    := (((phoPhoIso - rho*phoPhoIsoEA) -0.002*phoPt < 2. ) && (phoIsEB    && (phoSigmaIeIe    > 0.012) ))||( ((phoPhoIso - rho*phoPhoIsoEA) -0.002*phoPt < 11. ) &&!phoIsEB    && (phoSigmaIeIe>0.035 )  )",
+               "phoIsSB    := ((phoIsEB    && (phoSigmaIeIe    > 0.0105) )||(!phoIsEB  && phoSigmaIeIe>0.028 )  )",
                "leadIsEB    := abs(leadScEta) < 1.5",
                "subleadIsEB := abs(subleadScEta) < 1.5",
-               "leadIsSB := (((leadPhoIso - rho*leadPhoIsoEA) -0.002*leadPt < 2. ) && (leadIsEB    && (leadSigmaIeIe    > 0.012) ))||( ((leadPhoIso - rho*leadPhoIsoEA) -0.002*leadPt < 11. ) &&!leadIsEB    && (leadSigmaIeIe>0.035    )  )",
-               "subleadIsSB := ((((subleadPhoIso - rho*subleadPhoIsoEA) -0.002*subleadPt < 2. ) && (subleadIsEB    && (subleadSigmaIeIe    > 0.012) ))||( ((subleadPhoIso - rho*subleadPhoIsoEA) -0.002*subleadPt < 11. ) &&!subleadIsEB    && (subleadSigmaIeIe>0.035     )) )",
+               "leadIsSB := (((leadPhoIso - rho*leadPhoIsoEA) -0.002*leadPt < 2. ) && (leadIsEB    && (leadSigmaIeIe    > 0.0105) ))||( ((leadPhoIso - rho*leadPhoIsoEA) -0.002*leadPt < 11. ) &&!leadIsEB    && (leadSigmaIeIe>0.028    )  )",
+               "subleadIsSB := ((((subleadPhoIso - rho*subleadPhoIsoEA) -0.002*subleadPt < 2. ) && (subleadIsEB    && (subleadSigmaIeIe    > 0.0105) ))||( ((subleadPhoIso - rho*subleadPhoIsoEA) -0.002*subleadPt < 11. ) &&!subleadIsEB    && (subleadSigmaIeIe>0.028     )) )",
                "leadPrompt    := leadGenIso < 10. && leadMatchType == 1",
                "leadFake      := ! leadPrompt",
                "subleadPrompt := subleadGenIso < 10. && subleadMatchType == 1",

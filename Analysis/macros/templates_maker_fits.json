@@ -553,7 +553,7 @@
 		"templates" : { "mix:kDSinglePho2DMC" : {},"template_mc:2D":{}, "mix:kDSinglePho2D" : {},"2D":{} },
 		"_templates" : { "mix:kDSinglePho2D" : {},"2D":{} },
                 "categories" : ["EBEB","EBEE"],
-                "components": ["pf","ff",  ["pp",{ "2D" : {}}] 
+                "components": ["pf","ff",  ["pp",{ "2D" : {},"template_mc:2D":{}}] 
                 ],
                 "prepfit": true,
                 "weight_cut": "weight < 5.",
@@ -597,8 +597,9 @@
         }
     },
    "plotPurity":{
-                "_treetruth":"truth_purity_all",
-                "treetruth":"truth_purity_signalregion",
+                "data":true,
+                "treetruth":"truth_purity_all",
+                "_treetruth":"truth_purity_signalregion",
                 "dimensions" :"2D", 
                 "categories" :["EBEE","EBEB"]
     },
