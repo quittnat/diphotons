@@ -681,26 +681,32 @@ class TemplatesApp(PlotApp):
                            # self.plotHistos(histls,tit,template_binning,True,True,numEntries_s)
                         
                         #plot different variables
-                        bins=100
                         for var in range(0,len(plotargs)):
                             hists=[]
-                            var_bin=comparison.get("plot_variables")[plotargs[var].GetName()]
-                            plottit = "%s_%s_%s_%s_mb_%s" % (plotargs[var].GetName(),fitname,compname,cat,cut_s)
-                            print plottit
+                            var_bin=array.array('d',comparison.get("plot_variables")[plotargs[var].GetName()])
+                            plottit = "%s_%s_%s_mb_%s" % (plotargs[var].GetName(),fitname,cat,cut_s)
                             numEntries_s=""
+                            hdata=ROOT.TH1F("%s_%s" % (dset_massc.GetName(),plotargs[var].GetName()),
+                                                    "%s_%s" % (dset_massc.GetName(),plotargs[var].GetName()),len(var_bin)-1,var_bin)
+                            dset_massc.fillHistogram(hdata,ROOT.RooArgList(plotargs[var]))
+                            computeShapeWithUnc(hdata,options.extra_shape_unc)
+                            for bin in range(1,len(var_bin)):
+                                hdata.SetBinContent(bin,hdata.GetBinContent(bin)/(hdata.GetBinWidth(bin)))
+                                hdata.SetBinError(bin,hdata.GetBinError(bin)/(hdata.GetBinWidth(bin)))
                             for tm in templates_massc:
                                 histo=ROOT.TH1F("%s_%s" % (tm.GetName(),plotargs[var].GetName()),
-                                                    "%s_%s" % (tm.GetName(),plotargs[var].GetName()),bins,plotargs[var].getBinning().lowBound(),plotargs[var].getBinning().highBound())
+                                                    "%s_%s" % (tm.GetName(),plotargs[var].GetName()),len(var_bin)-1,var_bin)
                                 tm.fillHistogram(histo,ROOT.RooArgList(plotargs[var]))
                                 numEntries_s+= (" %f " % tempHisto.Integral())
                                 if "truth" in histo.GetName():
                                     computeShapeWithUnc(histo)
                                 else:
                                     computeShapeWithUnc(histo,options.extra_shape_unc)
-                                for bin in range(1,bins ):
+                                for bin in range(1,len(var_bin)):
                                     histo.SetBinContent(bin,histo.GetBinContent(bin)/(histo.GetBinWidth(bin)))
                                     histo.SetBinError(bin,histo.GetBinError(bin)/(histo.GetBinWidth(bin)))
-                                hists.append(histo)
+                            #    hists.append(histo)
+                            hists.append(hdata)
                             if "Pt" in plotargs[var].GetName(): 
                                 self.plotHistos(hists,plottit,plotargs[var].GetName(),var_bin,True,True,True,True,numEntries_s)
                             elif "Eta" in plotargs[var].GetName(): 
@@ -1076,7 +1082,7 @@ class TemplatesApp(PlotApp):
         canv.cd(1)
         # for dataMc plot MC as filled and data as points
         if doDataMc:
-            histstart=1
+            histstart=0
         else:
             histstart=0
         ymax = 0.
