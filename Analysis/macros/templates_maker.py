@@ -218,9 +218,10 @@ class TemplatesApp(PlotApp):
                                     ),
                         make_option("--mc-file",dest="mc_file",action="store",type="string",
                                     default=None,help="default: %default"),
+                        make_option("--prepare-data",dest="prep_data",action="store_true",
+                                    default=False,help="prepare templates only with data, no mc, signals, or templatesMC,mctruth)"),
                         make_option("--only-subset",dest="only_subset",action="callback",type="string", callback=optpars_utils.ScratchAppend(),
-                                    default=[],help="default: %default"),
-                        
+                    default=[],help="default: %default"),
                         ]
                       )
             ]+option_groups,option_list=option_list)
@@ -1290,10 +1291,14 @@ class TemplatesApp(PlotApp):
                             dset="_"
                         else:
                             dim_new=dim
+                        if tempname=="unrolled_mctruth":
+                            dset="_"
                         if i==0 and  tempname=="unrolled_template_mix":
                             tempname_new="unrolled_template"
                             dim_new="2D"
                         else: tempname_new=tempname
+                        #print "%s%s%s_%s_%s_mb_%s"%(tempname_new,dset,comp, dim_new,cat,cut_s)
+                        #return
                         histo = self.rooData("%s%s%s_%s_%s_mb_%s"%(tempname_new,dset,comp, dim_new,cat,cut_s))
                         rooHistPdf=ROOT.RooHistPdf("pdf_%s"% histo.GetName(),"pdf_%s"% histo.GetTitle(),ROOT.RooArgSet(obsls),histo)
                         
@@ -1432,10 +1437,15 @@ class TemplatesApp(PlotApp):
         for opt,pu_val in zip(closure,purity_values):
             for cat in categories:
                 print cat
-                tree_template=self.treeData("fitresult_fraction_unrolled_%s_%s_%s"%(opt,dim, cat))
-                g_templatepp=ROOT.TGraphErrors(tree_template.GetEntries())
-                g_templatepf=ROOT.TGraphErrors(tree_template.GetEntries())
+                if not opt=="mctruth":
+                    tree_template=self.treeData("fitresult_fraction_unrolled_%s_%s_%s"%(opt,dim, cat))
+                    g_templatepp=ROOT.TGraphErrors(tree_template.GetEntries())
+                    g_templatepf=ROOT.TGraphErrors(tree_template.GetEntries())
                 if not data:
+                    if not opt=="mctruth":
+                        tree_templatemc=self.treeData("fitresult_fraction_mc_unrolled_%s_%s_%s"%(opt,dim, cat))
+                        g_templatemcpp=ROOT.TGraphErrors(tree_templatemc.GetEntries())
+                        g_templatemcpf=ROOT.TGraphErrors(tree_templatemc.GetEntries())
                     tree_mctruth=self.treeData("fitresult_fraction_unrolled_mctruth_%s_%s"%( dim, cat))
                     tree_truthpp=self.treeData("%s_pp_%s_%s"%(treetruthname, dim, cat))
                     tree_truthpf=self.treeData("%s_pf_%s_%s"%(treetruthname,dim, cat))
@@ -1446,24 +1456,31 @@ class TemplatesApp(PlotApp):
                         g_truthff=ROOT.TGraphErrors()
                         print "no truth ff component"
                     g_mctruthpp=ROOT.TGraphErrors(tree_mctruth.GetEntries())
-                    g_mctruthpp_sumw2off=ROOT.TGraphErrors(tree_mctruth.GetEntries())
+                    g_mctruthpp_sumw2on=ROOT.TGraphErrors(tree_mctruth.GetEntries())
                     g_truthpp=ROOT.TGraphErrors(tree_truthpp.GetEntries())
                     g_truthpf=ROOT.TGraphErrors(tree_truthpf.GetEntries())
-                    g_pullpp=ROOT.TGraphErrors(tree_template.GetEntries())
+                    g_pullpp=ROOT.TGraphErrors(tree_templatemc.GetEntries())
                     g_mctruthpf=ROOT.TGraphErrors(tree_mctruth.GetEntries())
-                    g_mctruthpf_sumw2off=ROOT.TGraphErrors(tree_mctruth.GetEntries())
-                    g_pullpf=ROOT.TGraphErrors(tree_template.GetEntries())
+                    g_mctruthpf_sumw2on=ROOT.TGraphErrors(tree_mctruth.GetEntries())
+                    g_pullpf=ROOT.TGraphErrors(tree_templatemc.GetEntries())
                     h_pullpp=ROOT.TH1F("h_pullpp_%s" % cat,"h_pullpp_%s"% cat,5*tree_truthpp.GetEntries(),-10.,10.)
                     h_pullpf=ROOT.TH1F("h_pullpf_%s" % cat,"h_pullpf_%s" %cat,5*tree_truthpp.GetEntries(),-10.,10.)
-                    if ((tree_truthpp.GetEntries()!=tree_template.GetEntries()) and (tree_mctruth.GetEntries()!=tree_truthpp.GetEntries())):
+                    if ((tree_truthpp.GetEntries()!=tree_templatemc.GetEntries()) or (tree_mctruth.GetEntries()!=tree_truthpp.GetEntries())):
                         print "number of entries in trees dont agree"
                 for mb in range(0,tree_template.GetEntries()):
-                    tree_template.GetEntry(mb)
-                    g_templatepf.SetPoint(mb,tree_template.massbin,tree_template.purity_pf)
-                    g_templatepf.SetPointError(mb,tree_template.masserror,tree_template.error_pf)
-                    g_templatepp.SetPoint(mb,tree_template.massbin,tree_template.purity_pp)
-                    g_templatepp.SetPointError(mb,tree_template.masserror,tree_template.error_pp)
+                    if not opt=="mctruth":
+                        tree_template.GetEntry(mb)
+                        g_templatepf.SetPoint(mb,tree_template.massbin,tree_template.purity_pf)
+                        g_templatepf.SetPointError(mb,tree_template.masserror,tree_template.error_pf)
+                        g_templatepp.SetPoint(mb,tree_template.massbin,tree_template.purity_pp)
+                        g_templatepp.SetPointError(mb,tree_template.masserror,tree_template.error_pp)
                     if not data:
+                        if not opt=="mctruth":
+                            tree_templatemc.GetEntry(mb)
+                            g_templatepfmc.SetPoint(mb,tree_templatemc.massbin,tree_templatemc.purity_pf)
+                            g_templatepfmc.SetPointError(mb,tree_templatemc.masserror,tree_templatemc.error_pf)
+                            g_templateppmc.SetPoint(mb,tree_templatemc.massbin,tree_templatemc.purity_pp)
+                            g_templateppmc.SetPointError(mb,tree_templatemc.masserror,tree_templatemc.error_pp)
                         tree_mctruth.GetEntry(mb)
                         tree_truthpp.GetEntry(mb)
                         tree_truthpf.GetEntry(mb)
@@ -1477,11 +1494,11 @@ class TemplatesApp(PlotApp):
                         g_truthff.SetPointError(mb,tree_truthff.masserror,0.)
                     
                         g_mctruthpp.SetPoint(mb,tree_mctruth.massbin,tree_mctruth.purity_pp)
-                        g_mctruthpp_sumw2off.SetPoint(mb,tree_mctruth.massbin,tree_mctruth.purity_pp)
-                        g_mctruthpp.SetPointError(mb,tree_mctruth.masserror,tree_mctruth.error_pp_sumw2on)
-                        g_mctruthpp_sumw2off.SetPointError(mb,tree_mctruth.masserror,tree_mctruth.error_pp_sumw2off)
+                        g_mctruthpp_sumw2on.SetPoint(mb,tree_mctruth.massbin,tree_mctruth.purity_pp)
+                        g_mctruthpp.SetPointError(mb,tree_mctruth.masserror,tree_mctruth.error_pp)
+                        g_mctruthpp_sumw2on.SetPointError(mb,tree_mctruth.masserror,tree_mctruth.error_pp_sumw2on)
                         if opt=="template" or opt=="template_mix":
-                            pullpp=(tree_template.purity_pp-tree_truthpp.frac_pu)/tree_template.error_pp_sumw2on
+                            pullpp=(tree_templatemc.purity_pp-tree_truthpp.frac_pu)/tree_templatemc.error_pp_sumw2on
                         elif opt=="mctruth":
                             pullpp=(tree_mctruth.purity_pp-tree_truthpp.frac_pu)/tree_mctruth.error_pp_sumw2on
                         else:print "dont know what to compare to truth"
@@ -1490,26 +1507,26 @@ class TemplatesApp(PlotApp):
                         h_pullpp.Fill(pullpp)
                         if tree_mctruth.purity_pp!=0.:
                             g_mctruthpf.SetPoint(mb,tree_mctruth.massbin,tree_mctruth.purity_pf)
-                            g_mctruthpf_sumw2off.SetPoint(mb,tree_mctruth.massbin,tree_mctruth.purity_pf)
-                            g_mctruthpf.SetPointError(mb,tree_mctruth.masserror,tree_mctruth.error_pf_sumw2on)
-                            g_mctruthpf_sumw2off.SetPointError(mb,tree_mctruth.masserror,tree_mctruth.error_pf_sumw2off)
+                            g_mctruthpf_sumw2on.SetPoint(mb,tree_mctruth.massbin,tree_mctruth.purity_pf)
+                            g_mctruthpf.SetPointError(mb,tree_mctruth.masserror,tree_mctruth.error_pf)
+                            g_mctruthpf_sumw2on.SetPointError(mb,tree_mctruth.masserror,tree_mctruth.error_pf_sumw2on)
                             print  " tree_mctruth.purity_pf ",tree_mctruth.purity_pf, " tree_mctruth.error_pf_sumw2on ",tree_mctruth.error_pf_sumw2on,"tree_mctruth.purity_pp ", tree_mctruth.purity_pp, "tree_mctruth.error_pp_sumw2on ", tree_mctruth.error_pp_sumw2on
-                            print " tree_mctruth.error_pf_sumw2off ",tree_mctruth.error_pf_sumw2off, "tree_mctruth.error_pp_sumw2off ", tree_mctruth.error_pp_sumw2off
+                            print " tree_mctruth.error_pf_sumw2on ",tree_mctruth.error_pf_sumw2on, "tree_mctruth.error_pp_sumw2on ", tree_mctruth.error_pp_sumw2on
                             print "tree_truth fractions: ",  tree_truthff.frac_pu, tree_truthpf.frac_pu, tree_truthpp.frac_pu
                             if comp>2:
                                 if opt=="template" or opt=="template_mix":
-                                    pullpf=(tree_template.purity_pf-tree_truthpf.frac_pu)/tree_template.error_pf_sumw2on
+                                    pullpf=(tree_templatemc.purity_pf-tree_truthpf.frac_pu)/tree_templatemc.error_pf_sumw2on
                                 elif opt=="mctruth":
                                     pullpf=(tree_mctruth.purity_pf-tree_truthpf.frac_pu)/tree_mctruth.error_pf_sumw2on
-                                g_pullpf.SetPoint(mb,tree_template.massbin,pullpf)
+                                g_pullpf.SetPoint(mb,tree_templatemc.massbin,pullpf)
                                 h_pullpf.Fill(pullpf)
                         self.pullFunction(g_pullpp,h_pullpp,cat,"pp",opt,pu_val)
                     if comp>2:
                         if not data:
                             sumw2on="sumw2on"
-                            self.plotPurityMassbins(g_truthpp,g_truthpf,g_truthff,g_mctruthpp,g_templatepp,g_pullpp,cat,pu_val,opt,sumw2on,g_mctruthpf,g_templatepf,g_pullpf)
+                            self.plotPurityMassbins(g_truthpp,g_truthpf,g_truthff,g_mctruthpp_sumw2on,g_templatemcpp,g_pullpp,cat,pu_val,opt,sumw2on,g_mctruthpf_sumw2on,g_templatemcpf,g_pullpf)
                             sumw2off="sumw2off"
-                            self.plotPurityMassbins(g_truthpp,g_truthpf,g_truthff,g_mctruthpp_sumw2off,g_templatepp,g_pullpp,cat,pu_val,opt,sumw2off,g_mctruthpf_sumw2off,g_templatepf,g_pullpf)
+                            self.plotPurityMassbins(g_truthpp,g_truthpf,g_truthff,g_mctruthpp,g_templatemcpp,g_pullpp,cat,pu_val,opt,sumw2off,g_mctruthpf,g_templatemcpf,g_pullpf)
                             self.pullFunction(g_pullpf,h_pullpf,cat,"pf",opt,pu_val)
                         else:
                             self.plotPurityMassbins(g_templatepp,cat,pu_val,opt,"data",g_templatepf)
@@ -1649,16 +1666,17 @@ class TemplatesApp(PlotApp):
         fout = self.openOut(options)
         self.workspace_ = ROOT.RooWorkspace("wtemplates","wtemplates")
         tmp = fout
-
         ## read input trees
         self.datasets_["data"] = self.openDataset(None,options.data_file,options.infile,options.data)
-        self.datasets_["mc"]   = self.openDataset(None,options.mc_file,options.infile,options.mc)
         self.datasets_["templates"]   = self.openDataset(None,options.data_file,options.infile,options.templates)
-        self.datasets_["templatesMC"]   = self.openDataset(None,options.mc_file,options.infile,options.templatesMC)
+        if not options.prep_data:
+            self.datasets_["mc"]   = self.openDataset(None,options.mc_file,options.infile,options.mc)
+            self.datasets_["templatesMC"]   = self.openDataset(None,options.mc_file,options.infile,options.templatesMC)
        
-        for name,trees in options.signals.iteritems():
-            self.datasets_[name] = self.openDataset(None,options.mc_file,options.infile,trees)        
-        # used by parent class PlotApp to read in objects
+        if not options.prep_data:
+            for name,trees in options.signals.iteritems():
+                self.datasets_[name] = self.openDataset(None,options.mc_file,options.infile,trees)        
+            # used by parent class PlotApp to read in objects
         self.template_ = options.treeName
         
         self.groups = options.groups
@@ -1695,11 +1713,12 @@ class TemplatesApp(PlotApp):
             bins            = fit["bins"]
             components      = fit["components"]
             categories      = fit["categories"]
-            truth_selection = fit["truth_selection"]
-            signals         = fit.get("signals",[])
-            if signals == "__all__":
-                signals = options.signals.keys()
-                fit["signals"] = signals
+            if not options.prep_data:
+                truth_selection = fit["truth_selection"]
+                signals         = fit.get("signals",[])
+                if signals == "__all__":
+                    signals = options.signals.keys()
+                    fit["signals"] = signals
             template_binning = array.array('d',fit["template_binning"])
             templates       = fit["templates"]
             storeTrees      = fit.get("store_trees",False)
@@ -1733,22 +1752,25 @@ class TemplatesApp(PlotApp):
                 print "dataset - %s" % (cat), self.rooData("data_%s_%s" % (name,cat) ).sumEntries()
                 print "number of entries data - %s" % (cat), self.rooData("data_%s_%s" % (name,cat) ).numEntries()
           ## prepare mc
-            mcTrees =  self.prepareTrees("mc",selection,options.verbose,"MC trees")
-            self.buildRooDataSet(mcTrees,"mc",name,fit,categories,fulllist,weight,preselection,storeTrees)
+            if not options.prep_data:
+                mcTrees =  self.prepareTrees("mc",selection,options.verbose,"MC trees")
+                self.buildRooDataSet(mcTrees,"mc",name,fit,categories,fulllist,weight,preselection,storeTrees)
           
           ## prepare signal
-            for sig in signals:
-                sigTrees =  self.prepareTrees(sig,selection,options.verbose,"Signal %s trees" % sig)
-                self.buildRooDataSet(sigTrees,sig,name,fit,categories,fulllist,weight,preselection,storeTrees)
+            if not options.prep_data:
+                for sig in signals:
+                    sigTrees =  self.prepareTrees(sig,selection,options.verbose,"Signal %s trees" % sig)
+                    self.buildRooDataSet(sigTrees,sig,name,fit,categories,fulllist,weight,preselection,storeTrees)
             
           ## prepare truth templates
-            for truth,sel in truth_selection.iteritems():
-                cut = ROOT.TCut(preselection)
-                cut *= ROOT.TCut(sel)
-                legs = [""]
-                if "legs" in fit:
-                    legs = fit["legs"]
-                self.buildRooDataSet(mcTrees,"mctruth_%s" % truth,name,fit,categories,fulllist,weight,cut.GetTitle(),storeTrees)
+            if not options.prep_data:
+                for truth,sel in truth_selection.iteritems():
+                    cut = ROOT.TCut(preselection)
+                    cut *= ROOT.TCut(sel)
+                    legs = [""]
+                    if "legs" in fit:
+                        legs = fit["legs"]
+                    self.buildRooDataSet(mcTrees,"mctruth_%s" % truth,name,fit,categories,fulllist,weight,cut.GetTitle(),storeTrees)
           
               
             print
