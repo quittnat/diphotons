@@ -572,16 +572,16 @@ if doSinglePho:
                               )
 
 
-if not customize.lastAttempt:
+##if not customize.lastAttempt:
     # make sure process doesn't get stuck due to slow I/O
-    process.watchDog = cms.EDAnalyzer("IdleWatchdog",
-                                      minIdleFraction=cms.untracked.double(0.1),
-                                      tolerance=cms.untracked.int32(10),
-                                      checkEvery=cms.untracked.int32(100),
-                                      )
-    process.watch = cms.Path(
-        process.watchDog
-        )
+ ##   process.watchDog = cms.EDAnalyzer("IdleWatchdog",
+  ##                                    minIdleFraction=cms.untracked.double(0.1),
+   ##                                   tolerance=cms.untracked.int32(10),
+    ##                                  checkEvery=cms.untracked.int32(100),
+##                                      )
+ ##   process.watch = cms.Path(
+  ##      process.watchDog
+   ##     )
 
 
 # this will call customize(process), configure the analysis paths and make the process unscheduled
