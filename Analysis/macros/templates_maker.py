@@ -220,6 +220,8 @@ class TemplatesApp(PlotApp):
                                     default=None,help="default: %default"),
                         make_option("--prepare-data",dest="prep_data",action="store_true",
                                     default=False,help="prepare templates only with data, no mc, signals, or templatesMC,mctruth)"),
+                        make_option("--prepare-nosignal",dest="prep_nosig",action="store_true",
+                                    default=False,help="prepare templates without signals"),
                         make_option("--only-subset",dest="only_subset",action="callback",type="string", callback=optpars_utils.ScratchAppend(),
                     default=[],help="default: %default"),
                         ]
@@ -521,7 +523,7 @@ class TemplatesApp(PlotApp):
             if name.startswith("_"): continue
             print "Comparison %s" % name
             prepfit=comparison["prepfit"] 
-            ReDo=comparison["redo"] 
+            ReDo=comparison.get("redo",True)
             doDataMc=comparison.get("doDataMc",True)
             weight_cut=comparison["weight_cut"] 
             fitname=comparison["fit"]
@@ -556,6 +558,11 @@ class TemplatesApp(PlotApp):
                         sigRegionup2D=float(comparison.get("upperLimitSigRegion2D"))
                         sigRegionup1D=float(comparison.get("upperLimitSigRegion1D"))
                     else: setargs=ROOT.RooArgSet(isoargs)
+                    plotargs=ROOT.RooArgList("plotargs")
+                    for var,var_bin in comparison.get("plot_variables").iteritems():
+                        var,var_b=self.getVar(var)
+                        plotargs.add(self.buildRooVar(var,var_bin,recycle=True))
+                    setargs.add(plotargs)
                    # setargs.add(self.buildRooVar("weight",[],recycle=True))
                     rooweight=self.buildRooVar("weight",[],recycle=True)
                     setargs.add(rooweight)
@@ -671,11 +678,39 @@ class TemplatesApp(PlotApp):
                                 histls.append(tempHisto)
                            # if not prepfit: 
                            # print "plot 1d histos"
-                            self.plotHistos(histls,tit,template_binning,True,True,numEntries_s)
+                           # self.plotHistos(histls,tit,template_binning,True,True,numEntries_s)
+                        
+                        #plot different variables
+                        bins=100
+                        for var in range(0,len(plotargs)):
+                            hists=[]
+                            var_bin=comparison.get("plot_variables")[plotargs[var].GetName()]
+                            plottit = "%s_%s_%s_%s_mb_%s" % (plotargs[var].GetName(),fitname,compname,cat,cut_s)
+                            print plottit
+                            numEntries_s=""
+                            for tm in templates_massc:
+                                histo=ROOT.TH1F("%s_%s" % (tm.GetName(),plotargs[var].GetName()),
+                                                    "%s_%s" % (tm.GetName(),plotargs[var].GetName()),bins,plotargs[var].getBinning().lowBound(),plotargs[var].getBinning().highBound())
+                                tm.fillHistogram(histo,ROOT.RooArgList(plotargs[var]))
+                                numEntries_s+= (" %f " % tempHisto.Integral())
+                                if "truth" in histo.GetName():
+                                    computeShapeWithUnc(histo)
+                                else:
+                                    computeShapeWithUnc(histo,options.extra_shape_unc)
+                                for bin in range(1,bins ):
+                                    histo.SetBinContent(bin,histo.GetBinContent(bin)/(histo.GetBinWidth(bin)))
+                                    histo.SetBinError(bin,histo.GetBinError(bin)/(histo.GetBinWidth(bin)))
+                                hists.append(histo)
+                            if "Pt" in plotargs[var].GetName(): 
+                                self.plotHistos(hists,plottit,plotargs[var].GetName(),var_bin,True,True,True,True,numEntries_s)
+                            elif "Eta" in plotargs[var].GetName(): 
+                                self.plotHistos(hists,plottit,plotargs[var].GetName(),var_bin,True,True,False,False,numEntries_s)
+                           # if not prepfit: 
+
                         ## roll out for combine tool per category
-                        if fit["ndim"]>1:
-                            self.histounroll(templates_massc,template_binning,isoargs,compname,cat,cut_s,prepfit,sigRegionlow2D,sigRegionup2D,extra_shape_unc=options.extra_shape_unc)
-                            self.histounroll_book(template_binning,isoargs)
+                      #  if fit["ndim"]>1:
+                         #   self.histounroll(templates_massc,template_binning,isoargs,compname,cat,cut_s,prepfit,sigRegionlow2D,sigRegionup2D,extra_shape_unc=options.extra_shape_unc)
+                          #  self.histounroll_book(template_binning,isoargs)
 
     ## ------------------------------------------------------------------------------------------------------------
 
@@ -781,9 +816,9 @@ class TemplatesApp(PlotApp):
                 self.workspace_.rooImport(roodatahist_1dunroll,ROOT.RooFit.RecycleConflictNodes())
         if len(histlistunroll) >1:
             title="histo_%s_%s_%s" %(comp,cat,mcut_s)
-            self.plotHistos(histlsX,"%s_X" %title,template_binning,False,True)
-            self.plotHistos(histlsY,"%s_Y" %title,template_binning,False,True)
-            self.plotHistos(histlistunroll,"%s_unrolled" % (title),tempunroll_binning,False,True)
+            self.plotHistos(histlsX,"%s_X" %title,"charged isolation_X",template_binning,False,True,False,True)
+            self.plotHistos(histlsY,"%s_Y" %title,"charged isolation_Y",template_binning,False,True,False,True)
+            self.plotHistos(histlistunroll,"%s_unrolled" % (title),"charged isolation",tempunroll_binning,False,True,False,True)
             self.keep( [c1] )
             self.autosave(True)
 
@@ -1020,7 +1055,7 @@ class TemplatesApp(PlotApp):
 
     ## ------------------------------------------------------------------------------------------------------------
 
-    def plotHistos(self,histlist,title,template_bins,dim1,doDataMc,numEntries=None):
+    def plotHistos(self,histlist,title,titlex,template_bins,dim1,doDataMc,logx=False,logy=False,numEntries=None):
         leg = ROOT.TLegend(0.334,0.7,0.75,0.9  )
         leg.SetTextSize(0.03)
         leg.SetTextFont(42);
@@ -1031,12 +1066,13 @@ class TemplatesApp(PlotApp):
             canv.Divide(1,2)
             canv.cd(1)
             ROOT.gPad.SetPad(0., 0.35, 1., 1.0)
-            ROOT.gPad.SetLogy()
             canv.cd(2)
             ROOT.gPad.SetPad(0., 0., 1., 0.35)
             ROOT.gPad.SetGridy()
-        else:
+        if logy:
             ROOT.gPad.SetLogy()
+        if logx:
+            ROOT.gPad.SetLogx()
         canv.cd(1)
         # for dataMc plot MC as filled and data as points
         if doDataMc:
@@ -1046,10 +1082,7 @@ class TemplatesApp(PlotApp):
         ymax = 0.
         ymin = 1.e+5
         histlist[histstart].GetYaxis().SetLabelSize( histlist[histstart].GetYaxis().GetLabelSize() * canv.GetWh() / ROOT.gPad.GetWh() )
-        if dim1:
-            histlist[histstart].GetXaxis().SetTitle(title[-17:])
-        else:
-            histlist[histstart].GetXaxis().SetTitle("charged isolation")
+        histlist[histstart].GetXaxis().SetTitle(titlex)
         k=0
         for i in range(histstart,len(histlist)):
             if "mc" in histlist[i].GetName()  or "MC" in histlist[i].GetName():
@@ -1075,10 +1108,12 @@ class TemplatesApp(PlotApp):
             ymax = max(ymax,histlist[i].GetMaximum())
             if histlist[i].GetMinimum() != 0.:
                 ymin = min(ymin,histlist[i].GetMinimum())
-        histlist[histstart].GetXaxis().SetLimits(-0.1,max(template_bins))
+            if min(template_bins)==0.: minX=-0.1
+            else: minX=min(template_bins)
+        histlist[histstart].GetXaxis().SetLimits(minX,max(template_bins))
         histlist[histstart].GetYaxis().SetRangeUser(ymin*0.5,ymax*2.)
         if "unroll" in title:
-           histlist[histstart].GetYaxis().SetRangeUser(ymin*0.5,ymax*25.)
+           histlist[histstart].GetYaxis().SetRangeUser(ymin*0.5,ymax*30.)
         leg.Draw()
         #change for data mc comparison 
         if not doDataMc:
@@ -1673,7 +1708,7 @@ class TemplatesApp(PlotApp):
             self.datasets_["mc"]   = self.openDataset(None,options.mc_file,options.infile,options.mc)
             self.datasets_["templatesMC"]   = self.openDataset(None,options.mc_file,options.infile,options.templatesMC)
        
-        if not options.prep_data:
+        if not (options.prep_data or options.prep_nosig):
             for name,trees in options.signals.iteritems():
                 self.datasets_[name] = self.openDataset(None,options.mc_file,options.infile,trees)        
             # used by parent class PlotApp to read in objects
@@ -1715,10 +1750,11 @@ class TemplatesApp(PlotApp):
             categories      = fit["categories"]
             if not options.prep_data:
                 truth_selection = fit["truth_selection"]
-                signals         = fit.get("signals",[])
-                if signals == "__all__":
-                    signals = options.signals.keys()
-                    fit["signals"] = signals
+                if not options.prep_nosig:
+                    signals         = fit.get("signals",[])
+                    if signals == "__all__":
+                        signals = options.signals.keys()
+                        fit["signals"] = signals
             template_binning = array.array('d',fit["template_binning"])
             templates       = fit["templates"]
             storeTrees      = fit.get("store_trees",False)
@@ -1757,7 +1793,7 @@ class TemplatesApp(PlotApp):
                 self.buildRooDataSet(mcTrees,"mc",name,fit,categories,fulllist,weight,preselection,storeTrees)
           
           ## prepare signal
-            if not options.prep_data:
+            if not (options.prep_data or options.prep_nosig):
                 for sig in signals:
                     sigTrees =  self.prepareTrees(sig,selection,options.verbose,"Signal %s trees" % sig)
                     self.buildRooDataSet(sigTrees,sig,name,fit,categories,fulllist,weight,preselection,storeTrees)
