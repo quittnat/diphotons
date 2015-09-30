@@ -27,110 +27,12 @@
                "GJets_HT_100toInf_13TeV:output.root/%(sel)s"        
              ],
 
-    "_data" : [
-               "Data_13TeV:output.root/%(sel)s"
-             ],
-
     "#" : "data used for template making",
-    "_templates" : [
-               "Data_13TeV:output.root/%(sel)s"
-             ],
     "templates" : [
                "GGJets_M_200To13000_sherpa_13TeV:output.root/%(sel)s",
-               "GGJets_M_200To13000_sherpa_13TeV:output.root/%(sel)s",
                "QCD_Pt_30toInf_13TeV:output.root/%(sel)s",
                "GJets_HT_100toInf_13TeV:output.root/%(sel)s"         
              ],
-    "templatesMC" : [
-               "GGJets_M_200To13000_sherpa_13TeV:output.root/%(sel)s",
-               "GGJets_M_200To13000_sherpa_13TeV:output.root/%(sel)s",
-               "QCD_Pt_30toInf_13TeV:output.root/%(sel)s",
-               "GJets_HT_100toInf_13TeV:output.root/%(sel)s"         
-             ],
-             
-     "#" : "mc dataset",
-     "_mc" : null, 
-
-     "_templatesMC" : null,
-
-     "#" : "mc dataset",
-      "_signals" : null, 
-      "_signals" : { 
-      "grav_001_2000": [ "RSGravToGG_kMpl_001_M_2000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)s"],
-      "grav_001_3000": [ "RSGravToGG_kMpl_001_M_3000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)s"],
-      "grav_001_500" : [ "RSGravToGG_kMpl_001_M_500_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)s"	],
-      "grav_01_1000" : [ "RSGravToGG_kMpl_01_M_1000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)s"	],
-      "grav_01_3500" : [ "RSGravToGG_kMpl_01_M_3500_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)s"	],
-      "grav_01_4000" : [ "RSGravToGG_kMpl_01_M_4000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)s"	],
-      "grav_01_5000" : [ "RSGravToGG_kMpl_01_M_5000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)s"	],
-      "grav_01_7000" : [ "RSGravToGG_kMpl_01_M_7000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)s"	],
-      "grav_02_1000" : [ "RSGravToGG_kMpl_02_M_1000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)s"	],
-      "grav_02_4000" : [ "RSGravToGG_kMpl_02_M_4000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)s"	],
-      "grav_02_5000" : [ "RSGravToGG_kMpl_02_M_5000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)s" ]
-      
-      },
-      "signals" : {
-     	       	 "grav_001_500" : ["RSGravToGG_kMpl_001_M_500_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_001_M_500_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
-		       		  ],
-     	       	 "grav_001_750" : ["RSGravToGG_kMpl_001_M_750_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_001_M_750_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
-		       		  ],
-     	       	 "grav_001_1500" : ["RSGravToGG_kMpl_001_M_1500_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_001_M_1500_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
-		       		  ],
-      	       	 "grav_001_1000" : ["RSGravToGG_kMpl_001_M_1000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_001_M_1000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
-		       		  ],
-      	       	 "grav_001_2000" : ["RSGravToGG_kMpl_001_M_2000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_001_M_2000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
-		       		  ],
-      	       	 "grav_001_3000" : ["RSGravToGG_kMpl_001_M_3000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_001_M_3000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
-		       		  ],
-      	       	 "grav_001_4000" : ["RSGravToGG_kMpl_001_M_4000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_001_M_4000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
-		       		  ],
-      	       	 "grav_001_5000" : ["RSGravToGG_kMpl_001_M_5000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_001_M_5000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
-		       		  ],
-      	       	 "grav_001_6000" : ["RSGravToGG_kMpl_001_M_6000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_001_M_6000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
-		       		  ],
-      	       	 "grav_001_7000" : ["RSGravToGG_kMpl_001_M_7000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_001_M_7000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
-		       		  ],
-     	       	 "grav_02_500" : ["RSGravToGG_kMpl_02_M_500_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_02_M_500_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
-		       		  ],
-     	       	 "grav_02_750" : ["RSGravToGG_kMpl_02_M_750_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_02_M_750_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
-		       		  ],
-     	       	 "grav_02_1500" : ["RSGravToGG_kMpl_02_M_1500_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_02_M_1500_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
-		       		  ],
-      	       	 "grav_02_1000" : ["RSGravToGG_kMpl_02_M_1000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_02_M_1000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
-		       		  ],
-      	       	 "grav_02_2000" : ["RSGravToGG_kMpl_02_M_2000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_02_M_2000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
-		       		  ],
-      	       	 "grav_02_3000" : ["RSGravToGG_kMpl_02_M_3000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_02_M_3000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
-		       		  ],
-      	       	 "grav_02_4000" : ["RSGravToGG_kMpl_02_M_4000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_02_M_4000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
-		       		  ],
-      	       	 "grav_02_5000" : ["RSGravToGG_kMpl_02_M_5000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_02_M_5000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
-		       		  ],
-      	       	 "grav_02_6000" : ["RSGravToGG_kMpl_02_M_6000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_02_M_6000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
-		       		  ],
-      	       	 "grav_02_7000" : ["RSGravToGG_kMpl_02_M_7000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_02_M_7000_TuneCUEP8M1_13TeV_pythia8_13TeV:output.root/%(sel)sNonGenIso"
-		       		  ]
-            },
 
     "#" : "file names for different datasets. Files folder can be specified by --input-dir on the command line",
     "data_file"  : "output.root",
