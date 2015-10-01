@@ -512,6 +512,7 @@
 	},
 
 	"kDSinglePho2DMC" : {
+
 		"target" : "2D:mc",
 		"ptLeadMin" : 100.0, "ptSubleadMin" : 100.0, "massMin" : 200.0,
 		"pt" : "phoPt", "eta" : "phoEta", "phi" : "phoPhi", "energy" : "phoEnergy",
@@ -550,8 +551,9 @@
     },
     "comparisons" : {
 	"fit2DTruth" : { "fit" : "2D",
-		"templates" : { "mix:kDSinglePho2DMC" : {},"template_mc:2D":{}, "mix:kDSinglePho2D" : {},"2D":{} },
+		"_templates" : { "mix:kDSinglePho2DMC" : {},"template_mc:2D":{}, "mix:kDSinglePho2D" : {},"2D":{} },
 		"_templates" : { "mix:kDSinglePho2D" : {},"2D":{} },
+		"templates" : { "2D":{} },
                 "categories" : ["EBEB","EBEE"],
                 "components": ["pf","ff",  ["pp",{ "2D" : {},"template_mc:2D":{}}] 
                 ],
@@ -559,6 +561,7 @@
                 "weight_cut": "weight < 5.",
 		"redo" : true,
 		"doDataMc" :true,
+                "plot_variables":{"subleadScEta": [-2.5,-2.0,-1.5,-1.0,-0.5,0.0,0.5,1.0,1.5,2.0,2.5],"leadScEta":[-2.5,-2.0,-1.5,-1.0,-0.5,0.0,0.5,1.0,1.5,2.0,2.5],"subleadPt":[75,100,200,500,7000],"leadPt":[75,100,200,500,7000]},
                 "template_binning" : [ 0.0,0.1,5.0,15.0],
                 "_template_binning" : [ 0.0,5.0,15.0],
                 "_template_binning" : [ 0.0,0.1,0.3,0.5,1.0,2.0,3.0,5.0,10.0,15.0], 
@@ -574,25 +577,27 @@
                 "categories" :["EB","EE"]
     },
    "nominalFit":{
-        "_3_components":{
+        "3_components":{
                 "dimensions" :"2D",
-				"data":"True", 
+		"data":true,
                 "observable": "templateNdim2d_unroll",
                 "components": ["pp","pf","ff"],
+                "iso_binning" : [ 0.0,0.1,5.0,15.0],
                 "lowerLimitSigRegion": "0.", 
                 "_upperLimitSigRegion": "9.", 
                 "upperLimitSigRegion": "4.", 
 		"mass_binning" :"mass[13000,0.0,13000.0]",
-                "extended_fit":"False"
+                "extended_fit":false
          },
-        "2_components":{
+        "_2_components":{
                 "dimensions" :"2D", 
-				"data":"True", 
+		"data":false, 
                 "observable": "templateNdim2d_unroll",
                 "components": ["pp","pf"],
+                "iso_binning" : [ 0.0,0.1,5.0,15.0],
                 "lowerLimitSigRegion": "0.", 
                 "upperLimitSigRegion": "4.", 
-                "extended_fit":"False",
+                "extended_fit":false,
 		"mass_binning" :"mass[13000,0.0,13000.0]"
         }
     },
