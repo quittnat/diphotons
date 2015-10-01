@@ -525,6 +525,7 @@ analysis = DiPhotonAnalysis(diphotonDumper,
                             singlePhoDumperTemplate=photonDumper
                             )
 
+store_kinTree=False
 # drop samples overlap
 if customize.datasetName():
     if "GJet-HT" in customize.datasetName():
@@ -533,10 +534,13 @@ if customize.datasetName():
         analysis.keepFFOnly = True
     elif "DiPhotonJetsBox_MGG-80toInf_13TeV-Sherpa" in customize.datasetName():
         analysis.vetoGenDiphotons = 200.
+    elif "Grav" in customize.datasetName():
+       store_kinTree=True
 ## kinematic selection
-analysis.addKinematicSelection(process,dumpTrees=True,splitByIso=True
+analysis.addKinematicSelection(process,dumpTrees=store_kinTree,splitByIso=True
                                )
-
+if not store_kinTree or "Grav" in customize.datasetName():
+   minimalDumper=diphotonDumper 
 
 ## analysis selections
 # CiC
