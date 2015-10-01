@@ -49,7 +49,18 @@ done
 
 
 src=$1 && shift
+if [[ $(whoami) == "mquittna" ]]; then
+#	src=/afs/cern.ch/user/m/musella/public/workspace/exo/full_analysis_spring15v825ns_sync_v3/ && shift
+	src=/shome/mquittna/CMSSW/EXO_7_4_6_patch2/src/diphotons/Analysis/config/output && shift
+	src=/shome/mquittna/CMSSW/EXO_7_4_6_patch2/src/diphotons/Analysis/macros/full_analysis_spring15_7412v2_runD_v2 && shift
+#	src=/afs/cern.ch/user/m/musella/public/workspace/exo/full_analysis_spring15v825ns_sync_v3/ && shift
+fi
+
 www=~/www/exo/spring15_v850ns
+if [[ $(whoami) == "mquittna" ]]; then
+    www=/afs/cern.ch/user/m/mquittna/www/diphoton/basic_plots_spring15_7412v2_runD_v2/
+##   www=/afs/cern.ch/user/m/mquittna/www/diphoton/basic_plots_QCD_HT100ToInf_spring1550ns/
+fi
 echo $1
 [ -n "$1" ] && www=$1 && shift
 

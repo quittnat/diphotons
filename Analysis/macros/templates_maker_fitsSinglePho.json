@@ -1,0 +1,65 @@
+{
+    "#" :"List of fits.",
+    "#" :"General form is <fit-name> : { <fit-config> }",
+        
+    "fits" : {
+
+        "singlePho" : {
+            "#" : "single photon: looks at single photon selection",
+
+            "ndim"       : 1,
+            "bins"       : [ "phoPt", [100,7000] ],
+            "dataset_variables" : ["phoPt","phoPhoIso","phoPhoIsoEA","phoEta","phoScEta","phoPhi","phoEnergy := phoPt*cosh(phoEta)","phoSigmaIeIe","phoGenIso","phoMatchType"],
+	    "template_binning" : [0.0,0.1,5.0,15.0],
+            "store_trees"  : true,
+            "selection"    : "cicNoChIsoSinglePho",
+            "preselection" : "phoPt >170.",
+            "components" : ["p", "f"],
+            "categories" : { 
+                "EB" : { 
+                    "src" : "EBEB",
+                        "fill" : { "1" : ["phoChIso"] }
+                }, 
+                "EE" : {
+                    "src" : "notEBEB",
+                        "fill" : { "1" : ["phoChIso"] }
+                
+                },
+                "eta_inclusive" :{
+                        "src" : "eta_inclusive",
+                            "fill" : { "1" : ["phoChIso"] }
+				}
+            },
+            "truth_selection" : {
+                "p" : "phoPrompt",
+                "f" : " phoMatchType != 1"
+            },
+            "templates" : {
+                "p" : {
+                    "sel" : "cicSBNoChIsoSBSinglePho",
+                    "dataset" : ["templates"],
+                        "fill_categories" : { 
+                            "EB" : { "phoIsEB && phoPrompt" : ["phoChIso"]
+									},
+                            "eta_inclusive" : { "(!phoIsEB || phoIsEB) && phoPrompt" : ["phoChIso"]
+									},
+                            "EE" : { "!phoIsEB && phoPrompt" : ["phoChIso"]
+									}
+                    }
+                },
+                "f" : { 
+                    "sel" : "cicSBNoChIsoSBSinglePho",
+                    "dataset" : ["templates"],
+                        "fill_categories" : {  
+                        "EB" : { "phoIsEB && phoIsSB && phoMatchType!=1" : ["phoChIso"] },
+                        "EE" : { "!phoIsEB && phoIsSB && phoMatchType!=1" : ["phoChIso"] },
+                        "eta_inclusive" : { "phoIsSB && phoMatchType!=1" : ["phoChIso"] }
+                    }
+				}
+				}
+	    }
+},
+    "corrPlot":{
+                "categories" :["EB","EE"]
+    }
+}

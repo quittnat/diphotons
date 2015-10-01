@@ -198,10 +198,20 @@ cp -p jobs_gamjets_gamgam.json myjobs.json
 emacs -nw photonIdAnalyzer.py myjobs.json
 
 # test with 100 events
-fggRunJobs.py --load myjobs.json -d myjobs ./photonIdAnalyzer.py maxEvent=100
+fggRunJobs.py --load myjobs.json -d myjobs ./photonIdAnalyzer.py maxEvents=100
 
 # submit all jobs. add -q <queue_name> to run in batch
-fggRunJobs.py --load myjobs.json -d myjobs -H -D -P -n 5 ./photonIdAnalyzer.py maxEvent=-1
+fggRunJobs.py --load myjobs.json -d myjobs -H -D -P -n 5 ./photonIdAnalyzer.py maxEvents=-1
+
+#if working on the Tier3:
+the draw-back is that you have to copy the proxy file by hand
+to location which is visible by the worker nodes
+voms-proxy-init -voms cms
+manually copy the proxy to home
+export  X509_USER_PROXY=~/proxy_file
+if it dies --cont
+```
+fggRunJobs.py --load jobs_photon_qcd_ht.json -d photon_qcd_ht -H --no-copy-proxy -n 5 ./high_mass_analysis.py  maxEvents=-1  -q all.q useAAA=True useEOS=False
 ```
 
 Configuration files
@@ -229,3 +239,23 @@ The `--help` option gives a list of supported options, while the `--dumpConfig` 
 - `Analysis/macros/templates_maker.py`: deals with templates creation.
 
 
+=======
+HiggsAnalysis-CombinedLimit
+===========================
+
+[Manual to run combine](https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideHiggsAnalysisCombinedLimit#How_to_run_the_tool)
+
+
+### Recipe for a successful merge with conflicts
+```
+git clone https://github.com/cms-analysis/HiggsAnalysis-CombinedLimit.git comb
+cd comb/
+git checkout master
+git merge [branch_to_merge]
+git checkout -b [branch_to_merge]
+git pull git@github.com:[user_to_merge]/HiggsAnalysis-CombinedLimit.git [branch_to_merge]
+[resolve conflicts]
+git add [files where conflicts were resolved]
+git commit #(should contain a header telling something about merging [branch_to_merge])
+git push origin master
+```

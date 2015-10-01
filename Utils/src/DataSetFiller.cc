@@ -63,7 +63,6 @@ DataSetFiller::DataSetFiller(RooDataSet * dset) :
 {
 }
 
-//void DataSetFiller::fillFromTree(TTree * tree, const char * weightExpr, bool ignoreExpr, bool reduced)
 void DataSetFiller::fillFromTree(TTree * tree, const char * weightExpr, bool ignoreExpr)
 {
     size_t nvar = vars_.getSize();
