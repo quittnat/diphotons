@@ -222,12 +222,14 @@ void TaPAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
   edm::Handle<View<reco::GenParticle> > genParticles;
   if (sampleID>0 && sampleID<10000) iEvent.getByToken( genPartToken_, genParticles );
 
-  Handle<View<pat::MET> > METs;
-  iEvent.getByToken( MetToken_, METs );
-  if( METs->size() != 1 ) std::cout << "WARNING number of MET is not equal to 1" << std::endl; 
-  Ptr<pat::MET> theMET = METs->ptrAt( 0 );
-  t1pfmet = theMET->pt();
-  pfmet   = theMET->uncorrectedPt();
+  //Handle<View<pat::MET> > METs;
+  //iEvent.getByToken( MetToken_, METs );
+ // if( METs->size() != 1 ) std::cout << "WARNING number of MET is not equal to 1" << std::endl; 
+ // Ptr<pat::MET> theMET = METs->ptrAt( 0 );
+  //t1pfmet = theMET->pt();
+  t1pfmet = 0.;
+  //pfmet   = theMET->uncorrectedPt();
+  pfmet=0.;
 
   // --------------------------------------------------
   // Event info
