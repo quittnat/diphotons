@@ -558,11 +558,6 @@ class TemplatesApp(PlotApp):
                         sigRegionup2D=float(comparison.get("upperLimitSigRegion2D"))
                         sigRegionup1D=float(comparison.get("upperLimitSigRegion1D"))
                     else: setargs=ROOT.RooArgSet(isoargs)
-                    plotargs=ROOT.RooArgList("plotargs")
-                    for var,var_bin in comparison.get("plot_variables").iteritems():
-                        var,var_b=self.getVar(var)
-                        plotargs.add(self.buildRooVar(var,var_bin,recycle=True))
-                    setargs.add(plotargs)
                    # setargs.add(self.buildRooVar("weight",[],recycle=True))
                     rooweight=self.buildRooVar("weight",[],recycle=True)
                     setargs.add(rooweight)
@@ -678,45 +673,13 @@ class TemplatesApp(PlotApp):
                                 histls.append(tempHisto)
                            # if not prepfit: 
                            # print "plot 1d histos"
-                           # self.plotHistos(histls,tit,template_binning,True,True,numEntries_s)
+                          #  self.plotHistos(histls,tit,template_binning,True,True,numEntries_s)
                         
-                        #plot different variables
-                        for var in range(0,len(plotargs)):
-                            hists=[]
-                            var_bin=array.array('d',comparison.get("plot_variables")[plotargs[var].GetName()])
-                            plottit = "%s_%s_%s_mb_%s" % (plotargs[var].GetName(),fitname,cat,cut_s)
-                            numEntries_s=""
-                            hdata=ROOT.TH1F("%s_%s" % (dset_massc.GetName(),plotargs[var].GetName()),
-                                                    "%s_%s" % (dset_massc.GetName(),plotargs[var].GetName()),len(var_bin)-1,var_bin)
-                            dset_massc.fillHistogram(hdata,ROOT.RooArgList(plotargs[var]))
-                            computeShapeWithUnc(hdata,options.extra_shape_unc)
-                            for bin in range(1,len(var_bin)):
-                                hdata.SetBinContent(bin,hdata.GetBinContent(bin)/(hdata.GetBinWidth(bin)))
-                                hdata.SetBinError(bin,hdata.GetBinError(bin)/(hdata.GetBinWidth(bin)))
-                            for tm in templates_massc:
-                                histo=ROOT.TH1F("%s_%s" % (tm.GetName(),plotargs[var].GetName()),
-                                                    "%s_%s" % (tm.GetName(),plotargs[var].GetName()),len(var_bin)-1,var_bin)
-                                tm.fillHistogram(histo,ROOT.RooArgList(plotargs[var]))
-                                numEntries_s+= (" %f " % tempHisto.Integral())
-                                if "truth" in histo.GetName():
-                                    computeShapeWithUnc(histo)
-                                else:
-                                    computeShapeWithUnc(histo,options.extra_shape_unc)
-                                for bin in range(1,len(var_bin)):
-                                    histo.SetBinContent(bin,histo.GetBinContent(bin)/(histo.GetBinWidth(bin)))
-                                    histo.SetBinError(bin,histo.GetBinError(bin)/(histo.GetBinWidth(bin)))
-                            #    hists.append(histo)
-                            hists.append(hdata)
-                            if "Pt" in plotargs[var].GetName(): 
-                                self.plotHistos(hists,plottit,plotargs[var].GetName(),var_bin,True,True,True,True,numEntries_s)
-                            elif "Eta" in plotargs[var].GetName(): 
-                                self.plotHistos(hists,plottit,plotargs[var].GetName(),var_bin,True,True,False,False,numEntries_s)
-                           # if not prepfit: 
 
                         ## roll out for combine tool per category
-                      #  if fit["ndim"]>1:
-                         #   self.histounroll(templates_massc,template_binning,isoargs,compname,cat,cut_s,prepfit,sigRegionlow2D,sigRegionup2D,extra_shape_unc=options.extra_shape_unc)
-                          #  self.histounroll_book(template_binning,isoargs)
+                        if fit["ndim"]>1:
+                            self.histounroll(templates_massc,template_binning,isoargs,compname,cat,cut_s,prepfit,sigRegionlow2D,sigRegionup2D,extra_shape_unc=options.extra_shape_unc)
+                            self.histounroll_book(template_binning,isoargs)
 
     ## ------------------------------------------------------------------------------------------------------------
 
@@ -1817,21 +1780,22 @@ class TemplatesApp(PlotApp):
               
             print
           ## sanity check
-            for cat in categories.keys():
-                catCounts = {}
-                catCounts["tot"] = self.rooData("mc_%s_%s" % (name,cat) ).sumEntries()
-              
-                breakDown = 0.
-                for truth in truth_selection.keys():
-                    count = self.rooData("mctruth_%s_%s_%s" % (truth,name,cat) ).sumEntries()
-                    breakDown += count
-                    catCounts[truth] = count
-                print "truth : ",cat, " ".join( "%s : %1.4g" % (key,val) for key,val in catCounts.iteritems() ),
-                if breakDown != catCounts["tot"]:
-                    print "\n   Warning : total MC counts don't match sum of truths. Difference: ", catCounts["tot"]-breakDown
-                else:
-                    print
+            if not options.prep_data:
+                for cat in categories.keys():
+                    catCounts = {}
+                    catCounts["tot"] = self.rooData("mc_%s_%s" % (name,cat) ).sumEntries()
                   
+                    breakDown = 0.
+                    for truth in truth_selection.keys():
+                        count = self.rooData("mctruth_%s_%s_%s" % (truth,name,cat) ).sumEntries()
+                        breakDown += count
+                        catCounts[truth] = count
+                    print "truth : ",cat, " ".join( "%s : %1.4g" % (key,val) for key,val in catCounts.iteritems() ),
+                    if breakDown != catCounts["tot"]:
+                        print "\n   Warning : total MC counts don't match sum of truths. Difference: ", catCounts["tot"]-breakDown
+                    else:
+                        print
+                      
             ## prepare templates
             print 
             for component,cfg in fit["templates"].iteritems():
