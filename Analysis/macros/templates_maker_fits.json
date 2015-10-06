@@ -579,9 +579,9 @@
     },
    "nominalFit":{
         "_3_components":{
-                "dimensions" :"2D",
-		"data":true,
-                "observable": "templateNdim2d_unroll",
+				"data":false,
+        		"dimensions" :"2D", 
+        		"observable": "templateNdim2d_unroll",
                 "components": ["pp","pf","ff"],
                 "lowerLimitSigRegion": "0.", 
                 "_upperLimitSigRegion": "9.", 
@@ -590,9 +590,9 @@
                 "extended_fit":false
          },
         "2_components":{
-                "dimensions" :"2D", 
-		"data":true, 
-                "observable": "templateNdim2d_unroll",
+				"data":false,
+        		"dimensions" :"2D", 
+        		"observable": "templateNdim2d_unroll",
                 "components": ["pp","pf"],
                 "lowerLimitSigRegion": "0.", 
                 "_upperLimitSigRegion": "4.", 
@@ -601,7 +601,7 @@
         }
     },
    "plotPurity":{
-                "data":true,
+                "data":false,
                 "treetruth":"truth_purity_all",
                 "_treetruth":"truth_purity_signalregion",
                 "dimensions" :"2D", 
