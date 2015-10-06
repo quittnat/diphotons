@@ -157,6 +157,11 @@ class TemplatesApp(PlotApp):
                                     default={},help="List of templates fits to be performed. Categories, componentd and templates can be specified."),
                         make_option("--mix",dest="mix",action="callback",callback=optpars_utils.Load(),type="string",
                                     default={},help="Configuration for event mixing."),
+                        make_option("--template-binning",dest="template_binning",action="callback",callback=optpars_utils.ScratchAppend(float),
+                                    type="string",
+                                    default=[],
+                                    help="Binning of the parametric observable to be used for templates",
+                                    ),                        
                         make_option("--comparisons",dest="comparisons",action="callback",callback=optpars_utils.Load(),type="string",
                                     default={},help="Configuration for templates comparison."),
                         make_option("--skip-templates",dest="skip_templates",action="store_true",
@@ -546,7 +551,10 @@ class TemplatesApp(PlotApp):
                     mass_var,mass_b=self.getVar(comparison.get("mass_binning"))
                     mass=self.buildRooVar(mass_var,mass_b,recycle=True)
                     massargs.add(mass)
-                    template_binning = array.array('d',comparison.get("template_binning"))
+                    if len(options.template_binning) > 0:
+                        template_binning = array.array('d',options.template_binning)
+                    else:
+                        template_binning = array.array('d',comparison.get("template_binning"))
                     templatebins=ROOT.RooBinning(len(template_binning)-1,template_binning,"templatebins" )
 ### list to store templates for each category
                     templates = []
@@ -555,7 +563,12 @@ class TemplatesApp(PlotApp):
                     if d2:
                         setargs=ROOT.RooArgSet(massargs,isoargs)
                         sigRegionlow2D=float(comparison.get("lowerLimitSigRegion2D"))
-                        sigRegionup2D=float(comparison.get("upperLimitSigRegion2D"))
+                        if len(template_binning)==4:
+                            sigRegionup2D=9.
+                        elif len(template_binning)==3:
+                            sigRegionup2D=4.
+                        else:
+                            sigRegionup2D=float(comparison.get("upperLimitSigRegion2D"))
                         sigRegionup1D=float(comparison.get("upperLimitSigRegion1D"))
                     else: setargs=ROOT.RooArgSet(isoargs)
                    # setargs.add(self.buildRooVar("weight",[],recycle=True))
@@ -1190,22 +1203,30 @@ class TemplatesApp(PlotApp):
         ROOT.TH1F.SetDefaultSumw2(True)
         for name, nomFit in options.nominalFit.iteritems():
             if name.startswith("_"): continue
+            isoargs=ROOT.RooArgSet("isoargs")
+            iso1,biniso1=self.getVar("templateNdim2Dim0")
+            iso2,biniso2=self.getVar("templateNdim2Dim1")
+            if len(options.template_binning) > 0:
+                biniso = array.array('d',options.template_binning)
+            else:
+                biniso = array.array('d',options.comparisons.get("template_binning"))
+            isoargs.add(self.buildRooVar(iso1,biniso,recycle=True))
+            isoargs.add(self.buildRooVar(iso2,biniso,recycle=True))
             obsls=ROOT.RooArgList("obsls")
             weight_cut="weight < 5." 
             var,var_b=self.getVar(nomFit.get("observable"))
             lowsigRegion=float(nomFit.get("lowerLimitSigRegion"))
-            upsigRegion=float(nomFit.get("upperLimitSigRegion"))
+            if len(biniso)==4:
+                upsigRegion=9.
+            elif len(biniso)==3:
+                upsigRegion=4.
+            else:
+                upsigRegion=float(nomFit.get("upperLimitSigRegion"))
             extended_fit=nomFit.get("extended_fit",False)
             observable=self.buildRooVar(var,var_b,recycle=True)
             observable.setRange("sigRegion",lowsigRegion,upsigRegion)
             observable.Print() 
             obsls.add(observable)
-            isoargs=ROOT.RooArgSet("isoargs")
-            iso1,biniso1=self.getVar("templateNdim2Dim0")
-            iso2,biniso2=self.getVar("templateNdim2Dim1")
-            biniso = array.array('d',nomFit["iso_binning"])
-            isoargs.add(self.buildRooVar(iso1,biniso,recycle=True))
-            isoargs.add(self.buildRooVar(iso2,biniso,recycle=True))
              
             #you want to keep bins from 0 to 3
             components=nomFit.get("components")
