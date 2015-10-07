@@ -1474,8 +1474,8 @@ class TemplatesApp(PlotApp):
                 if not data:
                     if not opt=="mctruth":
                         tree_templatemc=self.treeData("fitresult_fraction_mc_unrolled_%s_%s_%s"%(opt,dim, cat))
-                        g_templatemcpp=ROOT.TGraphErrors(tree_templatemc.GetEntries())
-                        g_templatemcpf=ROOT.TGraphErrors(tree_templatemc.GetEntries())
+                        g_templateppmc=ROOT.TGraphErrors(tree_templatemc.GetEntries())
+                        g_templatepfmc=ROOT.TGraphErrors(tree_templatemc.GetEntries())
                     tree_mctruth=self.treeData("fitresult_fraction_mc_unrolled_mctruth_%s_%s"%( dim, cat))
                     nentries=tree_mctruth.GetEntries()
                     tree_truthpp=self.treeData("%s_pp_%s_%s"%(treetruthname, dim, cat))
@@ -1554,7 +1554,7 @@ class TemplatesApp(PlotApp):
                                 pullpf=(tree_mctruth.purity_pf-tree_truthpf.frac_pu)/tree_mctruth.error_pf_sumw2on
                             g_pullpf.SetPoint(mb,tree_templatemc.massbin,pullpf)
                             h_pullpf.Fill(pullpf)
-                print "tree_truth fractions: ",  tree_truthff.frac_pu, tree_truthpf.frac_pu, tree_truthpp.frac_pu
+                    print "tree_truth fractions: ",  tree_truthff.frac_pu, tree_truthpf.frac_pu, tree_truthpp.frac_pu
                 self.pullFunction(g_pullpp,h_pullpp,cat,"pp",opt,pu_val)
                 if not data:
                     if tree_mctruth.error_pf_sumw2on !=0:
@@ -1562,9 +1562,12 @@ class TemplatesApp(PlotApp):
                     sumw2on="sumw2on"
                     if opt=="mctruth":
                         self.plotPurityMassbins(cat,pu_val,opt,sumw2on,None,None,g_pullpp,g_truthpp,g_truthpf,g_truthff,g_mctruthpp_sumw2on,g_mctruthpf_sumw2on)
-
                         sumw2off="sumw2off"
                         self.plotPurityMassbins(cat,pu_val,opt,sumw2off,None,None,None,g_truthpp,g_truthpf,g_truthff,g_mctruthpp,g_mctruthpf)
+                    else:
+                        self.plotPurityMassbins(cat,pu_val,opt,sumw2on,g_templateppmc,g_templatepfmc,g_pullpp,g_truthpp,g_truthpf,g_truthff,g_mctruthpp_sumw2on,g_mctruthpf_sumw2on)
+                        sumw2off="sumw2off"
+                        self.plotPurityMassbins(cat,pu_val,opt,sumw2off,g_templateppmc,g_templatepfmc,None,g_truthpp,g_truthpf,g_truthff,g_mctruthpp,g_mctruthpf)
                 else:
                     self.plotPurityMassbins(cat,pu_val,opt,"data",g_templatepp,g_templatepf)
             ## ------------------------------------------------------------------------------------------------------------
@@ -1652,6 +1655,7 @@ class TemplatesApp(PlotApp):
             leg.AddEntry(g_truthpp,"pp truth","lp")  
             leg.AddEntry(g_truthpf,"pf truth","lp")  
             leg.AddEntry(g_truthff,"ff truth","lp")  
+            g_truthpp.Draw("P SAME")
             g_truthpf.Draw("P SAME")
             g_truthff.Draw("P SAME")
             g_mctruthpf.SetMarkerColor(ROOT.kOrange+7)
@@ -1687,7 +1691,7 @@ class TemplatesApp(PlotApp):
         #    g_ratiopp.GetYaxis().SetTitle("(pu_tp-pu_mctruth)/pu_tperr")
             g_ratiopp.GetYaxis().SetTitle("pull fct")
         
-            g_ratiopp.GetYaxis().SetRangeUser(-5.,5.)
+            g_ratiopp.GetYaxis().SetRangeUser(-3.,3.)
            # g_ratiopp.GetXaxis().SetLimits(g_mctruthpp.GetXaxis().GetBinLowEdge(g_mctruthpp.GetXaxis.GetFirst()),g_mctruthpp.GetXaxis().GetBinUpEdge(g_mctruthpp.GetXaxis(g_mctruthpp.GetXaxis.GetLast())))
             g_ratiopp.GetYaxis().SetTitleSize( g_mctruthpp.GetYaxis().GetTitleSize() *4.5/4. )
             g_ratiopp.GetYaxis().SetLabelSize( g_mctruthpp.GetYaxis().GetLabelSize()*6./4.  )
