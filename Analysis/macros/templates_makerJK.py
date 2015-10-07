@@ -1898,7 +1898,8 @@ class TemplatesApp(PlotApp):
 
             targetName      = mix["target"]
             targetSrc       = "data"
-            jk              = mix.get("jackknife_subset",0)
+            jks              = mix.get("jk_source",0)
+            jkt              = mix.get("jk_target",0)
             if ":" in targetName:
                 targetName, targetSrc = targetName.split(":")
             targetFit       = options.fits[targetName]
@@ -1957,10 +1958,10 @@ class TemplatesApp(PlotApp):
                         else:
                             sname,stype,scomp = src
                         legname = "%s_%s_%s_%s" % (stype,scomp,sname,leg)
-                        if jk !=0 and scomp!="p":
+                        if jks !=0 and scomp!="p":
                             tree_all=self.treeData(legname)
                             n= int(tree_all.GetEntries())
-                            d=jk*n
+                            d=jks*n
                             g=n/d
                             if n % d != 0:
                                 g += 1
@@ -1982,14 +1983,14 @@ class TemplatesApp(PlotApp):
                             legnams.append( legname )
                             legs.append( (self.treeData(legname),ROOT.RooArgList(self.dsetVars(legname)) ) )
                     print legs
-                    if len(legs) != ndim and jk==0:
+                    if len(legs) != ndim and jks==0:
                         sys.exit(-1,"number of legs does not match number of dimensions for dataset mixing")
                     rndswap     = fill.get("rndswap",False)
                     rndmatch     = fill.get("rndmatch",0.)
                     
                     print "legs  :", " ".join(legnams)
                     print "type  :", mixType
-                    if jk==0: g=1
+                    if jks==0: g=1
                     for j in range(0,g):
                         if len(legs)==ndim*g:
                                 (tree1, vars1)= legs[j]
@@ -1997,7 +1998,7 @@ class TemplatesApp(PlotApp):
                         elif len(legs) <ndim*g:
                                 (tree1, vars1)= legs[0]
                                 (tree2, vars2)  = legs[j+1]
-                        elif jk==0:
+                        elif jks==0:
                                 (tree1, vars1)= legs[0]
                                 (tree2, vars2)  = legs[1]
                         else: "legs not correctly assigned to trees"
@@ -2010,7 +2011,7 @@ class TemplatesApp(PlotApp):
                             el = self.buildRooVar(*(self.getVar(element)))
                             varsT.add(el)
                         
-                        mixer = ROOT.DataSetMixer( "template_mix_%s_%s_%s" % ( comp, name, cat),"template_mix_%s_%s_%s" % ( comp, name, cat),
+                        mixer = ROOT.DataSetMixer( "template_mix_%s_%s_%s_%i" % ( comp, name, cat,j),"template_mix_%s_%s_%s_%i" % ( comp, name, cat,j),
                                                    vars1, vars2, varsT,replace, replace,
                                                    ptLeadMin, ptSubleadMin, massMin,
                                                    "weight", "weight", True,                                               
@@ -2065,14 +2066,14 @@ class TemplatesApp(PlotApp):
                                              useCdfDistance,matchWithThreshold, maxWeightTarget,maxWeightCache,
                                              array.array('d',axesWeights))
                     
-                    dataset = mixer.get()
-                    self.workspace_.rooImport(dataset,ROOT.RooFit.RecycleConflictNodes())
-                    tree = mixer.getTree()
-                    self.store_[tree.GetName()] = tree
+                        dataset = mixer.get()
+                        self.workspace_.rooImport(dataset,ROOT.RooFit.RecycleConflictNodes())
+                        tree = mixer.getTree()
+                        self.store_[tree.GetName()] = tree
 
-            print 
-            print "--------------------------------------------------------------------------------------------------------------------------"
-            print 
+                print 
+                print "--------------------------------------------------------------------------------------------------------------------------"
+                print 
 
 
     ## ------------------------------------------------------------------------------------------------------------
