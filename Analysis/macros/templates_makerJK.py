@@ -1898,7 +1898,7 @@ class TemplatesApp(PlotApp):
 
             targetName      = mix["target"]
             targetSrc       = "data"
-            jk              = mix.get("jackknife",False)
+            jk              = mix.get("jackknife_subset",0)
             if ":" in targetName:
                 targetName, targetSrc = targetName.split(":")
             targetFit       = options.fits[targetName]
@@ -1957,11 +1957,10 @@ class TemplatesApp(PlotApp):
                         else:
                             sname,stype,scomp = src
                         legname = "%s_%s_%s_%s" % (stype,scomp,sname,leg)
-                        if jk:
-                            dset=self.rooData(legname)
-                            dset.Print()
-                            n= int(dset.sumEntries())
-                            d=0.1*n
+                        if jk !=0:
+                            tree_all=self.treeData(legname)
+                            n= int(tree_all.GetEntries())
+                            d=jk*n
                             g=n/d
                             print "computing partitions: n=%d d=%d g=%d" % (n,d,g)
                             if n % d != 0:
@@ -1972,16 +1971,17 @@ class TemplatesApp(PlotApp):
                             for j in range(g-1):
                                 lo=int(1+d*j)
                                 hi=int(d+d*j)
-                                dset_temp=dset.Clone("%s_%i"%(legname,j))
-                                dset_temp=dset_temp.reduce(RooFit.EventRange(int(1+d*j),int(d+d*j)))
-                                dset_temp.Print()
-                                legnams.append( dset_temp.GetName() )
-                                legs.append( (self.treeData(dset_temp.GetName()),ROOT.RooArgList(self.dsetVars(dset_temp.GetName())) ) )
-                            print legnams
-                            return
+                                tree_temp=tree_all.CloneTree(0)
+                                tree_temp.SetName("%s_%i" %(legname,j))
+                                for k in range(n):
+                                        tree_all.GetEntry(k)
+                                        if(k>= lo and k < hi ): tree_temp.Fill(tree_all.GetEntry(k))
+                                legnams.append( tree_temp.GetName() )
+                                legs.append( ( tree_temp,ROOT.RooArgList(self.dsetVars(legname)) ) )
                         else:
                             legnams.append( legname )
                             legs.append( (self.treeData(legname),ROOT.RooArgList(self.dsetVars(legname)) ) )
+                    return
                     if len(legs) != ndim:
                         sys.exit(-1,"number of legs does not match number of dimensions for dataset mixing")
                     rndswap     = fill.get("rndswap",False)
