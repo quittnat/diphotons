@@ -475,9 +475,9 @@
 
     "mix" : { 
 	"kDSinglePho2D" : {
-                "jackknife_subset": 0.1 ,
+                "jackknife_subset": 0.3 ,
 		"target" : "2D",
-		"ptLeadMin" : 100.0, "ptSubleadMin" : 100.0, "massMin" : 200.0,
+		"ptLeadMin" : 75.0, "ptSubleadMin" : 75.0, "massMin" : 200.0,
 		"pt" : "phoPt", "eta" : "phoEta", "phi" : "phoPhi", "energy" : "phoEnergy",
 		"sources" : { 
 		    "pf" : [ "singlePho:p", "singlePho:f" ],
