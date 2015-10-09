@@ -481,7 +481,6 @@
 		"ptLeadMin" : 75.0, "ptSubleadMin" : 75.0, "massMin" : 200.0,
 		"pt" : "phoPt", "eta" : "phoEta", "phi" : "phoPhi", "energy" : "phoEnergy",
 		"sources" : { 
-		    "pf" : [ "singlePho:p", "singlePho:f" ],
                     "ff" : [ "singlePho:f1", "singlePho:f2" ]
 		    }, 
 		"replace" : "pho",
