@@ -153,6 +153,9 @@ class TemplatesApp(PlotApp):
                         make_option("--plot-purity",dest="plot_purity",action="store_true",default=False,
                                     help="Plot purities, purity vs massbin and pull function",
                                     ),
+                        make_option("--jackknife",dest="jackknife",action="store_true",default=False,
+                                    help="Plot RMS etc from jk pseudosamples",
+                                    ),
                         make_option("--fits",dest="fits",action="callback",callback=optpars_utils.Load(),type="string",
                                     default={},help="List of templates fits to be performed. Categories, componentd and templates can be specified."),
                         make_option("--mix",dest="mix",action="callback",callback=optpars_utils.Load(),type="string",
@@ -329,6 +332,8 @@ class TemplatesApp(PlotApp):
             self.nominalFit(options,args)
         if options.plot_purity:
             self.plotPurity(options,args)
+        if options.jackknife:
+            self.Jackknife(options,args)
         if options.corr_singlePho:
             self.corrSinglePho(options,args)
         if options.build_3dtemplates:
@@ -509,6 +514,57 @@ class TemplatesApp(PlotApp):
             self.workspace_.rooImport = rooImport(self.workspace_)
             
     
+    ## ------------------------------------------------------------------------------------------------------------
+    
+    def Jackknife(self,options,args):
+        fout = self.openOut(options)
+        fout.Print()
+        fout.cd()
+        fit=options.fits["2D"]
+        for cat in options.jackknife.get("categories", fit["categories"]):
+            setargs=ROOT.RooArgSet("setargs")
+            massargs=ROOT.RooArgSet("massargs")
+            mass_var,mass_b=self.getVar(options.jackknife.get("mass_binning"))
+            mass=self.buildRooVar(mass_var,mass_b,recycle=True)
+            massargs.add(mass)
+            if len(options.template_binning) > 0:
+                template_binning = array.array('d',options.template_binning)
+            else:
+                template_binning = array.array('d',options.jackknife.get("template_binning"))
+            templatebins=ROOT.RooBinning(len(template_binning)-1,template_binning,"templatebins" )
+            for idim in range(fit["ndim"]):
+                setargs.add(self.buildRooVar("templateNdim%dDim%d" % ( fit["ndim"],idim),template_binning,recycle=True))
+            dset_data = self.reducedRooData("data_2D_%s" % (cat),massargs)
+            dset_data.Print()
+            mass_split= [int(x) for x in options.fit_massbins]
+            diphomass=self.massquantiles(dset_data,massargs,mass_b,mass_split)
+            for mb in range(mass_split[2],mass_split[1]):
+                massbin=(diphomass[mb]+diphomass[mb+1])/2.
+                masserror=(diphomass[mb+1]-diphomass[mb])/2. 
+                cut=ROOT.TCut("mass>%f && mass<%f"% (diphomass[mb],diphomass[mb+1]))
+                cut_s= "%1.0f_%2.0f"% (diphomass[mb],diphomass[mb+1])
+                print cut.GetTitle()
+                for comp in options.jackknife.get("components",fit["components"]) :
+                    print cat, comp
+                    full_template = self.reducedRooData( "template_mix_%s_kDSinglePho2D_%s" % (comp,cat),setargs)
+                    print full_template
+                    #TODO get number of pseudosamples more elegant
+                    mix=options.mix.get("kDSinglePho2D")
+                    jks=mix.get("jk_source",10)
+                    jkt=mix.get("jk_target",10)
+                    print "jks ",jks, " jkt ", jkt
+                    temps = []
+                    for s in range(jks):
+                        temp = self.reducedRooData( "template_mix_%s_%i_kDSinglePho2D_%s" % (comp,s,cat),setargs)
+                        temps.append(temp)
+                    for t in range(jkt):
+                        temp = self.reducedRooData( "template_mix_%s_kDSinglePho2D_%si_%i" % (comp,cat,t),setargs)
+                        temps.append(temp)
+                    print "number of pseudo samples", len(temps)
+                    self.plotJK(full_template,temps)
+        self.saveWs(options,fout)
+    
+    ## ------------------------------------------------------------------------------------------------------------
     
     ## ------------------------------------------------------------------------------------------------------------
     
@@ -2080,9 +2136,9 @@ class TemplatesApp(PlotApp):
 
                             print "------------------------------------------"
                             print "target :", target.GetName()
-                            if      m==0 and j==0:   mixername=" template_mix_%s_%s_%s" % ( comp,name, cat)
-                            elif    m>0 and j==0:    mixername=" template_mix_%s_%s_%i_%s" % ( comp,name, m,cat)
-                            elif    m==0 and j>0:    mixername=" template_mix_%s_%i_%s_%s" % ( comp,j,name,cat)
+                            if      m==0 and j==0:   mixername="template_mix_%s_%s_%s" % ( comp,name, cat)
+                            elif    m>0 and j==0:    mixername="template_mix_%s_%s_%i_%s" % ( comp,name, m-1,cat)
+                            elif    m==0 and j>0:    mixername="template_mix_%s_%i_%s_%s" % ( comp,j-1,name,cat)
                             mixer = ROOT.DataSetMixer( mixername,mixername,
                                                    vars1, vars2, varsT,replace, replace,
                                                    ptLeadMin, ptSubleadMin, massMin,
