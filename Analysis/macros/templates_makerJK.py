@@ -522,6 +522,7 @@ class TemplatesApp(PlotApp):
         fout.cd()
         fit=options.fits["2D"]
         for cat in options.jackknife.get("categories", fit["categories"]):
+            isoargs=ROOT.RooArgSet("isoargs")
             setargs=ROOT.RooArgSet("setargs")
             massargs=ROOT.RooArgSet("massargs")
             mass_var,mass_b=self.getVar(options.jackknife.get("mass_binning"))
@@ -533,7 +534,9 @@ class TemplatesApp(PlotApp):
                 template_binning = array.array('d',options.jackknife.get("template_binning"))
             templatebins=ROOT.RooBinning(len(template_binning)-1,template_binning,"templatebins" )
             for idim in range(fit["ndim"]):
-                setargs.add(self.buildRooVar("templateNdim%dDim%d" % ( fit["ndim"],idim),template_binning,recycle=True))
+                isoargs.add(self.buildRooVar("templateNdim%dDim%d" % ( fit["ndim"],idim),template_binning,recycle=True))
+            setargs.add(isoargs)
+            setargs.add(massargs)
             dset_data = self.reducedRooData("data_2D_%s" % (cat),massargs)
             dset_data.Print()
             mass_split= [int(x) for x in options.fit_massbins]
@@ -545,27 +548,48 @@ class TemplatesApp(PlotApp):
                 cut_s= "%1.0f_%2.0f"% (diphomass[mb],diphomass[mb+1])
                 print cut.GetTitle()
                 for comp in options.jackknife.get("components",fit["components"]) :
-                    print cat, comp
+                    name="%s_%s" %(comp,cat)
+                    print name
                     full_template = self.reducedRooData( "template_mix_%s_kDSinglePho2D_%s" % (comp,cat),setargs)
                     print full_template
+                    full_hist=self.histounroll([full_template],template_binning,isoargs,comp,cat,cut_s,True,min(template_binning),max(template_binning),extra_shape_unc=options.extra_shape_unc,plot=False)
                     #TODO get number of pseudosamples more elegant
+                    print full_hist
+                    #c1=ROOT.TCanvas("c1","c1")
+                    #full_hist[0].Draw()
+                    #self.keep(c1)
+                    #self.autosave(True)
                     mix=options.mix.get("kDSinglePho2D")
-                    jks=mix.get("jk_source",10)
-                    jkt=mix.get("jk_target",10)
+                    jks=int(mix.get("jk_source",10))
+                    jkt=int(mix.get("jk_target",10))
                     print "jks ",jks, " jkt ", jkt
                     temps = []
                     for s in range(jks):
                         temp = self.reducedRooData( "template_mix_%s_%i_kDSinglePho2D_%s" % (comp,s,cat),setargs)
                         temps.append(temp)
                     for t in range(jkt):
-                        temp = self.reducedRooData( "template_mix_%s_kDSinglePho2D_%si_%i" % (comp,cat,t),setargs)
+                        temp = self.reducedRooData( "template_mix_%s_kDSinglePho2D_%i_%s" % (comp,t,cat),setargs)
                         temps.append(temp)
                     print "number of pseudo samples", len(temps)
-                    self.plotJK(full_template,temps)
+                    hists=self.histounroll(temps,template_binning,isoargs,comp,cat,cut_s,True,min(template_binning),max(template_binning),extra_shape_unc=options.extra_shape_unc,plot=False)
+                    self.plotJK(full_hist,hists,name)
         self.saveWs(options,fout)
     
     ## ------------------------------------------------------------------------------------------------------------
-    
+    def plotJK(self,full_hist,hists,name):
+        canv = ROOT.TCanvas("cRMS_%s" % name,"cRMS_%s"% name)
+        canv.cd()
+        ROOT.TH1D.SetDefaultSumw2(True)
+        hist_rms=ROOT.TH1D("hRMS_%s"% name,"hRMS_%s"% name,2*len(hists),0.9,1.1)
+        for hist in hists:
+            hist_rms.Fill(hist.GetRMS()/full_hist[0].GetRMS())
+        hist_rms.Draw()
+        hist_rms.GetXaxis().SetTitle("ratio RMS_JK/RMS_fulldataset") 
+        hist_rms.GetYaxis().SetTitle("# pseudosamples") 
+        ROOT.gStyle.SetOptStat(111111)
+        self.keep( [canv] )
+        self.autosave(True)
+
     ## ------------------------------------------------------------------------------------------------------------
     
     def compareTemplates(self,options,args):
@@ -756,7 +780,7 @@ class TemplatesApp(PlotApp):
 
     ## ------------------------------------------------------------------------------------------------------------
 
-    def histounroll(self,templatelist, template_binning,isoargs,comp,cat,mcut_s,prepfit,sigRegionlow,sigRegionup,extra_shape_unc=None):
+    def histounroll(self,templatelist, template_binning,isoargs,comp,cat,mcut_s,prepfit,sigRegionlow,sigRegionup,extra_shape_unc=None,plot=True):
         pad_it=0
         c1=ROOT.TCanvas("d2hist_%s" % cat,"2d hists per category",1000,1000) 
         c1.Divide(1,2)
@@ -832,10 +856,11 @@ class TemplatesApp(PlotApp):
                 rootemplate_binning=ROOT.RooBinning(len(template_binning),template_binning,"rootemplate_binning")
                 unrollvar=ROOT.RooArgList(templateNdim2d_unroll) 
               #  templateNdim2d_unroll.setBinning(rootemplate_binning)
-            c1.cd(pad_it)
-            ROOT.gPad.SetLogz()
-            temp2d.Draw("COLZ")
-            temp2d.GetZaxis().SetRangeUser(1e-8,1)
+            if plot:
+                c1.cd(pad_it)
+                ROOT.gPad.SetLogz()
+                temp2d.Draw("COLZ")
+                temp2d.GetZaxis().SetRangeUser(1e-8,1)
             bin=0
             temp1dunroll=ROOT.TH1F("hist_%s" % (tempur.GetName()),"hist_%s"% (tempur.GetName()),len(tempunroll_binning)-1,tempunroll_binning)
             for bin1, bin2 in binslist:
@@ -856,13 +881,14 @@ class TemplatesApp(PlotApp):
                 roodatahist_1dunroll=ROOT.RooDataHist("unrolled_%s" % (tempur.GetName()),"unrolled_%s_zerobins%u" %(tempur.GetName(),fail),unrollvar, temp1dunroll)
                 roodatahist_1dunroll.Print()
                 self.workspace_.rooImport(roodatahist_1dunroll,ROOT.RooFit.RecycleConflictNodes())
-        if len(histlistunroll) >1:
+        if len(histlistunroll) >1 and plot:
             title="histo_%s_%s_%s" %(comp,cat,mcut_s)
             self.plotHistos(histlsX,"%s_X" %title,"charged isolation_X",template_binning,False,True,False,True)
             self.plotHistos(histlsY,"%s_Y" %title,"charged isolation_Y",template_binning,False,True,False,True)
             self.plotHistos(histlistunroll,"%s_unrolled" % (title),"charged isolation",tempunroll_binning,False,True,False,True)
             self.keep( [c1] )
             self.autosave(True)
+        else: return histlistunroll 
 
 
     ## ------------------------------------------------------------------------------------------------------------

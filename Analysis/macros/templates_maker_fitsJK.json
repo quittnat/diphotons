@@ -475,12 +475,13 @@
 
     "mix" : { 
 	"kDSinglePho2D" : {
-                "jk_source": 0.3 ,
-                "jk_target": 0.3 ,
+                "jk_source": 0.1 ,
+                "jk_target": 0.1 ,
 		"target" : "2D",
 		"ptLeadMin" : 75.0, "ptSubleadMin" : 75.0, "massMin" : 200.0,
 		"pt" : "phoPt", "eta" : "phoEta", "phi" : "phoPhi", "energy" : "phoEnergy",
 		"sources" : { 
+		    "pf" : [ "singlePho:p", "singlePho:f" ],
                     "ff" : [ "singlePho:f1", "singlePho:f2" ]
 		    }, 
 		"replace" : "pho",
@@ -513,6 +514,8 @@
 	},
 
 	"_kDSinglePho2DMC" : {
+                "jk_source": 0.0 ,
+                "jk_target": 0.0 ,
 
 		"target" : "2D:mc",
 		"ptLeadMin" : 100.0, "ptSubleadMin" : 100.0, "massMin" : 200.0,
@@ -550,6 +553,19 @@
 		}
 	}
     },
+
+"jackknife":{ 
+            "categories":["EBEB","EBEE"],
+            "components": ["pf","ff"],
+            "template_binning" : [ 0.0,0.1,5.0,15.0],
+	    "mass_binning" :"mass[13000,200.0,13000.0]"
+
+
+
+},
+
+
+
     "comparisons" : {
 	"fit2DTruth" : { "fit" : "2D",
 		"_templates" : { "mix:kDSinglePho2DMC" : {},"template_mc:2D":{}, "mix:kDSinglePho2D" : {},"2D":{} },
