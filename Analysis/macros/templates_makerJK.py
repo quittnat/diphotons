@@ -1899,7 +1899,6 @@ class TemplatesApp(PlotApp):
             targetName      = mix["target"]
             targetSrc       = "data"
             jks              = mix.get("jk_source",0)
-            jkt              = mix.get("jk_target",0)
             if ":" in targetName:
                 targetName, targetSrc = targetName.split(":")
             targetFit       = options.fits[targetName]
@@ -1958,6 +1957,8 @@ class TemplatesApp(PlotApp):
                         else:
                             sname,stype,scomp = src
                         legname = "%s_%s_%s_%s" % (stype,scomp,sname,leg)
+                        legnams.append( legname )
+                        legs.append( (self.treeData(legname),ROOT.RooArgList(self.dsetVars(legname)) ) )
                         if jks !=0 and scomp!="p":
                             tree_all=self.treeData(legname)
                             n= int(tree_all.GetEntries())
@@ -1967,22 +1968,18 @@ class TemplatesApp(PlotApp):
                                 g += 1
                             g=int(g)
                             print "computing partitions: n=%d d=%d g=%i" % (n,d,g)
-                            #parts = [ [] for k in range(g) ]
-                            #print parts
+                            all_events= range(n)
+                            random.shuffle(all_events)
                             for j in range(g):
                                 lo=int(1+d*j)
                                 hi=int(d+d*j)
                                 tree_temp=tree_all.CloneTree(0)
                                 tree_temp.SetName("%s_%i" %(legname,j))
-                                for k in range(n):
+                                for k in all_events:
                                         tree_all.GetEntry(k)
                                         if not(k>= lo and k < hi ): tree_temp.Fill(tree_all.GetEntry(k))
                                 legnams.append( tree_temp.GetName() )
                                 legs.append( ( tree_temp,ROOT.RooArgList(self.dsetVars(legname)) ) )
-                        else:
-                            legnams.append( legname )
-                            legs.append( (self.treeData(legname),ROOT.RooArgList(self.dsetVars(legname)) ) )
-                    print legs
                     if len(legs) != ndim and jks==0:
                         sys.exit(-1,"number of legs does not match number of dimensions for dataset mixing")
                     rndswap     = fill.get("rndswap",False)
@@ -1990,20 +1987,22 @@ class TemplatesApp(PlotApp):
                     
                     print "legs  :", " ".join(legnams)
                     print "type  :", mixType
-                    if jks==0: g=1
-                    for j in range(0,g):
-                        if len(legs)==ndim*g:
+                    if jks==0: g=0
+                    for j in range(0,g+1):
+                        if j==0:
+                                (tree1, vars1)= legs[0]
+                                (tree2, vars2)  = legs[g+1]
+                        if len(legs)==ndim*g+2:
                                 (tree1, vars1)= legs[j]
-                                (tree2, vars2)  = legs[g+j]
-                        elif len(legs) <ndim*g:
+                                (tree2, vars2)  = legs[g+1+j]
+                        elif len(legs) <ndim*g+2:
                                 (tree1, vars1)= legs[0]
                                 (tree2, vars2)  = legs[j+1]
-                        elif jks==0:
-                                (tree1, vars1)= legs[0]
-                                (tree2, vars2)  = legs[1]
                         else: "legs not correctly assigned to trees"
                         print tree1, tree2
                         print "----------------"
+                    return    
+                    for j in range(0,g+1):
                         #variables to keep from target after mixing
                         constVariables        = mix["transfer_variables"]
                         varsT=ROOT.RooArgList()
@@ -2027,6 +2026,7 @@ class TemplatesApp(PlotApp):
                         elif mixType == "kdtree":
                             targetCat       = fill.get("targetCat",cat)
                             targetFraction  = fill.get("targetFraction",0.)
+                            jkt             = mix.get("jk_target",0)
                             nNeigh          = fill.get("nNeigh",10)
                             nMinNeigh       = fill.get("nMinNeigh",nNeigh)
                             useCdfDistance  = fill.get("useCdfDistance",False)
