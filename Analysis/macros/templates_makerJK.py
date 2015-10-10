@@ -548,7 +548,7 @@ class TemplatesApp(PlotApp):
                 cut_s= "%1.0f_%2.0f"% (diphomass[mb],diphomass[mb+1])
                 print cut.GetTitle()
                 for comp in options.jackknife.get("components",fit["components"]) :
-                    name="%s_%s" %(comp,cat)
+                    name="%s_%s_%s" %(comp,cat,cut_s)
                     print name
                     full_template = self.reducedRooData( "template_mix_%s_kDSinglePho2D_%s" % (comp,cat),setargs)
                     print full_template
@@ -577,18 +577,57 @@ class TemplatesApp(PlotApp):
     
     ## ------------------------------------------------------------------------------------------------------------
     def plotJK(self,full_hist,hists,name):
-        canv = ROOT.TCanvas("cRMS_%s" % name,"cRMS_%s"% name)
-        canv.cd()
         ROOT.TH1D.SetDefaultSumw2(True)
-        hist_rms=ROOT.TH1D("hRMS_%s"% name,"hRMS_%s"% name,2*len(hists),0.9,1.1)
-        for hist in hists:
-            hist_rms.Fill(hist.GetRMS()/full_hist[0].GetRMS())
-        hist_rms.Draw()
-        hist_rms.GetXaxis().SetTitle("ratio RMS_JK/RMS_fulldataset") 
-        hist_rms.GetYaxis().SetTitle("# pseudosamples") 
-        ROOT.gStyle.SetOptStat(111111)
-        self.keep( [canv] )
-        self.autosave(True)
+        #rms for
+        ntuple_rms = ROOT.TNtuple("tree_rms_%s" % (name),"tree_rms_%s" % (name),"rms_bin:rms_diffbinLowCurrent:rms_diffbinCurrentHigh" )
+        self.store_[ntuple_rms.GetName()] =ntuple_rms
+        for bin in range(1,full_hist[0].GetNbinsX()+1):
+            hist_rms=ROOT.TH1D("hRMS_%s_%i"% (name,bin),"hRMS_%s_%i"% (name,bin),100*len(hists),0.0,0.001)
+            hist_diffLow=ROOT.TH1D("hdiffLow_%s_%i"% (name,bin),"hdiffLow_%s_%i"% (name,bin),100*len(hists),-1.0,1.0)
+            hist_diffHigh=ROOT.TH1D("hdiffHigh_%s_%i"% (name,bin),"hdiffHigh_%s_%i"% (name,bin),100*len(hists),-1.0,1.0)
+            for hist in hists:
+                bin_diffLow=0.
+                bin_diffHigh=0.
+                bincont=hist.GetBinContent(bin)/full_hist[0].GetBinContent(bin)
+                print bincont, " ",hist.GetBinContent(bin), " ",full_hist[0].GetBinContent(bin)
+                hist_rms.Fill(bincont)
+                if bin==1:
+                    bin_diffHigh=(bincont - hist.GetBinContent(bin+1)/full_hist[0].GetBinContent(bin+1))
+                elif bin==full_hist[0].GetNbinsX():
+                    bin_diffLow=(hist.GetBinContent(bin-1)/full_hist[0].GetBinContent(bin-1)-bincont)
+                else:
+                    bin_diffLow=(hist.GetBinContent(bin-1)/full_hist[0].GetBinContent(bin-1)-bincont)
+                    bin_diffHigh=(bincont - hist.GetBinContent(bin+1)/full_hist[0].GetBinContent(bin+1))
+                if bin_diffLow !=0:hist_diffLow.Fill(bin_diffLow)
+                if bin_diffHigh !=0:hist_diffHigh.Fill(bin_diffHigh)
+            print hist_rms.GetMean()
+            print hist_rms.GetRMS()
+            return
+            canv = ROOT.TCanvas("cRMS_%s_%i" % (name,bin),"cRMS_%s_%i"% (name,bin) )
+            canv.cd()
+            
+            hist_rms.Draw("HIST E2")
+            hist_rms.GetXaxis().SetLimits(hist_rms.GetMean()-3*hist_rms.GetRMS(),hist_rms.GetMean()+3*hist_rms.GetRMS())
+            ROOT.gStyle.SetOptStat(111111)
+            hist_rms.GetXaxis().SetTitle("bin_{JK}/bin_{full_dataset}") 
+            hist_rms.GetYaxis().SetTitle("# pseudosamples") 
+            hist_rms.SetTitle("RMS for %s ChIso bin %i" %(name,bin) )
+            canv1 = ROOT.TCanvas("cRMSdiffLow_%s_%i%i" % (name,bin-1,bin),"cRMSdiffLow_%s_%i%i"% (name,bin-1,bin) )
+            canv1.cd()
+            hist_diffLow.Draw("HIST E2")
+            hist_diffLow.GetXaxis().SetTitle("bin%i%i_{JK}/bin%i%i_{full_dataset}" %(bin-1,bin,bin-1,bin)) 
+            hist_diffLow.GetYaxis().SetTitle("# pseudosamples") 
+            hist_diffLow.GetXaxis().SetLimits(hist_diffLow.GetMean()-3*hist_diffLow.GetRMS(),hist_diffLow.GetMean()+3*hist_diffLow.GetRMS())
+            canv2 = ROOT.TCanvas("cRMSdiffHigh_%s_%i%i" % (name,bin,bin+1),"cRMSdiffHigh_%s_%i%i"% (name,bin,bin+1) )
+            canv2.cd()
+            hist_diffHigh.Draw("HIST E2")
+            hist_diffHigh.GetXaxis().SetTitle("bin%i%i_{JK}/bin%i%i_{full_dataset}" %(bin,bin+1,bin,bin+1)) 
+            hist_diffHigh.GetXaxis().SetLimits(hist_diffHigh.GetMean()-3*hist_diffHigh.GetRMS(),hist_diffHigh.GetMean()+3*hist_diffHigh.GetRMS())
+            hist_diffHigh.GetYaxis().SetTitle("# pseudosamples") 
+            ntuple_rms.Fill(hist_rms.GetRMS(),hist_diffLow.GetRMS(),hist_diffHigh.GetRMS())
+            self.keep( [canv,canv1,canv2] )
+            self.autosave(True)
+
 
     ## ------------------------------------------------------------------------------------------------------------
     
@@ -1464,7 +1503,7 @@ class TemplatesApp(PlotApp):
                     print
                     self.plotFit(observable,fitUnrolledPdf,rooPdfs,data_massc,components,cat,log=True) 
                     self.plotFit(observable,fitUnrolledPdf,rooPdfs,data_massc,components,cat,log=False)
-    #ML fit to weighted dataset: SumW2Error takes statistics of dataset into account, scales with number of events in datasetif ON good for MC comparison, takes limited statistics of MC dataset into account
+    #ML fit to weighted dataset: SumW2Error takes statistics of dantuple_rmsnto account, scales with number of events in datasetif ON good for MC comparison, takes limited statistics of MC dataset into account
   #  if OUT treated as if it would be data- for data MC comparison
                     print "-------------------------------------------------------------------------"
                     if not dodata:
