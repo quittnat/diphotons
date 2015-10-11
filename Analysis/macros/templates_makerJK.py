@@ -550,46 +550,58 @@ class TemplatesApp(PlotApp):
                 for comp in options.jackknife.get("components",fit["components"]) :
                     name="%s_%s_%s" %(comp,cat,cut_s)
                     print name
-                    full_template = self.reducedRooData( "template_mix_%s_kDSinglePho2D_%s" % (comp,cat),setargs)
+                    full_temp = self.reducedRooData( "template_mix_%s_kDSinglePho2D_%s" % (comp,cat),setargs)
+                    full_template =full_temp.Clone("%s_%s"%(full_temp.GetName(),cut_s))
+                    full_template=full_template.reduce(cut.GetTitle())
                     print full_template
                     full_hist=self.histounroll([full_template],template_binning,isoargs,comp,cat,cut_s,True,min(template_binning),max(template_binning),extra_shape_unc=options.extra_shape_unc,plot=False)
+
                     #TODO get number of pseudosamples more elegant
-                    print full_hist
-                    #c1=ROOT.TCanvas("c1","c1")
-                    #full_hist[0].Draw()
-                    #self.keep(c1)
-                    #self.autosave(True)
+                    if options.verbose:
+                        c1=ROOT.TCanvas("c1_%s"%name,"c1_%s"%name)
+                        full_hist[0].Draw()
+                        self.keep(c1)
                     mix=options.mix.get("kDSinglePho2D")
                     jks=int(mix.get("jk_source",10))
                     jkt=int(mix.get("jk_target",10))
                     print "jks ",jks, " jkt ", jkt
+                    temps_all = []
                     temps = []
                     for s in range(jks):
                         temp = self.reducedRooData( "template_mix_%s_%i_kDSinglePho2D_%s" % (comp,s,cat),setargs)
-                        temps.append(temp)
+                        temps_all.append(temp)
                     for t in range(jkt):
                         temp = self.reducedRooData( "template_mix_%s_kDSinglePho2D_%i_%s" % (comp,t,cat),setargs)
-                        temps.append(temp)
+                        temps_all.append(temp)
+                    for template in temps_all:
+                        template_massc=template.Clone("%s_%s"%(template.GetName(),cut_s))
+                        template_massc=template_massc.reduce(cut.GetTitle())
+                        temps.append(template_massc)
                     print "number of pseudo samples", len(temps)
+                    print temps
                     hists=self.histounroll(temps,template_binning,isoargs,comp,cat,cut_s,True,min(template_binning),max(template_binning),extra_shape_unc=options.extra_shape_unc,plot=False)
-                    self.plotJK(full_hist,hists,name)
+                    if options.verbose:
+                        c12=ROOT.TCanvas("c12_%s"%name,"c12_%s"%name)
+                        hists[0].Draw()
+                        self.keep(c12)
+                        self.autosave(True)
+                    self.plotJK(self.options,full_hist,hists,name)
         self.saveWs(options,fout)
     
     ## ------------------------------------------------------------------------------------------------------------
-    def plotJK(self,full_hist,hists,name):
+    def plotJK(self,options,full_hist,hists,name):
         ROOT.TH1D.SetDefaultSumw2(True)
         #rms for
         ntuple_rms = ROOT.TNtuple("tree_rms_%s" % (name),"tree_rms_%s" % (name),"rms_bin:rms_diffbinLowCurrent:rms_diffbinCurrentHigh" )
         self.store_[ntuple_rms.GetName()] =ntuple_rms
         for bin in range(1,full_hist[0].GetNbinsX()+1):
-            hist_rms=ROOT.TH1D("hRMS_%s_%i"% (name,bin),"hRMS_%s_%i"% (name,bin),100*len(hists),0.0,0.001)
-            hist_diffLow=ROOT.TH1D("hdiffLow_%s_%i"% (name,bin),"hdiffLow_%s_%i"% (name,bin),100*len(hists),-1.0,1.0)
-            hist_diffHigh=ROOT.TH1D("hdiffHigh_%s_%i"% (name,bin),"hdiffHigh_%s_%i"% (name,bin),100*len(hists),-1.0,1.0)
+            hist_rms=ROOT.TH1D("hRMS_%s_%i"% (name,bin),"hRMS_%s_%i"% (name,bin),5*len(hists),0.0,3.0)
+            hist_diffLow=ROOT.TH1D("hdiffLow_%s_%i"% (name,bin),"hdiffLow_%s_%i"% (name,bin),10*len(hists),-3.0,3.0)
+            hist_diffHigh=ROOT.TH1D("hdiffHigh_%s_%i"% (name,bin),"hdiffHigh_%s_%i"% (name,bin),10*len(hists),-3.0,3.0)
             for hist in hists:
                 bin_diffLow=0.
                 bin_diffHigh=0.
                 bincont=hist.GetBinContent(bin)/full_hist[0].GetBinContent(bin)
-                print bincont, " ",hist.GetBinContent(bin), " ",full_hist[0].GetBinContent(bin)
                 hist_rms.Fill(bincont)
                 if bin==1:
                     bin_diffHigh=(bincont - hist.GetBinContent(bin+1)/full_hist[0].GetBinContent(bin+1))
@@ -600,32 +612,38 @@ class TemplatesApp(PlotApp):
                     bin_diffHigh=(bincont - hist.GetBinContent(bin+1)/full_hist[0].GetBinContent(bin+1))
                 if bin_diffLow !=0:hist_diffLow.Fill(bin_diffLow)
                 if bin_diffHigh !=0:hist_diffHigh.Fill(bin_diffHigh)
-            print hist_rms.GetMean()
-            print hist_rms.GetRMS()
-            return
-            canv = ROOT.TCanvas("cRMS_%s_%i" % (name,bin),"cRMS_%s_%i"% (name,bin) )
-            canv.cd()
+            if options.verbose:
+                print "mean" ,hist_rms.GetMean()
+                print "rms" , hist_rms.GetRMS()
+                print "diff Low" , hist_diffLow.GetMean()
+                print "diff Low" , hist_diffHigh.GetMean()
+                canv = ROOT.TCanvas("cRMS_%s_%i" % (name,bin),"cRMS_%s_%i"% (name,bin) )
+                canv.cd()
             
-            hist_rms.Draw("HIST E2")
-            hist_rms.GetXaxis().SetLimits(hist_rms.GetMean()-3*hist_rms.GetRMS(),hist_rms.GetMean()+3*hist_rms.GetRMS())
-            ROOT.gStyle.SetOptStat(111111)
-            hist_rms.GetXaxis().SetTitle("bin_{JK}/bin_{full_dataset}") 
-            hist_rms.GetYaxis().SetTitle("# pseudosamples") 
-            hist_rms.SetTitle("RMS for %s ChIso bin %i" %(name,bin) )
-            canv1 = ROOT.TCanvas("cRMSdiffLow_%s_%i%i" % (name,bin-1,bin),"cRMSdiffLow_%s_%i%i"% (name,bin-1,bin) )
-            canv1.cd()
-            hist_diffLow.Draw("HIST E2")
-            hist_diffLow.GetXaxis().SetTitle("bin%i%i_{JK}/bin%i%i_{full_dataset}" %(bin-1,bin,bin-1,bin)) 
-            hist_diffLow.GetYaxis().SetTitle("# pseudosamples") 
-            hist_diffLow.GetXaxis().SetLimits(hist_diffLow.GetMean()-3*hist_diffLow.GetRMS(),hist_diffLow.GetMean()+3*hist_diffLow.GetRMS())
-            canv2 = ROOT.TCanvas("cRMSdiffHigh_%s_%i%i" % (name,bin,bin+1),"cRMSdiffHigh_%s_%i%i"% (name,bin,bin+1) )
-            canv2.cd()
-            hist_diffHigh.Draw("HIST E2")
-            hist_diffHigh.GetXaxis().SetTitle("bin%i%i_{JK}/bin%i%i_{full_dataset}" %(bin,bin+1,bin,bin+1)) 
-            hist_diffHigh.GetXaxis().SetLimits(hist_diffHigh.GetMean()-3*hist_diffHigh.GetRMS(),hist_diffHigh.GetMean()+3*hist_diffHigh.GetRMS())
-            hist_diffHigh.GetYaxis().SetTitle("# pseudosamples") 
+                hist_rms.Draw("HIST E2")
+                hist_rms.GetXaxis().SetLimits(max(0.,hist_rms.GetMean()-3*hist_rms.GetRMS()),hist_rms.GetMean()+3*hist_rms.GetRMS())
+                ROOT.gStyle.SetOptStat(111111)
+                hist_rms.GetXaxis().SetTitle("bin_{JK}/bin_{full_dataset}") 
+                hist_rms.GetYaxis().SetTitle("# pseudosamples") 
+                hist_rms.SetTitle("RMS for %s ChIso bin %i" %(name,bin) )
+                self.keep( [canv] )
+                if hist_diffLow.GetMean()!=0:
+                    canv1 = ROOT.TCanvas("cRMSdiffLow_%s_%i%i" % (name,bin-1,bin),"cRMSdiffLow_%s_%i%i"% (name,bin-1,bin) )
+                    canv1.cd()
+                    hist_diffLow.Draw("HIST E2")
+                    hist_diffLow.GetXaxis().SetTitle("bin%i%i_{JK}/bin%i%i_{full_dataset}" %(bin-1,bin,bin-1,bin)) 
+                    hist_diffLow.GetYaxis().SetTitle("# pseudosamples") 
+                    hist_diffLow.GetXaxis().SetLimits(hist_diffLow.GetMean()-3*hist_diffLow.GetRMS(),hist_diffLow.GetMean()+3*hist_diffLow.GetRMS())
+                    self.keep( [canv1] )
+                if hist_diffHigh.GetMean()!=0:
+                    canv2 = ROOT.TCanvas("cRMSdiffHigh_%s_%i%i" % (name,bin,bin+1),"cRMSdiffHigh_%s_%i%i"% (name,bin,bin+1) )
+                    canv2.cd()
+                    hist_diffHigh.Draw("HIST E2")
+                    hist_diffHigh.GetXaxis().SetTitle("bin%i%i_{JK}/bin%i%i_{full_dataset}" %(bin,bin+1,bin,bin+1)) 
+                    hist_diffHigh.GetXaxis().SetLimits(hist_diffHigh.GetMean()-3*hist_diffHigh.GetRMS(),hist_diffHigh.GetMean()+3*hist_diffHigh.GetRMS())
+                    hist_diffHigh.GetYaxis().SetTitle("# pseudosamples") 
+                    self.keep( [canv2] )
             ntuple_rms.Fill(hist_rms.GetRMS(),hist_diffLow.GetRMS(),hist_diffHigh.GetRMS())
-            self.keep( [canv,canv1,canv2] )
             self.autosave(True)
 
 
@@ -837,23 +855,22 @@ class TemplatesApp(PlotApp):
             tempur.fillHistogram(temp2d,ROOT.RooArgList(isoargs))
            # print "integral 2d  histo", temp2d.Integral()
             temp2dx=temp2d.ProjectionX("%s_X" %tempur.GetName())
-            ## temp2dx.Scale(1./temp2dx.Integral())
-            if "truth" in temp2dx.GetName():
-                computeShapeWithUnc(temp2dx)
-            else:
-                computeShapeWithUnc(temp2dx,extra_shape_unc)
-            temp2dx.SetTitle("%s_X" %tempur.GetName())
-            temp2dy=temp2d.ProjectionY("%s_Y" %tempur.GetName())
-            ## temp2dy.Scale(1./temp2dy.Integral())
-            if "truth" in temp2dy.GetName():
-                computeShapeWithUnc(temp2dy)
-            else:
-                computeShapeWithUnc(temp2dy,extra_shape_unc)
-            ## draw projections as a check
-            histlsX.append(temp2dx)
-            temp2dy.SetTitle("%s_Y" %tempur.GetName())
-            histlsY.append(temp2dy)
-            if len(templatelist) >1:
+            if plot:
+                if "truth" in temp2dx.GetName():
+                    computeShapeWithUnc(temp2dx)
+                else:
+                    computeShapeWithUnc(temp2dx,extra_shape_unc)
+                temp2dx.SetTitle("%s_X" %tempur.GetName())
+                temp2dy=temp2d.ProjectionY("%s_Y" %tempur.GetName())
+                if "truth" in temp2dy.GetName():
+                    computeShapeWithUnc(temp2dy)
+                else:
+                    computeShapeWithUnc(temp2dy,extra_shape_unc)
+                ## draw projections as a check
+                histlsX.append(temp2dx)
+                temp2dy.SetTitle("%s_Y" %tempur.GetName())
+                histlsY.append(temp2dy)
+            if len(templatelist) >1 and plot:
                 ## temp2d.Scale(1./temp2d.Integral())
                 if "truth" in temp2d.GetName():
                     computeShapeWithUnc(temp2d)
