@@ -1554,9 +1554,9 @@ class TemplatesApp(PlotApp):
                                 pullpf=(tree_mctruth.purity_pf-tree_truthpf.frac_pu)/tree_mctruth.error_pf_sumw2on
                             g_pullpf.SetPoint(mb,tree_templatemc.massbin,pullpf)
                             h_pullpf.Fill(pullpf)
-                    print "tree_truth fractions: ",  tree_truthff.frac_pu, tree_truthpf.frac_pu, tree_truthpp.frac_pu
-                self.pullFunction(g_pullpp,h_pullpp,cat,"pp",opt,pu_val)
                 if not data:
+                    print "tree_truth fractions: ",  tree_truthff.frac_pu, tree_truthpf.frac_pu, tree_truthpp.frac_pu
+                    self.pullFunction(g_pullpp,h_pullpp,cat,"pp",opt,pu_val)
                     if tree_mctruth.error_pf_sumw2on !=0:
                         self.pullFunction(g_pullpf,h_pullpf,cat,"pf",opt,pu_val)
                     sumw2on="sumw2on"
