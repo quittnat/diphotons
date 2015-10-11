@@ -475,6 +475,8 @@
 
     "mix" : { 
 	"kDSinglePho2D" : {
+        "jk_source": 0.1 ,
+        "jk_target": 0.1 ,
 		"target" : "2D",
 		"ptLeadMin" : 100.0, "ptSubleadMin" : 100.0, "massMin" : 200.0,
 		"pt" : "phoPt", "eta" : "phoEta", "phi" : "phoPhi", "energy" : "phoEnergy",
@@ -512,6 +514,8 @@
 	},
 
 	"_kDSinglePho2DMC" : {
+        "jk_source": 0.0 ,
+        "jk_target": 0.0 ,
 
 		"target" : "2D:mc",
 		"ptLeadMin" : 100.0, "ptSubleadMin" : 100.0, "massMin" : 200.0,

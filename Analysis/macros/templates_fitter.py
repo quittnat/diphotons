@@ -6,9 +6,11 @@ from copy import deepcopy as copy
 import os, json
 from pprint import pprint
 import array
+from getpass import getuser
 from templates_maker import TemplatesApp
 
 from getpass import getuser
+import random
 
 from math import sqrt
 
@@ -58,16 +60,8 @@ class TemplatesFitApp(TemplatesApp):
     
     ## ------------------------------------------------------------------------------------------------------------
     def __init__(self,option_list=[],option_groups=[]):
-        """ 
-        Constructor
-        """
-        super(TemplatesApp,self).__init__(option_groups=[
+        super(TemplatesFitApp,self).__init__(option_groups=[
                 ( "Fit definition options. Usually specified through JSON configuration (see templates_maker.json for details)", [
-                        make_option("--preselection",dest="preselection",action="store",type="string",
-                                    default="",
-                                    help="Preselection cuts to be applied."),
-                        make_option("--selection",dest="selection",action="store",type="string",
-                                    help="(Di-)Photon selection to be used for analysis. In dataset definition it replaces '%(sel)s'."),                
                         make_option("--fit-categories",dest="fit_categories",action="callback",type="string",callback=optpars_utils.ScratchAppend(),help="sets specific category for fit, e.g. EBEB or EBEE",default=["EBEB","EBEE"]),
                         make_option("--fit-massbins",dest="fit_massbins",action="callback",type="string",callback=optpars_utils.ScratchAppend(),help="sets massbins for fit or templates comparison: first integer is total number of massbins, 2. how many bins we want to run over, 3. startbin",default=["1","1","0"]),
                         make_option("--fit-templates",dest="fit_templates",action="callback",type="string",callback=optpars_utils.ScratchAppend(),help="get templates for fit: either unrolled_template,unrolled_template_mix or unrolled_mctruth",default=["unrolled_template"]),
@@ -79,15 +73,8 @@ class TemplatesFitApp(TemplatesApp):
                                     help="purity either as fraction or as number of events in signalregion.Choose 'fraction' or 'events'"),
                         make_option("--plot-mctruth",dest="plotMCtruth",action="callback",callback=optpars_utils.ScratchAppend(),type="string",
                                     default=["mctruth"]),
-                        make_option("--aliases",dest="aliases",action="callback",type="string",callback=optpars_utils.ScratchAppend(),
-                                    default=[],
-                                    help="List of aliases to be defined for each tree. They can be used for selection or variable definition"),
                         make_option("--plot-purity",dest="plot_purity",action="store_true",default=False,
                                     help="Plot purities, purity vs massbin and pull function",
-                                    ),
-                        make_option("--mix-templates",dest="mix_templates",action="store_true",
-                                    default=False,
-                                    help="Mix templates.",
                                     ),
                         make_option("--fits",dest="fits",action="callback",callback=optpars_utils.Load(),type="string",
                                     default={},help="List of templates fits to be performed. Categories, componentd and templates can be specified."),
@@ -96,14 +83,6 @@ class TemplatesFitApp(TemplatesApp):
                                     default=[],
                                     help="Binning of the parametric observable to be used for templates",
                                     ),                        
-                        make_option("--comparisons",dest="comparisons",action="callback",callback=optpars_utils.Load(),type="string",
-                                    default={},help="Configuration for templates comparison."),
-                        make_option("--skip-templates",dest="skip_templates",action="store_true",
-                                    default=False,help="Skip templates generation (even if not reading back from ws)"),
-                        make_option("--dataset-variables",dest="dataset_variables",action="callback",callback=optpars_utils.ScratchAppend(),type="string",
-                                    default=[],help="List of variables to be added to dataets."),
-                        make_option("--weight-expression",dest="weight_expression",action="store",type="string",
-                                    default="",help="Expression used to define datasets weight."),
                         ]
                   ), ("General templates preparation options", [
                         make_option("--compare-templates",dest="compare_templates",action="store_true",default=False,
@@ -119,58 +98,28 @@ class TemplatesFitApp(TemplatesApp):
                         make_option("--corr-singlePho",dest="corr_singlePho",action="store_true",
                                     default=False,
                                      help="correlation sieie and chiso single fake photon",
-                                    ), 
-                        make_option("--do-reweight",dest="do_reweight",action="store_true",default=False,
-                                    help="Reweight templates to data.",
                                     ),
-                        make_option("--reweight-variables",dest="reweight_variables",action="callback",callback=optpars_utils.ScratchAppend(),
-                                    default=[],
-                                    help="List of variables to be used for reweighting.",
+                        make_option("--jackknife",dest="jackknife",action="store_true",default=False,
+                        
+                                    help="Plot RMS etc from jk pseudosamples",
                                     ),
                         make_option("--extra-shape-unc",dest="extra_shape_unc",action="store",type="float",
                                     default=None,
                                     help="Add extra uncertainty to template shapes (implemented only for plotting)",
                                     ),
-                        make_option("--read-ws","-r",dest="read_ws",type="string",
-                                    default=[],action="callback",callback=optpars_utils.ScratchAppend(),
-                                    help="workspace input file.",
-                                    ),
-                        make_option("--ws-dir","-w",dest="ws_dir",action="store",type="string",
-                                    default=None,
-                                    help="Folder to be used to read and write workspaces"
-                                    ),
-                        make_option("--output-file","-o",dest="output_file",action="store",type="string",
-                                    default=None,
-                                    help="Output file.",
-                                    ),
-                        make_option("--store-new-only",dest="store_new_only",action="store_true",
-                                    default=False,
-                                    help="Only store new objects in output file.",
-                                    ),
-                        make_option("--store-inputs",dest="store_inputs",action="store_true",
-                                    default=False,
-                                    help="Store all used input datasets.",
-                                    ),
-                        make_option("--mc-file",dest="mc_file",action="store",type="string",
-                                    default=None,help="default: %default"),
-                        make_option("--only-subset",dest="only_subset",action="callback",type="string", callback=optpars_utils.ScratchAppend(),
-                    default=[],help="default: %default"),
                         ]
                       )
             ]+option_groups,option_list=option_list)
         
+
         ## load ROOT (and libraries)
         global ROOT, style_utils, RooFit
         import ROOT
         from ROOT import RooFit
-        from ROOT import RooAbsData
         import diphotons.Utils.pyrapp.style_utils as style_utils
         ROOT.gSystem.Load("libdiphotonsUtils")
         if ROOT.gROOT.GetVersionInt() >= 60000:
             ROOT.gSystem.Load("libdiphotonsRooUtils")
-            ROOT.gSystem.AddIncludePath("-I$CMSSW_BASE/include")
-            ROOT.gROOT.ProcessLine('#include "diphotons/Utils/interface/DataSetFiller.h"')
-            ROOT.gROOT.ProcessLine('#include "diphotons/Utils/interface/DataSetMixer.h"')
 
         ROOT.gStyle.SetOptStat(111111)
 
@@ -188,6 +137,10 @@ class TemplatesFitApp(TemplatesApp):
         ROOT.RooMsgService.instance().setGlobalKillBelow(RooFit.FATAL)
         ROOT.TH1D.SetDefaultSumw2(True)
         
+        options.store_new_only=True
+        self.setup(options,args)
+        if options.jackknife:
+            self.Jackknife(options,args)
         
         if options.compare_templates:
             self.compareTemplates(options,args)
@@ -250,7 +203,6 @@ class TemplatesFitApp(TemplatesApp):
                     templatebins=ROOT.RooBinning(len(template_binning)-1,template_binning,"templatebins" )
 ### list to store templates for each category
                     templates = []
-                    return
                     for idim in range(fit["ndim"]):
                         isoargs.add(self.buildRooVar("templateNdim%dDim%d" % ( fit["ndim"],idim),template_binning,recycle=True))
                     if d2:
@@ -393,7 +345,7 @@ class TemplatesFitApp(TemplatesApp):
 
     ## ------------------------------------------------------------------------------------------------------------
 
-    def histounroll(self,templatelist, template_binning,isoargs,comp,cat,mcut_s,prepfit,sigRegionlow,sigRegionup,extra_shape_unc=None):
+    def histounroll(self,templatelist, template_binning,isoargs,comp,cat,mcut_s,prepfit,sigRegionlow,sigRegionup,extra_shape_unc=None,plot=True):
         pad_it=0
         c1=ROOT.TCanvas("d2hist_%s" % cat,"2d hists per category",1000,1000) 
         c1.Divide(1,2)
@@ -411,23 +363,22 @@ class TemplatesFitApp(TemplatesApp):
             tempur.fillHistogram(temp2d,ROOT.RooArgList(isoargs))
            # print "integral 2d  histo", temp2d.Integral()
             temp2dx=temp2d.ProjectionX("%s_X" %tempur.GetName())
-            ## temp2dx.Scale(1./temp2dx.Integral())
-            if "truth" in temp2dx.GetName():
-                computeShapeWithUnc(temp2dx)
-            else:
-                computeShapeWithUnc(temp2dx,extra_shape_unc)
-            temp2dx.SetTitle("%s_X" %tempur.GetName())
-            temp2dy=temp2d.ProjectionY("%s_Y" %tempur.GetName())
-            ## temp2dy.Scale(1./temp2dy.Integral())
-            if "truth" in temp2dy.GetName():
-                computeShapeWithUnc(temp2dy)
-            else:
-                computeShapeWithUnc(temp2dy,extra_shape_unc)
-            ## draw projections as a check
-            histlsX.append(temp2dx)
-            temp2dy.SetTitle("%s_Y" %tempur.GetName())
-            histlsY.append(temp2dy)
-            if len(templatelist) >1:
+            if plot:
+                if "truth" in temp2dx.GetName():
+                    computeShapeWithUnc(temp2dx)
+                else:
+                    computeShapeWithUnc(temp2dx,extra_shape_unc)
+                temp2dx.SetTitle("%s_X" %tempur.GetName())
+                temp2dy=temp2d.ProjectionY("%s_Y" %tempur.GetName())
+                if "truth" in temp2dy.GetName():
+                    computeShapeWithUnc(temp2dy)
+                else:
+                    computeShapeWithUnc(temp2dy,extra_shape_unc)
+                ## draw projections as a check
+                histlsX.append(temp2dx)
+                temp2dy.SetTitle("%s_Y" %tempur.GetName())
+                histlsY.append(temp2dy)
+            if len(templatelist) >1 and plot:
                 ## temp2d.Scale(1./temp2d.Integral())
                 if "truth" in temp2d.GetName():
                     computeShapeWithUnc(temp2d)
@@ -469,10 +420,11 @@ class TemplatesFitApp(TemplatesApp):
                 rootemplate_binning=ROOT.RooBinning(len(template_binning),template_binning,"rootemplate_binning")
                 unrollvar=ROOT.RooArgList(templateNdim2d_unroll) 
               #  templateNdim2d_unroll.setBinning(rootemplate_binning)
-            c1.cd(pad_it)
-            ROOT.gPad.SetLogz()
-            temp2d.Draw("COLZ")
-            temp2d.GetZaxis().SetRangeUser(1e-8,1)
+            if plot:
+                c1.cd(pad_it)
+                ROOT.gPad.SetLogz()
+                temp2d.Draw("COLZ")
+                temp2d.GetZaxis().SetRangeUser(1e-8,1)
             bin=0
             temp1dunroll=ROOT.TH1F("hist_%s" % (tempur.GetName()),"hist_%s"% (tempur.GetName()),len(tempunroll_binning)-1,tempunroll_binning)
             for bin1, bin2 in binslist:
@@ -493,13 +445,14 @@ class TemplatesFitApp(TemplatesApp):
                 roodatahist_1dunroll=ROOT.RooDataHist("unrolled_%s" % (tempur.GetName()),"unrolled_%s_zerobins%u" %(tempur.GetName(),fail),unrollvar, temp1dunroll)
                 roodatahist_1dunroll.Print()
                 self.workspace_.rooImport(roodatahist_1dunroll,ROOT.RooFit.RecycleConflictNodes())
-        if len(histlistunroll) >1:
+        if len(histlistunroll) >1 and plot:
             title="histo_%s_%s_%s" %(comp,cat,mcut_s)
             self.plotHistos(histlsX,"%s_X" %title,"charged isolation_X",template_binning,False,True,False,True)
             self.plotHistos(histlsY,"%s_Y" %title,"charged isolation_Y",template_binning,False,True,False,True)
             self.plotHistos(histlistunroll,"%s_unrolled" % (title),"charged isolation",tempunroll_binning,False,True,False,True)
             self.keep( [c1] )
             self.autosave(True)
+        else: return histlistunroll 
 
 
     ## ------------------------------------------------------------------------------------------------------------
@@ -1402,6 +1355,143 @@ class TemplatesFitApp(TemplatesApp):
         self.keep( [cpu,g_templatepp,g_templatepf] )
         self.autosave(True)
 
+    ## ------------------------------------------------------------------------------------------------------------
+    
+    def Jackknife(self,options,args):
+        fout = self.openOut(options)
+        fout.Print()
+        fout.cd()
+        fit=options.fits["2D"]
+        for cat in options.jackknife.get("categories", fit["categories"]):
+            isoargs=ROOT.RooArgSet("isoargs")
+            setargs=ROOT.RooArgSet("setargs")
+            massargs=ROOT.RooArgSet("massargs")
+            mass_var,mass_b=self.getVar(options.jackknife.get("mass_binning"))
+            mass=self.buildRooVar(mass_var,mass_b,recycle=True)
+            massargs.add(mass)
+            if len(options.template_binning) > 0:
+                template_binning = array.array('d',options.template_binning)
+            else:
+                template_binning = array.array('d',options.jackknife.get("template_binning"))
+            templatebins=ROOT.RooBinning(len(template_binning)-1,template_binning,"templatebins" )
+            for idim in range(fit["ndim"]):
+                isoargs.add(self.buildRooVar("templateNdim%dDim%d" % ( fit["ndim"],idim),template_binning,recycle=True))
+            setargs.add(isoargs)
+            setargs.add(massargs)
+            dset_data = self.reducedRooData("data_2D_%s" % (cat),massargs)
+            dset_data.Print()
+            mass_split= [int(x) for x in options.fit_massbins]
+            diphomass=self.massquantiles(dset_data,massargs,mass_b,mass_split)
+            for mb in range(mass_split[2],mass_split[1]):
+                massbin=(diphomass[mb]+diphomass[mb+1])/2.
+                masserror=(diphomass[mb+1]-diphomass[mb])/2. 
+                cut=ROOT.TCut("mass>%f && mass<%f"% (diphomass[mb],diphomass[mb+1]))
+                cut_s= "%1.0f_%2.0f"% (diphomass[mb],diphomass[mb+1])
+                print cut.GetTitle()
+                for comp in options.jackknife.get("components",fit["components"]) :
+                    name="%s_%s_%s" %(comp,cat,cut_s)
+                    print name
+                    full_temp = self.reducedRooData( "template_mix_%s_kDSinglePho2D_%s" % (comp,cat),setargs)
+                    full_template =full_temp.Clone("%s_%s"%(full_temp.GetName(),cut_s))
+                    full_template=full_template.reduce(cut.GetTitle())
+                    print full_template
+                    full_hist=self.histounroll([full_template],template_binning,isoargs,comp,cat,cut_s,True,min(template_binning),max(template_binning),extra_shape_unc=options.extra_shape_unc,plot=False)
+
+                    #TODO get number of pseudosamples more elegant
+                    if options.verbose:
+                        c1=ROOT.TCanvas("c1_%s"%name,"c1_%s"%name)
+                        full_hist[0].Draw()
+                        self.keep(c1)
+                    mix=options.mix.get("kDSinglePho2D")
+                    jks=int(mix.get("jk_source",10))
+                    jkt=int(mix.get("jk_target",10))
+                    print "jks ",jks, " jkt ", jkt
+                    temps_all = []
+                    temps = []
+                    for s in range(jks):
+                        temp = self.reducedRooData( "template_mix_%s_%i_kDSinglePho2D_%s" % (comp,s,cat),setargs)
+                        temps_all.append(temp)
+                    for t in range(jkt):
+                        temp = self.reducedRooData( "template_mix_%s_kDSinglePho2D_%i_%s" % (comp,t,cat),setargs)
+                        temps_all.append(temp)
+                    for template in temps_all:
+                        template_massc=template.Clone("%s_%s"%(template.GetName(),cut_s))
+                        template_massc=template_massc.reduce(cut.GetTitle())
+                        temps.append(template_massc)
+                    print "number of pseudo samples", len(temps)
+                    print temps
+                    hists=self.histounroll(temps,template_binning,isoargs,comp,cat,cut_s,True,min(template_binning),max(template_binning),extra_shape_unc=options.extra_shape_unc,plot=False)
+                    if options.verbose:
+                        c12=ROOT.TCanvas("c12_%s"%name,"c12_%s"%name)
+                        hists[0].Draw()
+                        self.keep(c12)
+                        self.autosave(True)
+                    self.plotJK(self.options,full_hist,hists,name)
+        self.saveWs(options,fout)
+    
+    ## ------------------------------------------------------------------------------------------------------------
+    def plotJK(self,options,full_hist,hists,name):
+        ROOT.TH1D.SetDefaultSumw2(True)
+        #rms for
+        ntuple_rms = ROOT.TNtuple("tree_rms_%s" % (name),"tree_rms_%s" % (name),"rms_bin:rms_diffbinLowCurrent:rms_diffbinCurrentHigh" )
+        self.store_[ntuple_rms.GetName()] =ntuple_rms
+        for bin in range(1,full_hist[0].GetNbinsX()+1):
+            hist_rms=ROOT.TH1D("hRMS_%s_%i"% (name,bin),"hRMS_%s_%i"% (name,bin),5*len(hists),0.0,3.0)
+            hist_diffLow=ROOT.TH1D("hdiffLow_%s_%i"% (name,bin),"hdiffLow_%s_%i"% (name,bin),10*len(hists),-3.0,3.0)
+            hist_diffHigh=ROOT.TH1D("hdiffHigh_%s_%i"% (name,bin),"hdiffHigh_%s_%i"% (name,bin),10*len(hists),-3.0,3.0)
+            for hist in hists:
+                bin_diffLow=0.
+                bin_diffHigh=0.
+                if full_hist[0].GetBinContent(bin)!=0:
+                    bincont=hist.GetBinContent(bin)/full_hist[0].GetBinContent(bin)
+                    hist_rms.Fill(bincont)
+                else: hist_rms.Fill(0.)
+                if bin==1:
+                    bin_diffHigh=(bincont - hist.GetBinContent(bin+1)/full_hist[0].GetBinContent(bin+1))
+                elif bin==full_hist[0].GetNbinsX():
+                    bin_diffLow=(hist.GetBinContent(bin-1)/full_hist[0].GetBinContent(bin-1)-bincont)
+                else:
+                    bin_diffLow=(hist.GetBinContent(bin-1)/full_hist[0].GetBinContent(bin-1)-bincont)
+                    bin_diffHigh=(bincont - hist.GetBinContent(bin+1)/full_hist[0].GetBinContent(bin+1))
+                if bin_diffLow !=0:hist_diffLow.Fill(bin_diffLow)
+                if bin_diffHigh !=0:hist_diffHigh.Fill(bin_diffHigh)
+            if options.verbose:
+                print "mean" ,hist_rms.GetMean()
+                print "rms" , hist_rms.GetRMS()
+                print "diff Low" , hist_diffLow.GetMean()
+                print "diff Low" , hist_diffHigh.GetMean()
+                if hist_rms.GetMean()!=0:
+                    canv = ROOT.TCanvas("cRMS_%s_%i" % (name,bin),"cRMS_%s_%i"% (name,bin) )
+                    canv.cd()
+                    hist_rms.Draw("HIST E2")
+                    hist_rms.GetXaxis().SetLimits(max(0.,hist_rms.GetMean()-3*hist_rms.GetRMS()),hist_rms.GetMean()+3*hist_rms.GetRMS())
+                    ROOT.gStyle.SetOptStat(111111)
+                    hist_rms.GetXaxis().SetTitle("bin_{JK}/bin_{full_dataset}") 
+                    hist_rms.GetYaxis().SetTitle("# pseudosamples") 
+                    hist_rms.SetTitle("RMS for %s ChIso bin %i" %(name,bin) )
+                    self.keep( [canv] )
+                if hist_diffLow.GetMean()!=0:
+                    canv1 = ROOT.TCanvas("cRMSdiffLow_%s_%i%i" % (name,bin-1,bin),"cRMSdiffLow_%s_%i%i"% (name,bin-1,bin) )
+                    canv1.cd()
+                    hist_diffLow.Draw("HIST E2")
+                    hist_diffLow.GetXaxis().SetTitle("bin%i%i_{JK}/bin%i%i_{full_dataset}" %(bin-1,bin,bin-1,bin)) 
+                    hist_diffLow.GetYaxis().SetTitle("# pseudosamples") 
+                    hist_diffLow.GetXaxis().SetLimits(hist_diffLow.GetMean()-3*hist_diffLow.GetRMS(),hist_diffLow.GetMean()+3*hist_diffLow.GetRMS())
+                    self.keep( [canv1] )
+                if hist_diffHigh.GetMean()!=0:
+                    canv2 = ROOT.TCanvas("cRMSdiffHigh_%s_%i%i" % (name,bin,bin+1),"cRMSdiffHigh_%s_%i%i"% (name,bin,bin+1) )
+                    canv2.cd()
+                    hist_diffHigh.Draw("HIST E2")
+                    hist_diffHigh.GetXaxis().SetTitle("bin%i%i_{JK}/bin%i%i_{full_dataset}" %(bin,bin+1,bin,bin+1)) 
+                    hist_diffHigh.GetXaxis().SetLimits(hist_diffHigh.GetMean()-3*hist_diffHigh.GetRMS(),hist_diffHigh.GetMean()+3*hist_diffHigh.GetRMS())
+                    hist_diffHigh.GetYaxis().SetTitle("# pseudosamples") 
+                    self.keep( [canv2] )
+            ntuple_rms.Fill(hist_rms.GetRMS(),hist_diffLow.GetRMS(),hist_diffHigh.GetRMS())
+            self.autosave(True)
+
+
+    ## ------------------------------------------------------------------------------------------------------------
+    
 
 # -----------------------------------------------------------------------------------------------------------
 # actual main

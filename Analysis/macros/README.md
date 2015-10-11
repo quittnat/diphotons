@@ -15,7 +15,15 @@
 
  --store-new-only possible, then two times --read-ws afterwards for 2 files
 - also possible to load different json files after another
+
+## Jackknife
+-creation of subsamples
+`./templates_maker.py --mix-templates --read-ws templatesdataMCSinglePhoIDv2_selv1.root,templatesdataMCIDv2_selv1.root --store-new-only -o testJK.root --load templates_maker.json,templates_maker_prepare.json
+-plotting and storing of RMS
+`./templates_fitter.py --jackknife --read-ws testJK.root,templatesdataMCIDv2_selv1.root --store-new-only -o testJK2.root --load templates_maker.json,templates_fitter.json --fit-massbins 2,2,0 -O /afs/cern.ch/user/m/mquittna/www/diphoton/Jackknife --verbose
 ## Comparison plots
+
+
 
 
 ## Bkg bias study

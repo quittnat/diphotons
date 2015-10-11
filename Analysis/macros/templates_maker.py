@@ -6,7 +6,7 @@ from copy import deepcopy as copy
 import os, json
 from pprint import pprint
 import array
-
+import random
 from getpass import getuser
 
 from math import sqrt
@@ -273,7 +273,6 @@ class TemplatesApp(PlotApp):
         fout.cd()
         cfg = { "fits"   : options.fits,
                 "mix"    : options.mix,
-                "comparisons"    : options.comparisons,
                 "stored" : self.store_.keys(),
                 }
         for name in self.save_params_:
@@ -352,8 +351,6 @@ class TemplatesApp(PlotApp):
             
         if not options.mix_templates:
             options.mix = cfg.get("mix",{})
-        if not options.compare_templates:
-            options.comparisons = cfg.get("comparisons",{})
 
         for name in self.save_params_:
             val = cfg.get(name,None)
@@ -622,6 +619,7 @@ class TemplatesApp(PlotApp):
 
             targetName      = mix["target"]
             targetSrc       = "data"
+            jks              = mix.get("jk_source",0)
             if ":" in targetName:
                 targetName, targetSrc = targetName.split(":")
             targetFit       = options.fits[targetName]
@@ -681,52 +679,103 @@ class TemplatesApp(PlotApp):
                             sname,stype,scomp = src
                         legname = "%s_%s_%s_%s" % (stype,scomp,sname,leg)
                         legnams.append( legname )
-                        print legname
-                        dset = self.rooData(legname,False)
-                        print dset
                         legs.append( (self.treeData(legname),ROOT.RooArgList(self.dsetVars(legname)) ) )
-                    if len(legs) != ndim:
+                        if jks !=0 and scomp!="p":
+                            tree_all=self.treeData(legname)
+                            n= int(tree_all.GetEntries())
+                            d=jks*n
+                            g=n/d
+                            if n % d != 0:
+                                g += 1
+                            g=int(g)
+                            print "computing partitions: n=%d d=%d g=%i" % (n,d,g)
+                            all_events= range(n)
+                            random.shuffle(all_events)
+                            for j in range(g):
+                                lo=int(1+d*j)
+                                hi=int(d+d*j)
+                                tree_temp=tree_all.CloneTree(0)
+                                tree_temp.SetName("%s_%i" %(legname,j))
+                                for k in all_events:
+                                    if not(k>= lo and k < hi ): tree_temp.Fill(tree_all.GetEntry(k))
+                                legnams.append( tree_temp.GetName() )
+                                legs.append( ( tree_temp,ROOT.RooArgList(self.dsetVars(legname)) ) )
+                    if len(legs) != ndim and jks==0:
                         sys.exit(-1,"number of legs does not match number of dimensions for dataset mixing")
                     rndswap     = fill.get("rndswap",False)
                     rndmatch     = fill.get("rndmatch",0.)
                     
                     print "legs  :", " ".join(legnams)
                     print "type  :", mixType
-                    (tree1, vars1), (tree2, vars2)  = legs
-                    #variables to keep from target after mixing
-                    constVariables        = mix["transfer_variables"]
-                    varsT=ROOT.RooArgList()
-                    for element in constVariables:
-                        el = self.buildRooVar(*(self.getVar(element)))
-                        varsT.add(el)
-                    
-                    mixer = ROOT.DataSetMixer( "template_mix_%s_%s_%s" % ( comp, name, cat),"template_mix_%s_%s_%s" % ( comp, name, cat),
-                                               vars1, vars2, varsT,replace, replace,
-                                               ptLeadMin, ptSubleadMin, massMin,
-                                               "weight", "weight", True,                                               
-                                               )
-                    
-                    if mixType == "simple":
-                        maxEvents   = fill.get("maxEvents",-1)
-                        matchEffMap = fill.get("matchEff",{})
-                        matchEff    = matchEffMap.get(comp,1.)
-                        print "maxEvents :", maxEvents, "rndswap :", rndswap, "mathcEffMap"
-                        mixer.fillFromTree(tree1,tree2,pt,eta,phi,energy,pt,eta,phi,energy,matchVars,rndswap,maxEvents,matchEff)
+                    if jks==0: g=0
+                    for j in range(g+1):
+                        if j==0:
+                            (tree1, vars1)= legs[0]
+                            (tree2, vars2)  = legs[g+1]
+                        if len(legs)==ndim*g+2:
+                            (tree1, vars1)= legs[j]
+                            (tree2, vars2)  = legs[g+1+j]
+                        elif len(legs) <ndim*g+2:
+                            (tree1, vars1)= legs[0]
+                            (tree2, vars2)  = legs[j+1]
+                        else: "legs not correctly assigned to trees"
+                        print tree1, tree2
+                        print "----------------"
+                    for j in range(0,g+1):
+                        #variables to keep from target after mixing
+                        constVariables        = mix["transfer_variables"]
+                        varsT=ROOT.RooArgList()
+                        for element in constVariables:
+                            el = self.buildRooVar(*(self.getVar(element)))
+                            varsT.add(el)
                         
-                    elif mixType == "kdtree":
-                        targetCat       = fill.get("targetCat",cat)
-                        targetFraction  = fill.get("targetFraction",0.)
-                        nNeigh          = fill.get("nNeigh",10)
-                        nMinNeigh       = fill.get("nMinNeigh",nNeigh)
-                        useCdfDistance  = fill.get("useCdfDistance",False)
-                        matchWithThreshold  = fill.get("matchWithThreshold",False)
-                        targetWeight    = fill.get("targetWeight","weight")
-                        maxWeightTarget    = fill.get("maxWeightTarget",0.)
-                        maxWeightCache    = fill.get("maxWeightCache",0.)
-                        dataname        = "%s_%s_%s" % (targetSrc,targetName,targetCat)       
-                        print dataname
-                        target          = self.treeData(dataname)
+                        
+                        if mixType == "simple":
+                            maxEvents   = fill.get("maxEvents",-1)
+                            matchEffMap = fill.get("matchEff",{})
+                            matchEff    = matchEffMap.get(comp,1.)
+                            print "maxEvents :", maxEvents, "rndswap :", rndswap, "mathcEffMap"
+                            mixer.fillFromTree(tree1,tree2,pt,eta,phi,energy,pt,eta,phi,energy,matchVars,rndswap,maxEvents,matchEff)
+                            
+                        elif mixType == "kdtree":
+                            targetCat           = fill.get("targetCat",cat)
+                            targetFraction      = fill.get("targetFraction",0.)
+                            jkt                 = mix.get("jk_target",0)
+                            nNeigh              = fill.get("nNeigh",10)
+                            nMinNeigh           = fill.get("nMinNeigh",nNeigh)
+                            useCdfDistance      = fill.get("useCdfDistance",False)
+                            matchWithThreshold  = fill.get("matchWithThreshold",False)
+                            targetWeight        = fill.get("targetWeight","weight")
+                            maxWeightTarget     = fill.get("maxWeightTarget",0.)
+                            maxWeightCache      = fill.get("maxWeightCache",0.)
+                            dataname            = "%s_%s_%s" % (targetSrc,targetName,targetCat)       
+                            print dataname
+                            targets     = []
+                            # only if single photon datasets the full ones
+                            targets.append(self.treeData(dataname))
+                            if j==0 and jkt!=0:
+                                target_all          = self.treeData(dataname)
+                                nt= int(target_all.GetEntries())
+                                dt=jkt*nt
+                                gt=nt/dt
+                                if nt % dt != 0:
+                                    gt += 1
+                                gt=int(gt)
+                                print "computing partitions for target: nt=%d dt=%d gt=%i" % (nt,dt,gt)
+                                all_eventst= range(nt)
+                                random.shuffle(all_eventst)
+                                for jt in range(gt):
+                                    lot=int(1+dt*jt)
+                                    hit=int(dt+dt*jt)
+                                    tree_tempt=target_all.CloneTree(0)
+                                    tree_tempt.SetName("%s_%i" %(dataname,jt))
+                                    for kt in all_eventst:
+                                        if not(kt>= lot and kt < hit ): tree_tempt.Fill(target_all.GetEntry(kt))
+                                    targets.append( tree_tempt )
 
+                                #  target          = self.treeData(dataname)
+                        print targets
+                        
                         matchVars1   = ROOT.RooArgList()
                         matchVars2   = ROOT.RooArgList()
                         targetMatch1 = ROOT.RooArgList()
@@ -744,25 +793,41 @@ class TemplatesApp(PlotApp):
                             var = self.buildRooVar(*(self.getVar(var)))
                             targetMatch2.add(var)
                         axesWeights     = fill.get( "axesWeights", [1.]*len(fill["match1"]) )
-                        print "target :", dataname
                         print "rndswap :", rndswap, " rndmatch :", rndmatch," useCdfDistance :", useCdfDistance, "matchWithThreshold :", matchWithThreshold
                         print "nNeigh :", nNeigh, "nMinNeigh :", nMinNeigh
-                        print "target :", target
                         print "axesWeights :", axesWeights
-                        mixer.fillLikeTarget(target,targetMatch1,targetMatch2,targetWeight,tree1,tree2,
+                        m=0
+                        for target in targets:
+
+                            print "------------------------------------------"
+                            print "target :", target.GetName()
+                            if      m==0 and j==0:   mixername="template_mix_%s_%s_%s" % ( comp,name, cat)
+                            elif    m>0 and j==0:    mixername="template_mix_%s_%s_%i_%s" % ( comp,name, m-1,cat)
+                            elif    m==0 and j>0:    mixername="template_mix_%s_%i_%s_%s" % ( comp,j-1,name,cat)
+                            mixer = ROOT.DataSetMixer( mixername,mixername,
+                                                   vars1, vars2, varsT,replace, replace,
+                                                   ptLeadMin, ptSubleadMin, massMin,
+                                                   "weight", "weight", True,                                               
+                                                   )
+                            mixer.fillLikeTarget(target,targetMatch1,targetMatch2,targetWeight,tree1,tree2,
                                              pt,eta,phi,energy,pt,eta,phi,energy,
                                              matchVars1,matchVars2,rndswap,rndmatch,nNeigh,nMinNeigh,targetFraction,
                                              useCdfDistance,matchWithThreshold, maxWeightTarget,maxWeightCache,
                                              array.array('d',axesWeights))
                     
-                    dataset = mixer.get()
-                    self.workspace_.rooImport(dataset,ROOT.RooFit.RecycleConflictNodes())
-                    tree = mixer.getTree()
-                    self.store_[tree.GetName()] = tree
+                            dataset = mixer.get()
+                            dataset.GetName()
+                            self.workspace_.rooImport(dataset,ROOT.RooFit.RecycleConflictNodes())
+                            tree = mixer.getTree()
+                            print tree.GetName()
+                            print "------------------------------------------"
+                            print "------------------------------------------"
+                            self.store_[tree.GetName()] = tree
+                            m=m+1
 
-            print 
-            print "--------------------------------------------------------------------------------------------------------------------------"
-            print 
+                print 
+                print "--------------------------------------------------------------------------------------------------------------------------"
+                print 
 
 
     ## ------------------------------------------------------------------------------------------------------------
