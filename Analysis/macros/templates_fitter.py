@@ -49,7 +49,7 @@ def computeShapeWithUnc(histo,extraerr=None):
 ## ----------------------------------------------------------------------------------------------------------------------------------------
 
 ## ----------------------------------------------------------------------------------------------------------------------------------------
-class TemplatesFitApp(PlotApp,TemplateApp):
+class TemplatesFitApp(TemplatesApp):
     """
     Class to handle template fitting.
     Takes care of preparing templates starting from TTrees.
@@ -85,10 +85,12 @@ class TemplatesFitApp(PlotApp,TemplateApp):
                         make_option("--plot-purity",dest="plot_purity",action="store_true",default=False,
                                     help="Plot purities, purity vs massbin and pull function",
                                     ),
+                        make_option("--mix-templates",dest="mix_templates",action="store_true",
+                                    default=False,
+                                    help="Mix templates.",
+                                    ),
                         make_option("--fits",dest="fits",action="callback",callback=optpars_utils.Load(),type="string",
                                     default={},help="List of templates fits to be performed. Categories, componentd and templates can be specified."),
-                        make_option("--mix",dest="mix",action="callback",callback=optpars_utils.Load(),type="string",
-                                    default={},help="Configuration for event mixing."),
                         make_option("--template-binning",dest="template_binning",action="callback",callback=optpars_utils.ScratchAppend(float),
                                     type="string",
                                     default=[],
@@ -157,21 +159,6 @@ class TemplatesFitApp(PlotApp,TemplateApp):
                       )
             ]+option_groups,option_list=option_list)
         
-        ## initialize data members
-        self.trees_ = {}
-        self.datasets_ = {}
-        self.aliases_ = {}
-        self.variables_ = {}
-        self.cache_ = {}
-        self.store_ = {}
-        self.rename_ = False
-        self.store_new_ = False
-        self.save_params_ = []
-        self.workspace_ = None
-
-        self.save_params_.append("signals")
-        self.save_params_.append("aliases")
-        
         ## load ROOT (and libraries)
         global ROOT, style_utils, RooFit
         import ROOT
@@ -188,44 +175,6 @@ class TemplatesFitApp(PlotApp,TemplateApp):
         ROOT.gStyle.SetOptStat(111111)
 
     ## ------------------------------------------------------------------------------------------------------------
-    def setup(self,options,args):
-        """ 
-        Read input trees and generate new datasets/trees if required
-        """
-
-        if len(options.only_subset)>0:
-            subset = {}
-            for name,fit in options.fits.iteritems():
-                if not name in options.only_subset:
-                    continue
-                subset[name] = fit
-            options.fits = subset
-        
-        if options.store_new_only:
-            self.store_new_ = True
-            self.store_inputs_ = options.store_inputs
-        
-        if len(options.read_ws) > 0:
-            options.read_ws_list = options.read_ws
-            options.read_ws = options.read_ws_list[0]
-        else:
-            options.read_ws = False
-            
-        if not options.output_file:
-            if options.read_ws: 
-                options.output_file = options.read_ws
-                if options.store_new_only:
-                    options.output_file = options.output_file.replace(".root","_new.root")
-            else : 
-                options.output_file = "templates.root"
-        
-        if options.read_ws:
-            self.readWs(options,args)
-            
-        if options.verbose:
-            print "Read workspace"
-
-    ## ------------------------------------------------------------------------------------------------------------
     def __call__(self,options,args):
         """ 
         Main method. Called automatically by PyRoot class.
@@ -233,11 +182,12 @@ class TemplatesFitApp(PlotApp,TemplateApp):
         ## load ROOT style
         self.loadRootStyle()
         from ROOT import RooFit
+        from ROOT import TH1D, TCanvas, TAxis
         ROOT.gStyle.SetOptStat(111111)
         printLevel = ROOT.RooMsgService.instance().globalKillBelow()
         ROOT.RooMsgService.instance().setGlobalKillBelow(RooFit.FATAL)
+        ROOT.TH1D.SetDefaultSumw2(True)
         
-        self.setup(options,args)
         
         if options.compare_templates:
             self.compareTemplates(options,args)
@@ -250,182 +200,8 @@ class TemplatesFitApp(PlotApp,TemplateApp):
             self.corrSinglePho(options,args)
         if options.build_3dtemplates:
             self.build3dTemplates(options,args)
-     #   if options.plotMCtruth:
-      #      self.plotMCtruth(options,args)
         
 
-    ## ------------------------------------------------------------------------------------------------------------
-    def openOut(self,options):
-        if options.read_ws and options.output_file == options.read_ws:
-            name    = options.output_file
-            tmpname = name.replace(".root","_tmp.root")
-            fout    = self.open(tmpname,"recreate",folder=options.ws_dir)
-            self.rename_  = (tmpname,name)
-        else:
-            fout = self.open(options.output_file,"recreate",folder=options.ws_dir)
-        return fout
-
-    ## ------------------------------------------------------------------------------------------------------------
-    def saveWs(self,options,fout=None):            
-        if not fout:
-            fout = self.openOut(options)
-        fout.cd()
-        cfg = { "fits"   : options.fits,
-                "comparisons"    : options.comparisons,
-                "stored" : self.store_.keys(),
-                }
-        for name in self.save_params_:
-            val = getattr(options,name,None)
-            if val:
-                cfg[name] = val
-
-        print "--------------------------------------------------------------------------------------------------------------------------"
-        print "saving output"
-        print 
-        ROOT.TObjString( json.dumps( cfg,indent=4,sort_keys=True) ).Write("cfg")
-        
-        nobjs = len(self.store_.keys())
-        nprint = int(nobjs/20)
-        if nprint == 0:
-            nprint = 1
-        iobj  = 0
-        for key,val in self.store_.iteritems():
-            val.CloneTree().Write(key,ROOT.TObject.kWriteDelete)
-            iobj += 1
-            if iobj % nprint == 1:
-                print "written %d / %d trees" % ( iobj, nobjs )
-        print "writing workspace ...",
-        self.workspace_.Write()
-        print "done"
-        fout.Close()
-        
-        if self.rename_:
-            os.rename( *self.rename_ )
-        print "--------------------------------------------------------------------------------------------------------------------------"
-        print
-
-    ## ------------------------------------------------------------------------------------------------------------
-    def rooImportItr(self,coll,verbose=False):        
-        itr = coll.createIterator()
-        if verbose:
-            print "Importing collection to workspace"
-            coll.Print()
-        obj = itr.Next()
-        while obj:
-            if type(obj) == ROOT.TObject:
-                ## FIXME: for some reason, instead of a null pointer, at the end of the iteration
-                ##        a bare TObject is returned.... looks like a plain ROOT bug
-                break          
-            self.workspace_.rooImport(obj,ROOT.RooFit.RecycleConflictNodes(),ROOT.RooFit.Silence(not verbose))
-            obj = itr.Next()
-        
-    ## ------------------------------------------------------------------------------------------------------------
-    def mergeWs(self,options,read_ws):
-        
-        if os.path.dirname(read_ws) == "" and not os.path.exists(read_ws):
-            print "Warning: %s does not exist. I will look for it in %s" % ( read_ws, options.ws_dir )
-            fin = self.open(read_ws,folder=options.ws_dir)
-        else:
-            fin = self.open(read_ws)
-        cfg = json.loads( str(fin.Get("cfg").GetString()) )
-        for name,val in cfg["fits"].iteritems():
-            options.fits[name] = val
-        ws = fin.Get("wtemplates")
-
-        if not self.workspace_:
-            self.workspace_ = ws
-            ## self.workspace_.rooImport = getattr(self.workspace_,"import")
-            self.workspace_.rooImport = rooImport(self.workspace_)
-        else:
-            self.rooImportItr( ws.allVars(), verbose=options.verbose )
-            self.rooImportItr( ws.allFunctions(), verbose=options.verbose )
-            self.rooImportItr( ws.allPdfs(), verbose=options.verbose )
-            
-            alldata = ws.allData()
-            for data in alldata:
-                self.workspace_.rooImport(data)
-            
-        for name in cfg["stored"]:
-            self.store_[name]=fin.Get(name)
-            
-        if not options.mix_templates:
-            options.mix = cfg.get("mix",{})
-        if not options.compare_templates:
-            options.comparisons = cfg.get("comparisons",{})
-
-        for name in self.save_params_:
-            val = cfg.get(name,None)
-            if val:
-                print "Reading back saved parameter ", name, val
-                setattr(options,name,val)
-    
-    ## ------------------------------------------------------------------------------------------------------------
-    def readWs(self,options,args):
-        print
-        print "--------------------------------------------------------------------------------------------------------------------------"
-        print "Reading back workspace from %s " % options.read_ws
-        print 
-        ### fin = self.open(options.read_ws)
-        ### cfg = json.loads( str(fin.Get("cfg").GetString()) )
-        ### options.fits = cfg["fits"]
-        ### self.workspace_ = fin.Get("wtemplates")
-        ### self.workspace_.rooImport = getattr(self.workspace_,"import")
-        ### for name in cfg["stored"]:
-        ###     self.store_[name]=fin.Get(name)
-        ###     
-        ### if not options.mix_templates:
-        ###     options.mix = cfg.get("mix",{})
-        ### if not options.compare_templates:
-        ###     options.comparisons = cfg.get("comparisons",{})
-        ### 
-        ### for name in self.save_params_:
-        ###     val = cfg.get(name,None)
-        ###     print name, val
-        ###     if val:
-        ###         setattr(options,name,val)
-        
-        for ws in options.read_ws_list:
-            self.mergeWs(options,ws)
-            
-        
-        print "Fits :"
-        print "---------------------------------------------------------"
-        for key,val in options.fits.iteritems():
-            print "- %s \n  ndim : %d \n  components : %s" % ( key, val["ndim"], ",".join(val["components"]) )
-            print
-        
-        print "TTrees :"
-        print "---------------------------------------------------------"
-        for key,val in self.store_.iteritems():
-            print key.ljust(30), ":", ("%d" % val.GetEntries()).rjust(8)
-        print
-        
-        print "Datasets :"
-        print "---------------------------------------------------------"
-        alldata = self.workspace_.allData()
-        ntoys = 0
-        for dset in alldata:
-            name = dset.GetName()
-            if name.startswith("toy"):
-                ntoys += 1
-            else:
-                print name.ljust(30), ":", ("%d" % dset.sumEntries()).rjust(8)
-        print 
-        print "Number of toys : %d"         % ntoys
-        print    
-        print "--------------------------------------------------------------------------------------------------------------------------"
-
-        if self.store_new_:
-            self.store_input_ = self.store_
-            self.store_ = {}
-            
-            self.workspace_input_ = WsList(self.workspace_)
-            self.workspace_ = ROOT.RooWorkspace("wtemplates","wtemplates")
-            ## self.workspace_.rooImport = getattr(self.workspace_,"import")
-            self.workspace_.rooImport = rooImport(self.workspace_)
-            
-    
-    
     ## ------------------------------------------------------------------------------------------------------------
     
     def compareTemplates(self,options,args):
@@ -474,6 +250,7 @@ class TemplatesFitApp(PlotApp,TemplateApp):
                     templatebins=ROOT.RooBinning(len(template_binning)-1,template_binning,"templatebins" )
 ### list to store templates for each category
                     templates = []
+                    return
                     for idim in range(fit["ndim"]):
                         isoargs.add(self.buildRooVar("templateNdim%dDim%d" % ( fit["ndim"],idim),template_binning,recycle=True))
                     if d2:
@@ -1631,5 +1408,3 @@ class TemplatesFitApp(PlotApp,TemplateApp):
 if __name__ == "__main__":
     app = TemplatesFitApp()
     app.run()
-
-#  LocalWords:  workspaces

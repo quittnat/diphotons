@@ -2,13 +2,13 @@
     "comparisons" : {
 	"fit2DTruth" : { "fit" : "2D",
 		"_templates" : { "mix:kDSinglePho2DMC" : {},"template_mc:2D":{}, "mix:kDSinglePho2D" : {},"2D":{} },
-		"templates" : { "mix:kDSinglePho2DMC" : {}, "mix:kDSinglePho2D" : {}},
-		"_templates" : { "mix:kDSinglePho2D" : {} },
+		"_templates" : { "mix:kDSinglePho2DMC" : {}, "mix:kDSinglePho2D" : {}},
+		"templates" : { "mix:kDSinglePho2D" : {} },
 		"_templates" : { "2D":{} },
                 "categories" : ["EBEB","EBEE"],
-                "components": ["pf","ff",  ["pp",{ "2D" : {},"template_mc:2D":{}}] 
+                "_components": ["pf","ff",  ["pp",{ "2D" : {},"template_mc:2D":{}}] 
                 ],
-                "_components": ["pf","ff",  ["pp",{ "2D" : {}}] 
+                "components": ["pf","ff",  ["pp",{ "2D" : {}}] 
                 ],
                 "prepfit": true,
                 "weight_cut": "weight < 5.",

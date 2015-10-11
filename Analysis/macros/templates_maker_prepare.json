@@ -190,8 +190,8 @@
             "templates" : {
                 "pp" : { 
 		        "sel"  : "cicNoChIso", "#" : "event selection",
-                        "_dataset" : ["data"],    "#" : "input dataset. can be data,mc or templates",
-                        "dataset" : ["data","mc"],    "#" : "input dataset. can be data,mc or templates",
+                        "dataset" : ["data"],    "#" : "input dataset. can be data,mc or templates",
+                        "_dataset" : ["data","mc"],    "#" : "input dataset. can be data,mc or templates",
                         "#" : "How to fill different categories. Logic is the same as for the 'fill' instructions above",
                         "fill_categories" : {
                         "_EBEB" :{"TMath::Even(event) " : [ "leadRndConeChIso", "subleadRndConeChIso" ],
@@ -240,8 +240,8 @@
                 },
                 "pf" : { 
 		        "sel"  : "cicSBNoChIsoSingleSB", 
-                        "_dataset" : ["templates"],    "#" : "input dataset. can be data,mc or templates",
-                        "dataset" : ["templates","templatesMC"],    "#" : "input dataset. can be data,mc or templates",
+                        "dataset" : ["templates"],    "#" : "input dataset. can be data,mc or templates",
+                        "_dataset" : ["templates","templatesMC"],    "#" : "input dataset. can be data,mc or templates",
                         "#" : "pseudo-random swap, but taking care to take the random cone isolation for the signal-region photon",
                         "#" : "  and the photon isolation for the side-band one                                                  ",
                         "fill_categories" : { 
@@ -330,8 +330,8 @@
                         }
                  },
                  "ff" : { "sel"  : "cicSBNoChIsoDoubleSB",        
-                        "_dataset" : ["templates"],    "#" : "input dataset. can be data,mc or templates",
-                        "dataset" : ["templates","templatesMC"],    "#" : "input dataset. can be data,mc or templates",
+                        "dataset" : ["templates"],    "#" : "input dataset. can be data,mc or templates",
+                        "_dataset" : ["templates","templatesMC"],    "#" : "input dataset. can be data,mc or templates",
                          "fill_categories" : {
                          "EBEB" :{ "TMath::Even(event)  &&  leadIsSB && subleadIsSB  " : [ "leadChIso", "subleadChIso" ],
                                  "! TMath::Even(event)  && leadIsSB && subleadIsSB ": [ "subleadChIso", "leadChIso" ]
@@ -417,8 +417,8 @@
                 },
                 "f" : { 
                     "sel" : "cicSBNoChIsoSBSinglePho",
-                    "_dataset" : ["templates"],
-                    "dataset" : ["templates","templatesMC"],
+                    "dataset" : ["templates"],
+                    "_dataset" : ["templates","templatesMC"],
                         "fill_categories" : { 
                         "EB" : { "phoIsEB && phoIsSB" : ["phoChIso"] },
                         "EE" : { "!phoIsEB && phoIsSB" : ["phoChIso"] },
@@ -427,8 +427,8 @@
 				},
                 "f1" : { 
                     "sel" : "cicSBNoChIsoSBSinglePho",
-                    "_dataset" : ["templates"],
-                    "dataset" : ["templates","templatesMC"],
+                    "dataset" : ["templates"],
+                    "_dataset" : ["templates","templatesMC"],
                         "fill_categories" : { 
                         "EB" : { "TMath::Even(event) && phoIsEB && phoIsSB" : ["phoChIso"] },
                         "EE" : { "TMath::Even(event) && !phoIsEB && phoIsSB" : ["phoChIso"] },
@@ -437,8 +437,8 @@
                 },
                 "f2" : { 
                     "sel" : "cicSBNoChIsoSBSinglePho",
-                    "_dataset" : ["templates"],
-                    "dataset" : ["templates","templatesMC"],
+                    "dataset" : ["templates"],
+                    "_dataset" : ["templates","templatesMC"],
                         "fill_categories" : { 
                         "EB" : { "!TMath::Even(event) && phoIsEB && phoIsSB" : ["phoChIso"] },
                         "EE" : { "!TMath::Even(event) && !phoIsEB && phoIsSB" : ["phoChIso"] },
@@ -511,7 +511,7 @@
 		}
 	},
 
-	"kDSinglePho2DMC" : {
+	"_kDSinglePho2DMC" : {
 
 		"target" : "2D:mc",
 		"ptLeadMin" : 100.0, "ptSubleadMin" : 100.0, "massMin" : 200.0,
