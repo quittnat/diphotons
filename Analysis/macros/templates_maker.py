@@ -130,10 +130,6 @@ class TemplatesApp(PlotApp):
                                     default=False,
                                     help="Mix templates.",
                                     ),
-                        make_option("--extra-shape-unc",dest="extra_shape_unc",action="store",type="float",
-                                    default=None,
-                                    help="Add extra uncertainty to template shapes (implemented only for plotting)",
-                                    ),
                         make_option("--read-ws","-r",dest="read_ws",type="string",
                                     default=[],action="callback",callback=optpars_utils.ScratchAppend(),
                                     help="workspace input file.",
@@ -180,6 +176,7 @@ class TemplatesApp(PlotApp):
 
         self.save_params_.append("signals")
         self.save_params_.append("aliases")
+        self.save_params_.append("preselection")
         
         ## load ROOT (and libraries)
         global ROOT, style_utils, RooFit
@@ -276,6 +273,7 @@ class TemplatesApp(PlotApp):
         fout.cd()
         cfg = { "fits"   : options.fits,
                 "mix"    : options.mix,
+                "comparisons"    : options.comparisons,
                 "stored" : self.store_.keys(),
                 }
         for name in self.save_params_:
@@ -354,6 +352,8 @@ class TemplatesApp(PlotApp):
             
         if not options.mix_templates:
             options.mix = cfg.get("mix",{})
+        if not options.compare_templates:
+            options.comparisons = cfg.get("comparisons",{})
 
         for name in self.save_params_:
             val = cfg.get(name,None)
