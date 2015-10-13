@@ -139,8 +139,6 @@ class TemplatesFitApp(TemplatesApp):
         
         options.store_new_only=True
         self.setup(options,args)
-        if options.jackknife:
-            self.Jackknife(options,args)
         
         if options.compare_templates:
             self.compareTemplates(options,args)
@@ -153,6 +151,8 @@ class TemplatesFitApp(TemplatesApp):
             self.corrSinglePho(options,args)
         if options.build_3dtemplates:
             self.build3dTemplates(options,args)
+        #if options.jackknife:
+         #   self.Jackknife(options,args)
         
 
     ## ------------------------------------------------------------------------------------------------------------
@@ -1023,7 +1023,7 @@ class TemplatesFitApp(TemplatesApp):
                         if extended_fit:
                             pu_npf=1-pu_npp
                             err_npf=0.
-                        err_pf=0.
+                        err_pf=err_pp
                     print "err_pp " ,err_pp, " err_pf " ,err_pf
                     print
                     self.plotFit(observable,fitUnrolledPdf,rooPdfs,data_massc,components,cat,log=True) 
@@ -1117,25 +1117,25 @@ class TemplatesFitApp(TemplatesApp):
                     g_templatepp=ROOT.TGraphErrors(tree_template.GetEntries())
                     g_templatepf=ROOT.TGraphErrors(tree_template.GetEntries())
                     nentries=tree_template.GetEntries()
-                if not data:
-                    if not opt=="mctruth":
-                        tree_templatemc=self.treeData("fitresult_fraction_mc_unrolled_%s_%s_%s"%(opt,dim, cat))
-                        g_templateppmc=ROOT.TGraphErrors(tree_templatemc.GetEntries())
-                        g_templatepfmc=ROOT.TGraphErrors(tree_templatemc.GetEntries())
                     tree_mctruth=self.treeData("fitresult_fraction_mc_unrolled_mctruth_%s_%s"%( dim, cat))
                     nentries=tree_mctruth.GetEntries()
-                    tree_truthpp=self.treeData("%s_pp_%s_%s"%(treetruthname, dim, cat))
-                    tree_truthpf=self.treeData("%s_pf_%s_%s"%(treetruthname,dim, cat))
-                    tree_truthff=self.treeData("%s_ff_%s_%s"%(treetruthname,dim, cat))
-                    if tree_truthff!=None:
-                        g_truthff=ROOT.TGraphErrors(tree_truthff.GetEntries())
-                    else:
-                        g_truthff=ROOT.TGraphErrors()
-                        print "no truth ff component"
+                if not opt=="mctruth":
+                    tree_templatemc=self.treeData("fitresult_fraction_mc_unrolled_%s_%s_%s"%(opt,dim, cat))
+                    g_templateppmc=ROOT.TGraphErrors(tree_templatemc.GetEntries())
+                    g_templatepfmc=ROOT.TGraphErrors(tree_templatemc.GetEntries())
+                tree_truthpp=self.treeData("%s_pp_%s_%s"%(treetruthname, dim, cat))
+                tree_truthpf=self.treeData("%s_pf_%s_%s"%(treetruthname,dim, cat))
+                tree_truthff=self.treeData("%s_ff_%s_%s"%(treetruthname,dim, cat))
+                if tree_truthff!=None:
+                    g_truthff=ROOT.TGraphErrors(tree_truthff.GetEntries())
+                else:
+                    g_truthff=ROOT.TGraphErrors()
+                    print "no truth ff component"
+                g_truthpp=ROOT.TGraphErrors(tree_truthpp.GetEntries())
+                g_truthpf=ROOT.TGraphErrors(tree_truthpf.GetEntries())
+                if not data:
                     g_mctruthpp=ROOT.TGraphErrors(tree_mctruth.GetEntries())
                     g_mctruthpp_sumw2on=ROOT.TGraphErrors(tree_mctruth.GetEntries())
-                    g_truthpp=ROOT.TGraphErrors(tree_truthpp.GetEntries())
-                    g_truthpf=ROOT.TGraphErrors(tree_truthpf.GetEntries())
                     g_pullpp=ROOT.TGraphErrors(nentries)
                     g_mctruthpf=ROOT.TGraphErrors(tree_mctruth.GetEntries())
                     g_mctruthpf_sumw2on=ROOT.TGraphErrors(tree_mctruth.GetEntries())
@@ -1151,25 +1151,25 @@ class TemplatesFitApp(TemplatesApp):
                         g_templatepf.SetPointError(mb,tree_template.masserror,tree_template.error_pf)
                         g_templatepp.SetPoint(mb,tree_template.massbin,tree_template.purity_pp)
                         g_templatepp.SetPointError(mb,tree_template.masserror,tree_template.error_pp)
-                    if not data:
-                        if not opt=="mctruth":
-                            tree_templatemc.GetEntry(mb)
-                            g_templatepfmc.SetPoint(mb,tree_templatemc.massbin,tree_templatemc.purity_pf)
-                            g_templatepfmc.SetPointError(mb,tree_templatemc.masserror,tree_templatemc.error_pf)
-                            g_templateppmc.SetPoint(mb,tree_templatemc.massbin,tree_templatemc.purity_pp)
-                            g_templateppmc.SetPointError(mb,tree_templatemc.masserror,tree_templatemc.error_pp)
-                        tree_mctruth.GetEntry(mb)
-                        tree_truthpp.GetEntry(mb)
-                        tree_truthpf.GetEntry(mb)
-                        if tree_truthff!=None:
-                            tree_truthff.GetEntry(mb)
-                        g_truthpp.SetPoint(mb,tree_truthpp.massbin,tree_truthpp.frac_pu)
-                        g_truthpp.SetPointError(mb,tree_truthpp.masserror,0.)
-                        g_truthpf.SetPoint(mb,tree_truthpf.massbin,tree_truthpf.frac_pu)
-                        g_truthpf.SetPointError(mb,tree_truthpf.masserror,0.)
-                        g_truthff.SetPoint(mb,tree_truthff.massbin,tree_truthff.frac_pu)
-                        g_truthff.SetPointError(mb,tree_truthff.masserror,0.)
+                    if not opt=="mctruth":
+                        tree_templatemc.GetEntry(mb)
+                        g_templatepfmc.SetPoint(mb,tree_templatemc.massbin,tree_templatemc.purity_pf)
+                        g_templatepfmc.SetPointError(mb,tree_templatemc.masserror,tree_templatemc.error_pf)
+                        g_templateppmc.SetPoint(mb,tree_templatemc.massbin,tree_templatemc.purity_pp)
+                        g_templateppmc.SetPointError(mb,tree_templatemc.masserror,tree_templatemc.error_pp)
+                    tree_truthpp.GetEntry(mb)
+                    tree_truthpf.GetEntry(mb)
+                    if tree_truthff!=None:
+                        tree_truthff.GetEntry(mb)
+                    g_truthpp.SetPoint(mb,tree_truthpp.massbin,tree_truthpp.frac_pu)
+                    g_truthpp.SetPointError(mb,tree_truthpp.masserror,0.)
+                    g_truthpf.SetPoint(mb,tree_truthpf.massbin,tree_truthpf.frac_pu)
+                    g_truthpf.SetPointError(mb,tree_truthpf.masserror,0.)
+                    g_truthff.SetPoint(mb,tree_truthff.massbin,tree_truthff.frac_pu)
+                    g_truthff.SetPointError(mb,tree_truthff.masserror,0.)
                     
+                    if not data:
+                        tree_mctruth.GetEntry(mb)
                         g_mctruthpp.SetPoint(mb,tree_mctruth.massbin,tree_mctruth.purity_pp)
                         g_mctruthpp_sumw2on.SetPoint(mb,tree_mctruth.massbin,tree_mctruth.purity_pp)
                         g_mctruthpp.SetPointError(mb,tree_mctruth.masserror,tree_mctruth.error_pp)
@@ -1215,7 +1215,7 @@ class TemplatesFitApp(TemplatesApp):
                         sumw2off="sumw2off"
                         self.plotPurityMassbins(cat,pu_val,opt,sumw2off,g_templateppmc,g_templatepfmc,None,g_truthpp,g_truthpf,g_truthff,g_mctruthpp,g_mctruthpf)
                 else:
-                    self.plotPurityMassbins(cat,pu_val,opt,"data",g_templatepp,g_templatepf)
+                    self.plotPurityMassbins(cat,pu_val,opt,"data",g_templatepp,g_templatepf,None,g_truthpp,g_truthpf,g_truthff,g_templateppmc,g_templatepfmc)
             ## ------------------------------------------------------------------------------------------------------------
     def pullFunction(self,g_pull,h_pull,cat,comp,opt,pu_val):
         leg = ROOT.TLegend(0.5,0.8,0.9,0.9)
@@ -1266,8 +1266,16 @@ class TemplatesFitApp(TemplatesApp):
         ROOT.gPad.SetLogx()
         cpu.cd(1)
         if not opt=="mctruth":
-            g_templatepp.SetMarkerColor(ROOT.kBlue+1)
-            g_templatepp.SetLineColor(ROOT.kBlue+1)
+            if opt2=="data":
+                g_templatepp.SetMarkerColor(ROOT.kBlue+1)
+                g_templatepp.SetLineColor(ROOT.kBlue+1)
+                g_mctruthpp.SetMarkerColor(ROOT.kCyan+1)
+                g_mctruthpp.SetLineColor(ROOT.kCyan+1)
+            else:
+                g_templatepp.SetMarkerColor(ROOT.kCyan+1)
+                g_templatepp.SetLineColor(ROOT.kCyan+1)
+                g_mctruthpp.SetMarkerColor(ROOT.kRed)
+                g_mctruthpp.SetLineColor(ROOT.kRed)
             g_templatepp.SetMarkerSize(1.3)
             g_templatepp.SetMarkerStyle(20)
             g_templatepp.GetXaxis().SetTitle("Diphoton mass [GeV]")
@@ -1275,45 +1283,53 @@ class TemplatesFitApp(TemplatesApp):
             g_templatepp.GetYaxis().SetRangeUser(0.,1.6)
             g_templatepp.GetXaxis().SetLimits(200.,15000.)
             g_templatepp.Draw("AP")
+        g_truthpp.SetMarkerColor(ROOT.kYellow+2)
+        g_truthpp.SetLineColor(ROOT.kYellow+2)
+        g_truthpf.SetMarkerColor(ROOT.kGreen+1)
+        g_truthpf.SetLineColor(ROOT.kGreen+1)
+        g_truthff.SetMarkerColor(ROOT.kGreen+2)
+        g_truthff.SetLineColor(ROOT.kGreen+2)
+        g_mctruthpp.SetMarkerStyle(20)
+        g_truthpp.SetMarkerStyle(20)
+        g_truthpf.SetMarkerStyle(20)
+        g_truthff.SetMarkerStyle(20)
+        g_mctruthpp.SetMarkerSize(1.3)
+        g_mctruthpp.GetXaxis().SetTitle("Diphoton mass [GeV]")
+        g_mctruthpp.GetYaxis().SetTitle("purity")
+        g_mctruthpp.GetYaxis().SetRangeUser(0.,1.6)
+        g_mctruthpp.GetXaxis().SetLimits(200.,15000.)
+  #      g_mctruthpp.Draw("P SAME")
+   #     g_mctruthpf.Draw("P SAME")
         if not opt2=="data":
-            g_truthpp.SetMarkerColor(ROOT.kYellow+2)
-            g_truthpp.SetLineColor(ROOT.kYellow+2)
-            g_truthpf.SetMarkerColor(ROOT.kGreen+1)
-            g_truthpf.SetLineColor(ROOT.kGreen+1)
-            g_truthff.SetMarkerColor(ROOT.kGreen+3)
-            g_truthff.SetLineColor(ROOT.kGreen+3)
-            g_mctruthpp.SetMarkerColor(ROOT.kRed)
-            g_mctruthpp.SetLineColor(ROOT.kRed)
-            g_mctruthpp.SetMarkerStyle(20)
-            g_truthpp.SetMarkerStyle(20)
-            g_truthpf.SetMarkerStyle(20)
-            g_truthff.SetMarkerStyle(20)
-            g_mctruthpp.SetMarkerSize(1.3)
-            if opt=="mctruth":
-                g_mctruthpp.GetXaxis().SetTitle("Diphoton mass [GeV]")
-                g_mctruthpp.GetYaxis().SetTitle("purity")
-                g_mctruthpp.GetYaxis().SetRangeUser(0.,1.6)
-                g_mctruthpp.GetXaxis().SetLimits(200.,15000.)
-                g_mctruthpp.Draw("AP")
-                leg.AddEntry(g_mctruthpp,"pp mctruth template","lp")  
-                g_mctruthpf.Draw("P SAME")
-                leg.AddEntry(g_mctruthpf,"pf mctruth template","lp")
-            leg.AddEntry(g_truthpp,"pp truth","lp")  
-            leg.AddEntry(g_truthpf,"pf truth","lp")  
-            leg.AddEntry(g_truthff,"ff truth","lp")  
-            g_truthpp.Draw("P SAME")
-            g_truthpf.Draw("P SAME")
-            g_truthff.Draw("P SAME")
-            g_mctruthpf.SetMarkerColor(ROOT.kOrange+7)
-            g_mctruthpf.SetLineColor(ROOT.kOrange+7)
-            g_mctruthpf.SetMarkerStyle(20)
-            g_mctruthpf.SetMarkerSize(1.3)
-        if not opt=="mctruth":
-            g_templatepf.Draw("P SAME")
+            leg.AddEntry(g_mctruthpp,"pp mctruth template","lp")  
+            leg.AddEntry(g_mctruthpf,"pf mctruth template","lp")
+            leg.AddEntry(g_templatepp,"pp template mc","lp")  
+            leg.AddEntry(g_templatepf,"pf %s mc"% opt,"pl")  
+        if opt2=="data":
+#            leg.AddEntry(g_mctruthpp,"pp mc template","lp")  
+ #           leg.AddEntry(g_mctruthpf,"pf mc %s" % opt,"lp")
             leg.AddEntry(g_templatepp,"pp template","lp")  
             leg.AddEntry(g_templatepf,"pf %s"% opt,"pl")  
-            g_templatepf.SetMarkerColor(ROOT.kBlack)
-            g_templatepf.SetLineColor(ROOT.kBlack)
+        g_templatepf.Draw("P SAME")
+       # leg.AddEntry(g_truthpp,"pp truth","lp")  
+       # leg.AddEntry(g_truthpf,"pf truth","lp")  
+       # leg.AddEntry(g_truthff,"ff truth","lp")  
+       # g_truthpp.Draw("P SAME")
+       # g_truthpf.Draw("P SAME")
+       # g_truthff.Draw("P SAME")
+        g_mctruthpf.SetMarkerStyle(20)
+        g_mctruthpf.SetMarkerSize(1.3)
+        if not opt=="mctruth":
+            if opt2=="data":
+                g_templatepf.SetMarkerColor(ROOT.kBlack)
+                g_templatepf.SetLineColor(ROOT.kBlack)
+                g_mctruthpf.SetMarkerColor(ROOT.kGreen+3)
+                g_mctruthpf.SetLineColor(ROOT.kGreen+3)
+            else:
+                g_templatepf.SetMarkerColor(ROOT.kGreen+4)
+                g_templatepf.SetLineColor(ROOT.kGreen+4)
+                g_mctruthpf.SetMarkerColor(ROOT.kOrange+7)
+                g_mctruthpf.SetLineColor(ROOT.kOrange+7)
             g_templatepf.SetMarkerStyle(20)
             g_templatepf.SetMarkerSize(1.3)  
             
@@ -1352,6 +1368,8 @@ class TemplatesFitApp(TemplatesApp):
                 g_ratiopf.Draw("P SAME")
                 self.keep( [g_mctruthpf,g_ratiopf] )
             self.keep( [g_mctruthpp,g_ratiopp] )
+        self.keep( [g_mctruthpf] )
+        self.keep( [g_mctruthpp] )
         self.keep( [cpu,g_templatepp,g_templatepf] )
         self.autosave(True)
 
