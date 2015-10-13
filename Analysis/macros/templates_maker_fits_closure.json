@@ -151,7 +151,7 @@
             "template_binning" : [ 0.0,0.1, 5.0, 15.0 ],                                   "#" : "template varaible binning              ",
 
             "components" : [ "pp", "pf", "ff" ],                                             "#" : "list of fit components                 ",
-            "preselection": "(leadChIso < 15. && subleadChIso < 15. && mass > 200 && (abs(leadScEta)<1.5 || leadR9>0.94) && (abs(subleadScEta)<1.5 || subleadR9>0.94) && ( max(abs(leadScEta),abs(subleadScEta))<1.5 || !(leadPixSeed||subleadP    ixSeed)  ) ) && ((leadPrompt && subleadPrompt)  || (subleadMatchType != 1  && subleadMatchType != 1) ||(leadMatchType !=1 && subleadPrompt)  || (leadPrompt  && subleadMatchType != 1))",
+            "preselection": "(leadChIso < 15. && subleadChIso < 15. && mass > 200 && (abs(leadScEta)<1.5 || leadR9>0.94) && (abs(subleadScEta)<1.5 || subleadR9>0.94) && ( max(abs(leadScEta),abs(subleadScEta))<1.5 || !(leadPixSeed||subleadP    ixSeed)  ) ) && ((leadPrompt && subleadPrompt)  || (subleadMatchType != 1  && leadMatchType != 1) ||(leadMatchType !=1 && subleadPrompt)  || (leadPrompt  && subleadMatchType != 1))",
 			"#" :"format is <fit-category-name>: { <config> }",
             "categories" : {
                 "EBEB" : { 
@@ -246,7 +246,7 @@
                         "#" : "pseudo-random swap, but taking care to take the random cone isolation for the signal-region photon",
                         "#" : "  and the photon isolation for the side-band one                                                  ",
                         "fill_categories" : { 
-                        "EBEB" :{ "leadIsSB  && TMath::Even(event)   && subleadPhoIsoEB &&  " :    [ "leadChIso", "subleadRndConeChIso8" ],
+                        "EBEB" :{ "leadIsSB  && TMath::Even(event)   && subleadPhoIsoEB  " :    [ "leadChIso", "subleadRndConeChIso8" ],
                          "leadIsSB  && !TMath::Even(event)   && subleadPhoIsoEB" :    [ "subleadRndConeChIso", "leadChIso" ]},
                        
 
@@ -331,8 +331,8 @@
                         }
                  },
                  "ff" : { "sel"  : "cicSBNoChIsoDoubleSB",        
-                        "dataset" : ["templatesMC"],    "#" : "input dataset. can be data,mc or templates",
-                        "_dataset" : ["templates","templatesMC"],    "#" : "input dataset. can be data,mc or templates",
+                        "_dataset" : ["templatesMC"],    "#" : "input dataset. can be data,mc or templates",
+                        "dataset" : ["templates","templatesMC"],    "#" : "input dataset. can be data,mc or templates",
                          "fill_categories" : {
                          "EBEB" :{ "TMath::Even(event)  &&  leadIsSB && subleadIsSB  " : [ "leadChIso", "subleadChIso" ],
                                  "! TMath::Even(event)  && leadIsSB && subleadIsSB ": [ "subleadChIso", "leadChIso" ]

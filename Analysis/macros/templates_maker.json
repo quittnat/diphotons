@@ -159,7 +159,8 @@
     "#" : " %(cat)s is replaced with the category name                 ", 
     "treeName": "trees/%(sample)s_%(cat)s",
 
-    "preselection" : "(leadChIso < 15. && subleadChIso < 15. && mass > 200 && leadPt> 75 && subleadPt > 75 && (abs(leadScEta)<1.5 || leadR9>0.94) && (abs(subleadScEta)<1.5 || subleadR9>0.94) && ( max(abs(leadScEta),abs(subleadScEta))<1.5 || !(leadPixSeed||subleadPixSeed)  ) )",   "#" : "preselection cut applied to all trees",
+    "_preselection" : "(leadChIso < 15. && subleadChIso < 15. && mass > 200 && leadPt> 75 && subleadPt > 75 && (abs(leadScEta)<1.5 || leadR9>0.94) && (abs(subleadScEta)<1.5 || subleadR9>0.94) && ( max(abs(leadScEta),abs(subleadScEta))<1.5 || !(leadPixSeed||subleadPixSeed)  ) )",   "#" : "preselection cut applied to all trees",
+    "preselection" : "(leadChIso < 15. && subleadChIso < 15. && leadPt> 75. && subleadPt > 75. && mass > 200. && (max(abs(leadScEta),abs(subleadScEta))<1.5 ||  mass > 300.) &&( max(abs(leadScEta),abs(subleadScEta))<1.5  || !(leadPixSeed||subleadPixSeed) ))",   "#" : "preselection cut applied to all trees",
 
     "selection"    : "cicNoChIso",                              "#" : "nominal selection",
     
