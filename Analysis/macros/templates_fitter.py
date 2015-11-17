@@ -978,26 +978,12 @@ class TemplatesFitApp(TemplatesApp):
                     #define fit parameters
                     jpp = ROOT.RooRealVar("jpp","jpp",0.6,0.,1.)
                     jpf = ROOT.RooRealVar("jpf","jpf",0.4,0.,1.)
-                    if extended_fit:
-                        entries= data_massc.sumEntries("templateNdim2d_unroll <= 4.")
-                        jnorm = ROOT.RooRealVar("jnorm","jnorm",entries,0.,2.*entries)
-                        fpp= ROOT.RooFormulaVar("fpp","fpp","@0*@1 ",ROOT.RooArgList(jnorm,jpp))
-                    else:
-                        fpp= ROOT.RooFormulaVar("fpp","fpp","jpp ",ROOT.RooArgList(jpp))
+                    fpp= ROOT.RooFormulaVar("fpp","fpp","jpp ",ROOT.RooArgList(jpp))
                     pu_estimates=ROOT.RooArgList(fpp)
                     pu_estimates_roopdf=ROOT.RooArgList(fpp)
                     if len(components)>2 and not extended_fit: 
                         fpf= ROOT.RooFormulaVar("fpf","fpf","jpf ",ROOT.RooArgList(jpf))
                         pu_estimates.add(fpf)
-                    elif extended_fit:
-                        if len(components)>2:
-                            fpf= ROOT.RooFormulaVar("fpf","fpf","@0*@1 ",ROOT.RooArgList(jnorm,jpf))
-                            fff= ROOT.RooFormulaVar("fff","fff","(@0*TMath::Max(0.,(1-@1-@2))) ",ROOT.RooArgList(jnorm,jpp,jpf))
-                            pu_estimates_roopdf.add(fpf)
-                            pu_estimates_roopdf.add(fff)
-                        elif len(components)<3:
-                            fpf= ROOT.RooFormulaVar("fpf","fpf","(@0*(1-@1)) ",ROOT.RooArgList(jnorm,jpp))
-                            pu_estimates_roopdf.add(fpf)
                     pdf_collections=[ ]
                     i=0
                     if not (jkpf or jkpp):
@@ -1051,6 +1037,9 @@ class TemplatesFitApp(TemplatesApp):
                                     elif comp=="pf":
                                         histo = self.rooData("unrolled_template_mix_pf_2D_%s_mb_%s"%(cat,cut_s))
                                         rooHistPdf=ROOT.RooHistPdf("pdf_%s"% histo.GetName(),"pdf_%s"% histo.GetName(),ROOT.RooArgSet(obsls),histo)
+                                if comp=="ff":
+                                    histo = self.rooData("unrolled_template_mix_ff_2D_%s_mb_%s"%(cat,cut_s))
+                                    rooHistPdf=ROOT.RooHistPdf("pdf_%s"% histo.GetName(),"pdf_%s"% histo.GetName(),ROOT.RooArgSet(obsls),histo)
                                 self.keep([rooHistPdf])
                                 pdf_set.add(rooHistPdf)
                             pdf_collections.append(pdf_set)
@@ -1060,10 +1049,7 @@ class TemplatesFitApp(TemplatesApp):
                         jpf.setVal(0.4)
                         ArgListPdf=pdf_collections[k]
                         ArgListPdf.Print()
-                        if extended_fit:
-                            fitUnrolledPdf=ROOT.RooAddPdf("fitPdfs_%s%s%s_%s_mb_%s" % (tempnam,dset,cat,dim,cut_s),"fitPdfs_%s_%s_%s_mb_%s" % (tempname,cat,dim,cut_s),ArgListPdf  )
-                        else:
-                            fitUnrolledPdf=ROOT.RooAddPdf("fitPdfs_%s%s%s_%s_mb_%s" % (tempname,dset,cat,dim,cut_s),"fitPdfs_%s_%s_%s_mb_%s" % (tempname,cat,dim,cut_s),ArgListPdf,pu_estimates,True )
+                        fitUnrolledPdf=ROOT.RooAddPdf("fitPdfs_%s%s%s_%s_mb_%s" % (tempname,dset,cat,dim,cut_s),"fitPdfs_%s_%s_%s_mb_%s" % (tempname,cat,dim,cut_s),ArgListPdf,pu_estimates,True )
                         self.workspace_.rooImport(fitUnrolledPdf)
               #save roofitresult in outputfile
                         data_massc.Print()
@@ -1071,22 +1057,14 @@ class TemplatesFitApp(TemplatesApp):
                         fit_studies = fitUnrolledPdf.fitTo(data_massc, RooFit.NumCPU(8),RooFit.Strategy(2),RooFit.Extended(extended_fit),RooFit.SumW2Error(False),RooFit.Save(True))
                         pu_pp=fpp.getParameter("jpp").getVal()
                         err_pp=fpp.getParameter("jpp").getError()
-                        if extended_fit:
-                            norm=fpp.getParameter("jnorm").getVal()
-                            norm_err=fpp.getParameter("jnorm").getError()
-                            pu_npp=fpp.getVal()
-                            err_npp=fpp.getPropagatedError(fit_mcstudies)
+                        print "pu_pp",pu_pp, "err_pp",err_pp
                         if len(components)>2: 
-                            if not extended_fit:
-                                fpu_pf= ROOT.RooFormulaVar("fpu_pf","fpu_pf","(1-@0)*@1",ROOT.RooArgList(fpp.getParameter("jpp"),fpf.getParameter("jpf")))
-                                pu_pf=fpu_pf.getVal()
-                                err_pf=fpu_pf.getPropagatedError(fit_studies)
-                                fpu_ff=ROOT.RooFormulaVar("fpu_ff","fpu_ff","(1-@0)*(1-@1)",ROOT.RooArgList(fpp.getParameter("jpp"),fpf.getParameter("jpf")))
-                                pu_ff=fpu_ff.getVal()
-                                err_ff=fpu_ff.getPropagatedError(fit_studies)
-                            else:
-                                pu_npf=fpf.getVal()
-                                err_npf=fpf.getPropagatedError(fit_studies)
+                            fpu_pf= ROOT.RooFormulaVar("fpu_pf","fpu_pf","(1-@0)*@1",ROOT.RooArgList(fpp.getParameter("jpp"),fpf.getParameter("jpf")))
+                            pu_pf=fpu_pf.getVal()
+                            err_pf=fpu_pf.getPropagatedError(fit_studies)
+                            fpu_ff=ROOT.RooFormulaVar("fpu_ff","fpu_ff","(1-@0)*(1-@1)",ROOT.RooArgList(fpp.getParameter("jpp"),fpf.getParameter("jpf")))
+                            pu_ff=fpu_ff.getVal()
+                            err_ff=fpu_ff.getPropagatedError(fit_studies)
                             covariance_studies=fit_studies.covarianceMatrix()
                             correlation_studies=fit_studies.correlationMatrix()
                             self.workspace_.rooImport(covariance_studies, "covariance_studies_%i"%k)
@@ -1096,16 +1074,10 @@ class TemplatesFitApp(TemplatesApp):
                             pu_pf=1-pu_pp
                             pu_ff=0.
                             err_ff=0.
-                            if extended_fit:
-                                pu_npf=1-pu_npp
-                                err_npf=0.
                             err_pf=err_pp
                         print
-                        if dodata and not extended_fit:
+                        if dodata:
                             tps[k].Fill(pu_pp,err_pp,pu_pf,err_pf,pu_ff,err_ff,tree_mass.massbin,tree_mass.masserror)
-                        if dodata and extended_fit:
-                            tps[k].Fill(pu_pp,err_pp,pu_pf,err_pf,tree_mass.massbin,tree_mass.masserror)
-                        
                         if dodata and not (jkpp or jkpf):
                                 self.plotFit(observable,fitUnrolledPdf,ArgListPdf,data_massc,components,cat,log=True,i=k) 
                                 self.plotFit(observable,fitUnrolledPdf,ArgListPdf,data_massc,components,cat,log=False,i=k)
@@ -1119,7 +1091,7 @@ class TemplatesFitApp(TemplatesApp):
                             if err_pp !=0:ratSig_pp=errSig_pp/err_pp
                             else:ratSig_pp=0.
                             print pu_pp, fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal(),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal(), puSig_pp
-                            if len(components)==2:
+                             if len(components)==2:
                                 puSig_pf=1-puSig_pp
                                 errSig_pf=errSig_pp
                                 if err_pf !=0: ratSig_pf=errSig_pf/err_pf
@@ -1133,7 +1105,7 @@ class TemplatesFitApp(TemplatesApp):
                                 puSig_pf=fpuSig_pf.getVal()
                                 errSig_pf=fpuSig_pf.getPropagatedError(fit_studies)
                                 ratSig_pf=errSig_pf/err_pf
-                                fpuSig_ff= ROOT.RooFormulaVar("fpuSig_ff","fpuSig_ff","(@0*@1)/@2",ROOT.RooArgList(fpu_ff,fitUnrolledPdf.pdfList()[2].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion")))
+                               fpuSig_ff= ROOT.RooFormulaVar("fpuSig_ff","fpuSig_ff","(@0*@1)/@2",ROOT.RooArgList(fpu_ff,fitUnrolledPdf.pdfList()[2].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion")))
                                 puSig_ff=fpuSig_ff.getVal()
                                 errSig_ff=fpuSig_ff.getPropagatedError(fit_studies)
                                 ratSig_ff=errSig_ff/err_ff
@@ -1146,13 +1118,8 @@ class TemplatesFitApp(TemplatesApp):
                         jpp.setVal(0.8)
                         jpf.setVal(0.2)
                         fit_mcstudies = fitUnrolledPdf.fitTo(data_massc, RooFit.NumCPU(8),RooFit.Strategy(2),RooFit.Extended(extended_fit),RooFit.SumW2Error(True),RooFit.Save(True))
-                        if extended_fit: 
-                            jnorm.setVal(entries)
-                            puerr_npp=fpp.getPropagatedError(fit_mcstudies)
                         puerr_pp=fpp.getParameter("jpp").getError()
                         if len(components)>2:
-                            if extended_fit:
-                               puerr_npf=fpf.getPropagatedError(fit_mcstudies)
                             puerr_pf=fpf.getParameter("jpf").getError()
                             covariance_mcstudies=fit_mcstudies.covarianceMatrix()
                             correlation_mcstudies=fit_mcstudies.correlationMatrix()
@@ -1160,18 +1127,15 @@ class TemplatesFitApp(TemplatesApp):
                             self.workspace_.rooImport(correlation_mcstudies,"correlation_mcstudies")
                             self.workspace_.rooImport(fit_mcstudies,"fit_mcstudies")
                         else: 
-                            if extended_fit:
-                                puerr_npf=0.
                             puerr_pf=0.
                         print "puerr_pp " ,puerr_pp, " puerr_pf " ,puerr_pf
-                    if extended_fit and not dodata:
-                        ntp.Fill(norm,pu_npp,puerr_npp,err_npp,pu_npf,puerr_npf,err_npf,tree_mass.massbin,tree_mass.masserror )
                     if not dodata:
                         tp.Fill(pu_pp,puerr_pp,err_pp,pu_pf,puerr_pf,err_pf,pu_ff,err_ff,tree_mass.massbin,tree_mass.masserror )
                 if jkpf or jkpp:
                     self.plotJKpurity(options,cat,dim,tps,jkID)
                 print "done fit ...."
                 print
+                return
     ## ---------------#--------------------------------------------------------------------------------------------
     
     
