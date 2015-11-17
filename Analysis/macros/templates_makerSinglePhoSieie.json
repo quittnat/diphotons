@@ -14,22 +14,18 @@
     "#" : "  fromat is <sample-name>:[[input-file][/file-folder]] order irrelevant                                                               ",
 	
     "#" : "data to be fit                                                                                                       ",
-    "_data" : [
+    "data" : [
                "GGJets_M_200To13000_sherpa_13TeV:__infile__/%(sel)sGenIso",
                "GGJets_M_200To13000_sherpa_13TeV:__infile__/%(sel)sNonGenIso",
-               "QCD_HT_100toInf_13TeV:__infile__/%(sel)s",
+               "QCD_Pt_30toInf_13TeV:output.root/%(sel)s",
                "GJets_HT_100toInf_13TeV:__infile__/%(sel)s"            
              ],
-
-    "data" : [
-               "Data_13TeV:__infile__/%(sel)s"
-             ],
-
-    "#" : "data used for template making",
-    "templates" : [
-               "Data_13TeV:__infile__/%(sel)s"
-             ],
     "templatesMC" : [
+               "GGJets_M_200To13000_sherpa_13TeV:__infile__/%(sel)s",
+               "GJets_HT_100toInf_13TeV:__infile__/%(sel)s",      
+               "QCD_Pt_30toInf_13TeV:__infile__/%(sel)s"
+             ],
+    "templates" : [
                "GGJets_M_200To13000_sherpa_13TeV:__infile__/%(sel)s",
                "GJets_HT_100toInf_13TeV:__infile__/%(sel)s",      
                "QCD_Pt_30toInf_13TeV:__infile__/%(sel)s"
@@ -174,7 +170,7 @@
     "aliases"  : [ 
 
                "phoIsEB    := abs(phoScEta) < 1.5",
-               "phoIsSB    := (((phoPhoIso - rho*phoPhoIsoEA) -0.0045*phoPt < 2. ) && (phoIsEB    && (phoSigmaIeIe    > 0.0112) ))||( ((phoPhoIso - rho*phoPhoIsoEA) -0.003*phoPt < 11. ) &&!phoIsEB    && (phoSigmaIeIe>0.03 )  )",
+               "phoIsSB    := (((phoPhoIso - rho*phoPhoIsoEA) -0.0045*phoPt < 2. ) && (phoIsEB ))||( ((phoPhoIso - rho*phoPhoIsoEA) -0.003*phoPt < 11. ) &&!phoIsEB   )",
                "leadIsEB    := abs(leadScEta) < 1.5",
                "subleadIsEB := abs(subleadScEta) < 1.5",
                "leadIsSB := (((leadPhoIso - rho*leadPhoIsoEA) -0.0045*leadPt < 2. ) && (leadIsEB    && (leadSigmaIeIe    > 0.0112) ))||( ((leadPhoIso - rho*leadPhoIsoEA) -0.003*leadPt < 11. ) &&!leadIsEB    && (leadSigmaIeIe>0.03    )  )",

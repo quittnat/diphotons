@@ -437,6 +437,7 @@ class TemplatesApp(PlotApp):
         self.datasets_["templates"]   = self.openDataset(None,options.data_file,options.infile,options.templates)
         if not options.prep_data:
             self.datasets_["mc"]   = self.openDataset(None,options.mc_file,options.infile,options.mc)
+        if not options.prep_data:
             self.datasets_["templatesMC"]   = self.openDataset(None,options.mc_file,options.infile,options.templatesMC)
        
         if not (options.prep_data or options.prep_nosig):
@@ -481,6 +482,7 @@ class TemplatesApp(PlotApp):
             categories      = fit["categories"]
             if not options.prep_data:
                 truth_selection = fit["truth_selection"]
+            if not options.prep_data:
                 if not options.prep_nosig:
                     signals         = fit.get("signals",[])
                     if signals == "__all__":

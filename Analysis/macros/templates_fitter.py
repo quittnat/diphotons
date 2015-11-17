@@ -248,16 +248,16 @@ class TemplatesFitApp(TemplatesApp):
                         mass_split= [int(x) for x in options.fit_massbins]
                         print mass_split
                         #diphomass=self.massquantiles(dset_data,massargs,mass_b,mass_split)
-                       # if cat=="EBEB":
-                       #     diphomass=[200.0,12999.]
-                       # if cat=="EBEE":
-                       #     diphomass=[299.0,12999.]
+                        if cat=="EBEB":
+                            diphomass=[200.0,12999.]
+                        if cat=="EBEE":
+                            diphomass=[299.0,12999.]
                         massrange=[mass_split[2],mass_split[1]]
                     elif options.fixed_massbins and cat=="EBEB":
-                        diphomass=[200.0,216.187076923,230.0,253.415384615,281.651965812,295.277948718,332.332307692,408.787692308,500.0,600.,12999.0]
+                        diphomass=[200.0,216.187076923,230.0,253.415384615,281.651965812,295.277948718,332.332307692,408.787692308,500.0,600.,700.,12999.0]
                         massrange=[0,len(diphomass)-1]
                     elif options.fixed_massbins and cat=="EBEE":
-                        diphomass=[299.446153846,320.0,355.459828644,443.85640967,500.0,600.0,12999.0153846]
+                        diphomass=[299.446153846,320.0,355.459828644,443.85640967,500.0,600.0,700.,12999.0153846]
                         massrange=[0,len(diphomass)-1]
                     truth_pp= "mctruth_%s_%s_%s" % (compname,fitname,cat)
                     if d2:
@@ -442,7 +442,7 @@ class TemplatesFitApp(TemplatesApp):
                 rootemplate_binning=ROOT.RooBinning(len(template_binning),template_binning,"rootemplate_binning")
                 unrollvar=ROOT.RooArgList(templateNdim2d_unroll) 
               #  templateNdim2d_unroll.setBinning(rootemplate_binning)
-            if plot:
+            if plot and "template_pp" in tempur.GetTitle():
                 c1.cd(pad_it)
                 ROOT.gPad.SetLogz()
                 temp2d.Draw("COLZ")
@@ -471,7 +471,7 @@ class TemplatesFitApp(TemplatesApp):
             title="histo_%s_%s_%s" %(comp,cat,mcut_s)
        #     self.plotHistos(histlsX,"%s_X" %title,template_binning,False,True,logx=True,logy=True)
         #    self.plotHistos(histlsY,"%s_Y" %title,template_binning,False,True,logx=True,logy=True)
-     #       self.plotHistos(histlistunroll,"%s_unrolled" % (title),tempunroll_binning,False,True,False,True)
+            self.plotHistos(histlistunroll,"%s_unrolled" % (title),tempunroll_binning,False,True,False,True)
             self.keep( [c1] )
             self.autosave(True)
         else: return histlistunroll 
@@ -714,23 +714,23 @@ class TemplatesFitApp(TemplatesApp):
         b.SetNDC()
         b.SetTextSize(0.035)
         b.SetTextColor(ROOT.kBlack)
+        denominator=0
         if "unroll" in title:
                 leg = ROOT.TLegend(0.2,0.2,0.4,0.4)
-        else:leg = ROOT.TLegend(0.65,0.75,0.85,0.9  )
+        else:leg = ROOT.TLegend(0.65,0.65,0.85,0.9  )
         leg.SetFillColor(ROOT.kWhite)
        # leg.SetHeader("#%s " % numEntries)
         canv = ROOT.TCanvas(title,title)
-        if not doDataMc:
-            canv.Divide(1,2)
-            canv.cd(1)
-            ROOT.gPad.SetPad(0., 0.35, 1., 1.0)
-            canv.cd(2)
-            ROOT.gPad.SetPad(0., 0., 1., 0.35)
-            ROOT.gPad.SetGridy()
-        ROOT.gPad.SetLogy()
+        canv.Divide(1,2)
         canv.cd(1)
+        ROOT.gPad.SetPad(0., 0.3, 1., 1.0)
+        ROOT.gPad.SetLogy()
         if logx:
             ROOT.gPad.SetLogx()
+        canv.cd(2)
+        ROOT.gPad.SetPad(0., 0.0, 1., 0.3)
+        ROOT.gPad.SetGridy()
+        canv.cd(1)
         # for dataMc plot MC as filled and data as points
         histstart=0
         ymin=5e-3
@@ -749,6 +749,7 @@ class TemplatesFitApp(TemplatesApp):
             mctruth_expectedStyle =  [["SetFillStyle",3004],["SetFillColorAlpha",(ROOT.kRed,0.0)],["SetLineColor",ROOT.kRed]]
             mc_expectedStyle =[["SetFillStyle",3004],["SetFillColorAlpha",(ROOT.kAzure+2,0.0)],["SetLineColor",ROOT.kAzure+2]]
             data_expectedStyle =[["SetLineWidth",3],["SetMarkerStyle",20],["SetMarkerSize",2.0],["SetMarkerColor",ROOT.kBlack],["SetLineColor",ROOT.kBlack]]
+            ratio_expectedStyle =[["SetLineWidth",3],["SetMarkerStyle",34],["SetMarkerSize",1.3],["SetMarkerColor",ROOT.kAzure+2],["SetLineColor",ROOT.kAzure+2]]
             if "mctruth" in histlist[i].GetName():
                 style_utils.apply(histlist[i],mctruth_expectedStyle)
                 if i==histstart:histlist[i].Draw("E2")
@@ -771,7 +772,7 @@ class TemplatesFitApp(TemplatesApp):
           #  ymax = max(ymax,histlist[histstart].GetMaximum())
             #histlist[i].GetYaxis().SetRangeUser(1e-4,ymax*2.)
             histlist[i].GetXaxis().SetRangeUser(minX,15.)
-            b.DrawLatex(0.45,.94,"#int L dt=1.7 /fb  CMS PRELIMINARY")
+            b.DrawLatex(0.45,.94,"#int L dt=2.4 /fb  CMS PRELIMINARY")
         if "unroll" in title:
             ymin = 1.e-5
             histlist[i].GetXaxis().SetRangeUser(minX,9.)
@@ -780,25 +781,18 @@ class TemplatesFitApp(TemplatesApp):
         leg.Draw()
         #change for data mc comparison 
         canv.cd(2)
-        ratios.Divide(denominator)
-       # 
-       # ratios[0].GetYaxis().SetTitleSize( histlist[0].GetYaxis().GetTitleSize() * 3.5/3.5 )
-       # ratios[0].GetYaxis().SetLabelSize( histlist[0].GetYaxis().GetLabelSize() * 6.5/3.5 )
-       # ratios[0].GetYaxis().SetTitleOffset( histlist[0].GetYaxis().GetTitleOffset() * 6.5/3.5 )
-        #ratios[0].GetXaxis().SetTitleSize( histlist[0].GetXaxis().GetTitleSize() * 4.5/3.5 )
-        #ratios[0].GetXaxis().SetLabelSize( histlist[0].GetXaxis().GetLabelSize() * 6.5/3.5 )
-        #if dim1:
-        #    ratios[0].GetXaxis().SetTitle(title[-17:])
-        #else:
-        #    ratios[0].GetXaxis().SetTitle("charged particle flow isolation (GeV)")
-        #ratios[0].Draw()        
-        #ratios[0].GetYaxis().SetTitle("ratio")
-        #ratios[0].GetXaxis().SetLimits(-1.0,15.)
-        #ratios[0].GetYaxis().SetRangeUser(-2,2)
-       # for r in ratios[1:]:
-        #    r.Draw("same")
-        ROOT.gStyle.SetOptStat(0)
-            #  ROOT.gStyle.SetOptTitle(0)
+        if denominator !=0:
+            style_utils.apply(ratios,ratio_expectedStyle)
+            ratios.Divide(denominator)
+            ratios.Draw()        
+            ratios.GetYaxis().SetTitleSize( histlist[histstart].GetYaxis().GetTitleSize() * 7.0/3.0 )
+            ratios.GetYaxis().SetLabelSize( histlist[histstart].GetYaxis().GetLabelSize() *  7.0/3.0 )
+            ratios.GetYaxis().SetTitleOffset(histlist[histstart].GetYaxis().GetTitleOffset() *  3.0/7.0 )
+            ratios.GetXaxis().SetLabelSize( histlist[histstart].GetXaxis().GetLabelSize() *  7.0/3.0 )
+            ratios.GetYaxis().SetTitle("MCtemp/MCtruth")
+            ratios.GetXaxis().SetRangeUser(minX,15.)
+            ratios.GetYaxis().SetRangeUser(0.,3.5)
+            ROOT.gStyle.SetOptStat(0)
         self.keep( [canv] )
         self.autosave(True)
             
@@ -1218,14 +1212,14 @@ class TemplatesFitApp(TemplatesApp):
             leg.AddEntry("ff","fake-fake ","l")
         leg.Draw()
         if data:
-            b.DrawLatex(0.45,.94,"#int L dt=1.7 /fb  CMS PRELIMINARY")
+            b.DrawLatex(0.45,.94,"#int L dt=2.4 /fb  CMS PRELIMINARY")
         self.keep([cFit])
         self.autosave(True)
 
     ## ------------------------------------------------------------------------------------------------------------
     def plotPurity(self,options,args):
         
-        comp=2
+        comp=3
         treetruthname=options.plotPurity["treetruth"]
         dim=options.plotPurity["dimensions"]
         categories = options.plotPurity["categories"]
@@ -1500,11 +1494,11 @@ class TemplatesFitApp(TemplatesApp):
         style_utils.apply(g_ratiopp, [["colors",ROOT.kRed]]+mc_expectedStyle )
         g_ratiopp.GetYaxis().SetTitle("pull fct")
         g_ratiopp.GetYaxis().SetRangeUser(-3.,3.)
-        g_ratiopp.GetYaxis().SetTitleSize( g_templatepp.GetYaxis().GetTitleSize() *6./3. )
+        g_ratiopp.GetYaxis().SetTitleSize( g_templatepp.GetYaxis().GetTitleSize() *7./3. )
         g_ratiopp.GetYaxis().SetLabelSize( g_templatepp.GetYaxis().GetLabelSize()*7./3.  )
         g_ratiopp.GetYaxis().SetTitleOffset(g_templatepp.GetYaxis().GetTitleOffset()*3./7. )
-        g_ratiopp.GetXaxis().SetTitleSize( g_templatepp.GetXaxis().GetTitleSize() *7./3. )
-        g_ratiopp.GetXaxis().SetLabelSize( g_templatepp.GetXaxis().GetLabelSize()*7./4. )
+        g_ratiopp.GetXaxis().SetTitleSize( g_templatepp.GetXaxis().GetTitleSize() *4./3. )
+        g_ratiopp.GetXaxis().SetLabelSize( g_templatepp.GetXaxis().GetLabelSize()*7./3. )
         g_ratiopp.GetXaxis().SetLimits(200.,5000.)
         g_ratiopp.GetXaxis().SetMoreLogLabels()
         g_ratiopp.Draw("AP")
@@ -1573,16 +1567,16 @@ class TemplatesFitApp(TemplatesApp):
         leg.AddEntry(g_templatepf,"#gamma j data","lp")
         leg.AddEntry(g_templateff,"j j data","lp")
         leg.Draw()
-        b.DrawLatex(0.45,.94,"#int L dt=1.7 /fb  CMS PRELIMINARY")
+        b.DrawLatex(0.45,.94,"#int L dt=2.4 /fb  CMS PRELIMINARY")
         if g_ratiopp:
                 cpu.cd(2)
                 style_utils.apply(g_ratiopp, [["colors",ROOT.kRed]]+data_expectedStyle )
                 g_ratiopp.GetYaxis().SetTitle("pull fct")
                 g_ratiopp.GetYaxis().SetRangeUser(-3,3)
-                g_ratiopp.GetYaxis().SetTitleSize( g_templatepp.GetYaxis().GetTitleSize() *6./3. )
+                g_ratiopp.GetYaxis().SetTitleSize( g_templatepp.GetYaxis().GetTitleSize() *7./3. )
                 g_ratiopp.GetYaxis().SetLabelSize( g_templatepp.GetYaxis().GetLabelSize()*7./3.  )
-                g_ratiopp.GetYaxis().SetTitleOffset(g_templatepp.GetYaxis().GetTitleOffset()*3/5. )
-                g_ratiopp.GetXaxis().SetTitleSize( g_templatepp.GetXaxis().GetTitleSize() *7./3. )
+                g_ratiopp.GetYaxis().SetTitleOffset(g_templatepp.GetYaxis().GetTitleOffset()*3/7. )
+                g_ratiopp.GetXaxis().SetTitleSize( g_templatepp.GetXaxis().GetTitleSize() *4./3. )
                 g_ratiopp.GetXaxis().SetLabelSize( g_templatepp.GetXaxis().GetLabelSize()*7./3. )
                 g_ratiopp.GetXaxis().SetLimits(200.,5000.)
                 g_ratiopp.GetXaxis().SetMoreLogLabels()
