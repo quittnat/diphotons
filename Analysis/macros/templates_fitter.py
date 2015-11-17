@@ -244,6 +244,8 @@ class TemplatesFitApp(TemplatesApp):
                     setargs.Print()
                     dset_data = self.reducedRooData("data_%s_%s" % (fitname,catd),setargs,False,sel=weight_cut,redo=ReDo)
                     dset_mc = self.reducedRooData("mc_%s_%s" % (fitname,catd),setargs,False,sel=weight_cut,redo=ReDo)
+                    #mass_split= [int(x) for x in options.fit_massbins]
+                   # diphomass=self.massquantiles(dset_data,massargs,mass_b,mass_split)
                     if not options.fixed_massbins:
                         mass_split= [int(x) for x in options.fit_massbins]
                         print mass_split
@@ -254,10 +256,10 @@ class TemplatesFitApp(TemplatesApp):
                             diphomass=[299.0,12999.]
                         massrange=[mass_split[2],mass_split[1]]
                     elif options.fixed_massbins and cat=="EBEB":
-                        diphomass=[200.0,216.187076923,230.0,253.415384615,281.651965812,295.277948718,332.332307692,408.787692308,500.0,600.,700.,12999.0]
+                        diphomass=[200.0,216.187076923,230.0,253.415384615,281.651965812,295.277948718,332.332307692,408.787692308,500.0,600.,800.,12999.0]
                         massrange=[0,len(diphomass)-1]
                     elif options.fixed_massbins and cat=="EBEE":
-                        diphomass=[299.446153846,320.0,355.459828644,443.85640967,500.0,600.0,700.,12999.0153846]
+                        diphomass=[299.446153846,320.0,355.459828644,443.85640967,500.0, 600.,800.,12999.0153846]
                         massrange=[0,len(diphomass)-1]
                     truth_pp= "mctruth_%s_%s_%s" % (compname,fitname,cat)
                     if d2:
@@ -1104,10 +1106,10 @@ class TemplatesFitApp(TemplatesApp):
                         if dodata and extended_fit:
                             tps[k].Fill(pu_pp,err_pp,pu_pf,err_pf,tree_mass.massbin,tree_mass.masserror)
                         
-                        if dodata:
+                        if dodata and not (jkpp or jkpf):
                                 self.plotFit(observable,fitUnrolledPdf,ArgListPdf,data_massc,components,cat,log=True,i=k) 
                                 self.plotFit(observable,fitUnrolledPdf,ArgListPdf,data_massc,components,cat,log=False,i=k)
-                        else:
+                        elif not (jkpp or jkpf):
                                 self.plotFit(observable,fitUnrolledPdf,ArgListPdf,data_massc,components,cat,log=True,i=k) 
                                 self.plotFit(observable,fitUnrolledPdf,ArgListPdf,data_massc,components,cat,log=False,i=k)
                         if options.pu_sigregion:
@@ -1289,15 +1291,16 @@ class TemplatesFitApp(TemplatesApp):
                 tot_err=True
                 #todo last JK correctly
                 if data and tot_err:
-                    if cat=="EBEB": JK=[0.0139109553524065,0.00959013747087344,0.0116646894784206, 0.0117471711709682, 0.019751798623848,0.0177599723287563, 0.0147565968015614, 0.0248929144203025 ,0.0119405285994062,0.0119405285994062]
-                    else: JK=[0.0619663846038683,0.0321605557968228, 0.0505903441500092, 0.0664021481494921  ,0.0391118445030965,0.0391118445030965]
+                    if cat=="EBEB": JK=[0.0139109553524065,0.00959013747087344,0.0116646894784206, 0.0117471711709682, 0.019751798623848,0.0177599723287563, 0.0147565968015614, 0.0248929144203025 ,0.0119405285994062,0.0119405285994062,0.0119405285994062]
+
+                    else: JK=[0.0619663846038683,0.0321605557968228, 0.0505903441500092, 0.0664021481494921  ,0.0391118445030965,0.0391118445030965,0.0391118445030965,0.0391118445030965]
                     
                 for mb in range(0,nentries):
                     if data:
                         tree_template.GetEntry(mb)
                         if mb==nentries-1:
                             massbin=5500/2.
-                            masserror=4300/2.
+                            masserror=1950.
                         else:
                             massbin=tree_template.massbin
                             masserror=tree_template.masserror
@@ -1356,7 +1359,7 @@ class TemplatesFitApp(TemplatesApp):
                         tree_templatemc.GetEntry(mb)
                         if mb==nentries-1:
                             massbin=5500/2.
-                            masserror=4300/2.
+                            masserror=1950.
                         else:
                             massbin=tree_templatemc.massbin
                             masserror=tree_templatemc.masserror
@@ -1472,7 +1475,7 @@ class TemplatesFitApp(TemplatesApp):
         style_utils.apply(g_mctruthpf, [["colors",ROOT.kBlue]]+mctruth_expectedStyle )
         style_utils.apply(g_templateff, [["colors",ROOT.kBlack]]+mc_expectedStyle )
         style_utils.apply(g_mctruthff, [["colors",ROOT.kBlack]]+mctruth_expectedStyle )
-        g_templatepp.GetYaxis().SetRangeUser(-0.1,1.7)
+        g_templatepp.GetYaxis().SetRangeUser(-0.1,1.9)
         g_templatepp.GetXaxis().SetLimits(200.,5000.)
         g_templatepp.Draw("AP")
         g_templatepp.GetXaxis().SetMoreLogLabels()
@@ -1546,7 +1549,7 @@ class TemplatesFitApp(TemplatesApp):
             style_utils.apply(g_syspp, [["SetFillStyle",3002],["colors",ROOT.kRed]]+data_expectedStyle )
             style_utils.apply(g_syspf, [["SetFillStyle",3002],["colors",ROOT.kBlue]]+data_expectedStyle )
             style_utils.apply(g_sysff, [["SetFillStyle",3002],["colors",ROOT.kBlack]]+data_expectedStyle )
-        g_templatepp.GetYaxis().SetRangeUser(0.,1.75)
+        g_templatepp.GetYaxis().SetRangeUser(0.,1.9)
         g_templatepp.GetXaxis().SetLimits(200.,5000.)
         g_templatepp.Draw("AP")
         g_templatepf.Draw("P SAME")
@@ -1620,10 +1623,10 @@ class TemplatesFitApp(TemplatesApp):
                 diphomass=self.massquantiles(dset_data,massargs,mass_b,mass_split)
                 massrange=[mass_split[2],mass_split[1]]
             elif options.fixed_massbins and cat=="EBEB":
-                diphomass=[200.0,216.187076923,230.0,253.415384615,281.651965812,295.277948718,332.332307692,408.787692308,500.0,12999.0]
+                diphomass=[200.0,216.187076923,230.0,253.415384615,281.651965812,295.277948718,332.332307692,408.787692308,500.0,600.,800.,12999.0]
                 massrange=[0,len(diphomass)-1]
             elif options.fixed_massbins and cat=="EBEE":
-                diphomass=[299.446153846,320.0,355.459828644,443.85640967,500.0,12999.0153846]
+                diphomass=[299.446153846,320.0,355.459828644,443.85640967,500.0, 600.,800.,12999.0153846]
                 massrange=[0,len(diphomass)-1]
             for mb in range(massrange[0],massrange[1]):
                 massbin=(diphomass[mb]+diphomass[mb+1])/2.
@@ -1710,7 +1713,7 @@ class TemplatesFitApp(TemplatesApp):
                 masserror=tree_template.masserror
                 if mb==nentries-1:
                     massbin=5500/2.
-                    masserror=4500/2.
+                    masserror=1950.
                 else:
                     massbin=tree_template.massbin
                     masserror=tree_template.masserror
@@ -1729,7 +1732,7 @@ class TemplatesFitApp(TemplatesApp):
             nom_tree.GetEntry(mb)
             if mb==nentries-1:
                 massbin=5500/2.
-                masserror=4500/2.
+                masserror=1950.
             else:
                 massbin=nom_tree.massbin
                 masserror=nom_tree.masserror
@@ -1760,7 +1763,7 @@ class TemplatesFitApp(TemplatesApp):
         g_ratio.SetMarkerSize(1.0)
         g_ratio.SetMarkerStyle(20)
         g_ratio.Draw("AP" )
-        g_ratio.GetXaxis().SetTitle("Diphoton mass [GeV]")
+        #g_ratio.GetXaxis().SetTitle("Diphoton mass [GeV]")
         g_ratio.GetYaxis().SetTitleSize( g_purity.GetYaxis().GetTitleSize() )
         g_ratio.GetYaxis().SetLabelSize( g_purity.GetYaxis().GetLabelSize()  )
         g_ratio.GetYaxis().SetTitleOffset(g_purity.GetYaxis().GetTitleOffset() )
@@ -1800,7 +1803,7 @@ class TemplatesFitApp(TemplatesApp):
         g_puratio.SetMarkerSize(1.3)
         g_puratio.SetMarkerStyle(20)
         g_puratio.Draw("AP")
-        g_puratio.GetXaxis().SetTitle("Diphoton mass [GeV]")
+        #g_puratio.GetXaxis().SetTitle("Diphoton mass [GeV]")
         g_puratio.GetYaxis().SetTitle("fullerr/purity")
         g_puratio.GetXaxis().SetLimits(200.,5000.)
         g_puratio.GetYaxis().SetRangeUser(-0.3,0.3)
