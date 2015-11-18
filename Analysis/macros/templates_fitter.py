@@ -1091,7 +1091,7 @@ class TemplatesFitApp(TemplatesApp):
                             if err_pp !=0:ratSig_pp=errSig_pp/err_pp
                             else:ratSig_pp=0.
                             print pu_pp, fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal(),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal(), puSig_pp
-                             if len(components)==2:
+                            if len(components)==2:
                                 puSig_pf=1-puSig_pp
                                 errSig_pf=errSig_pp
                                 if err_pf !=0: ratSig_pf=errSig_pf/err_pf
@@ -1105,7 +1105,7 @@ class TemplatesFitApp(TemplatesApp):
                                 puSig_pf=fpuSig_pf.getVal()
                                 errSig_pf=fpuSig_pf.getPropagatedError(fit_studies)
                                 ratSig_pf=errSig_pf/err_pf
-                               fpuSig_ff= ROOT.RooFormulaVar("fpuSig_ff","fpuSig_ff","(@0*@1)/@2",ROOT.RooArgList(fpu_ff,fitUnrolledPdf.pdfList()[2].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion")))
+                                fpuSig_ff= ROOT.RooFormulaVar("fpuSig_ff","fpuSig_ff","(@0*@1)/@2",ROOT.RooArgList(fpu_ff,fitUnrolledPdf.pdfList()[2].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion")))
                                 puSig_ff=fpuSig_ff.getVal()
                                 errSig_ff=fpuSig_ff.getPropagatedError(fit_studies)
                                 ratSig_ff=errSig_ff/err_ff
@@ -1135,7 +1135,6 @@ class TemplatesFitApp(TemplatesApp):
                     self.plotJKpurity(options,cat,dim,tps,jkID)
                 print "done fit ...."
                 print
-                return
     ## ---------------#--------------------------------------------------------------------------------------------
     
     
@@ -1202,11 +1201,11 @@ class TemplatesFitApp(TemplatesApp):
                         tree_templateRat=self.treeData("fitresult_fraction_RatsigRegion_unrolled_%s_%s_%s"%(opt,dim, cat))
                     else:
                         tree_template=self.treeData("fitresult_fraction_unrolled_%s_%s_%s"%(opt,dim, cat))
-                    g_templatepp=ROOT.TGraphErrors(tree_template.GetEntries())
+                    g_templatepp=ROOT.TGraphAsymmErrors(tree_template.GetEntries())
                     g_templatepf=ROOT.TGraphErrors(tree_template.GetEntries())
                     g_templateff=ROOT.TGraphErrors(tree_template.GetEntries())
                     g_ratiopp=ROOT.TGraphErrors(tree_template.GetEntries())
-                    g_syspp=ROOT.TGraphErrors(tree_template.GetEntries())
+                    g_syspp=ROOT.TGraphAsymmErrors(tree_template.GetEntries())
                     g_syspf=ROOT.TGraphErrors(tree_template.GetEntries())
                     g_sysff=ROOT.TGraphErrors(tree_template.GetEntries())
                     nentries=tree_template.GetEntries()
@@ -1220,7 +1219,7 @@ class TemplatesFitApp(TemplatesApp):
                     else:
                         tree_templatemc=self.treeData("fitresult_fraction_mc_unrolled_%s_%s_%s"%(opt,dim, cat))
                         tree_mctruth=self.treeData("fitresult_fraction_mc_unrolled_mctruth_%s_%s"%( dim, cat))
-                    g_templateppmc=ROOT.TGraphErrors(tree_templatemc.GetEntries())
+                    g_templateppmc=ROOT.TGraphAsymmErrors(tree_templatemc.GetEntries())
                     g_templatepfmc=ROOT.TGraphErrors(tree_templatemc.GetEntries())
                     g_templateffmc=ROOT.TGraphErrors(tree_templatemc.GetEntries())
                     nentries=tree_templatemc.GetEntries()
@@ -1241,10 +1240,7 @@ class TemplatesFitApp(TemplatesApp):
                 g_truthpp=ROOT.TGraphErrors(tree_truthpp.GetEntries())
                 g_truthpf=ROOT.TGraphErrors(tree_truthpf.GetEntries())
                 if not data:
-                    g_mctruthpp=ROOT.TGraphErrors(tree_mctruth.GetEntries())
-                    g_mctruthpp=ROOT.TGraphErrors(tree_mctruth.GetEntries())
-                    g_mctruthpf=ROOT.TGraphErrors(tree_mctruth.GetEntries())
-                    g_mctruthff=ROOT.TGraphErrors(tree_mctruth.GetEntries())
+                    g_mctruthpp=ROOT.TGraphAsymmErrors(tree_mctruth.GetEntries())
                     g_mctruthpf=ROOT.TGraphErrors(tree_mctruth.GetEntries())
                     g_mctruthff=ROOT.TGraphErrors(tree_mctruth.GetEntries())
                     g_pullpp=ROOT.TGraphErrors(nentries)
@@ -1255,9 +1251,9 @@ class TemplatesFitApp(TemplatesApp):
                 tot_err=True
                 #todo last JK correctly
                 if data and tot_err:
-                    if cat=="EBEB": JK=[0.0139109553524065,0.00959013747087344,0.0116646894784206, 0.0117471711709682, 0.019751798623848,0.0177599723287563, 0.0147565968015614, 0.0248929144203025 ,0.0119405285994062,0.0119405285994062,0.0119405285994062]
+                    if cat=="EBEB": JK=[0.00969710708263638, 0.00745549032581063, 0.00746436270731503, 0.00687231555828861, 0.010172747399738,   0.0154827562059132,   0.0130907454386619,  0.0252044794540751,  0.0505652363533445,  0.0259307676481065 , 0.0384838948670937]
 
-                    else: JK=[0.0619663846038683,0.0321605557968228, 0.0505903441500092, 0.0664021481494921  ,0.0391118445030965,0.0391118445030965,0.0391118445030965,0.0391118445030965]
+                    else: JK=[0.0677086661319579,    0.0557853121914891,  0.0314866474190474,  0.0807265277265779,  0.0390236237234707,  0.00135495227648337, 0.00294198502876117]
                     
                 for mb in range(0,nentries):
                     if data:
@@ -1277,10 +1273,10 @@ class TemplatesFitApp(TemplatesApp):
                             ff_err=tree_template.error_ff
                         elif tot_err and cat=="EBEB":
                             #sys=0.0723
-                            sys=0.10088
+                            sys=0.084
                         elif tot_err and cat=="EBEE":
                            # sys=0.14852
-                            sys=0.20185
+                            sys=0.158
                         if tot_err:
                             if not options.pu_sigregion:
                                 stat_pp=sqrt(JK[mb]*JK[mb]+tree_template.error_pp*tree_template.error_pp)
@@ -1308,15 +1304,23 @@ class TemplatesFitApp(TemplatesApp):
                             print "ff_p",ff_p, "ff_err",stat_ff,"ff_sys", sqrt(ff_sys)
                             print
                             g_syspf.SetPoint(mb,massbin,pf_p)
-                            g_syspf.SetPointError(mb,masserror,sqrt(pf_sys))
                             g_syspp.SetPoint(mb,massbin,pp_p)
-                            g_syspp.SetPointError(mb,masserror,sqrt(pp_sys))
                             g_sysff.SetPoint(mb,massbin,ff_p)
+                            g_syspf.SetPointError(mb,masserror,sqrt(pf_sys))
+                            if pp_p+sqrt(pp_sys)>1:
+                                new_error=1-pp_p
+                                g_syspp.SetPointError(mb,masserror,masserror,sqrt(pp_sys),new_error)
+                            else:
+                                g_syspp.SetPointError(mb,masserror,masserror,sqrt(pp_sys),sqrt(pp_sys))
                             g_sysff.SetPointError(mb,masserror,sqrt(ff_sys))
                         g_templatepf.SetPoint(mb,massbin,pf_p)
                         g_templatepf.SetPointError(mb,masserror,pf_err)
                         g_templatepp.SetPoint(mb,massbin,pp_p)
-                        g_templatepp.SetPointError(mb,masserror,pp_err)
+                        if pp_p+pp_err>1:
+                            new_error=1-pp_p
+                            g_templatepp.SetPointError(mb,masserror,masserror,pp_err,new_error)
+                        else:
+                            g_templatepp.SetPointError(mb,masserror,masserror,pp_err,pp_err)
                         g_templateff.SetPoint(mb,massbin,ff_p)
                         g_templateff.SetPointError(mb,masserror,ff_err)
                     else:
@@ -1332,10 +1336,18 @@ class TemplatesFitApp(TemplatesApp):
                         g_templateffmc.SetPoint(mb,massbin,tree_templatemc.purity_ff)
                         g_templateffmc.SetPointError(mb,masserror,tree_templatemc.error_ff)
                         g_templateppmc.SetPoint(mb,massbin,tree_templatemc.purity_pp)
-                        g_templateppmc.SetPointError(mb,masserror,tree_templatemc.error_pp)
+                        if tree_templatemc.purity_pp+tree_templatemc.error_pp>1:
+                            new_error=1-tree_templatemc.purity_pp
+                            g_templateppmc.SetPointError(mb,masserror,masserror,tree_templatemc.error_pp,new_error)
+                        else:
+                            g_templateppmc.SetPointError(mb,masserror,masserror,tree_templatemc.error_pp,tree_templatemc.error_pp)
                         tree_mctruth.GetEntry(mb)
                         g_mctruthpp.SetPoint(mb,massbin,tree_mctruth.purity_pp)
-                        g_mctruthpp.SetPointError(mb,masserror,tree_mctruth.error_pp)
+                        if tree_mctruth.purity_pp+tree_mctruth.error_pp>1:
+                            new_error=1-tree_mctruth.purity_pp
+                            g_mctruthpp.SetPointError(mb,masserror,masserror,tree_mctruth.error_pp,new_error)
+                        else:
+                            g_mctruthpp.SetPointError(mb,masserror,masserror,tree_mctruth.error_pp,tree_mctruth.error_pp)
                     tree_truthpp.GetEntry(mb)
                     tree_truthpf.GetEntry(mb)
                     if tree_truthff!=None:
@@ -1705,7 +1717,7 @@ class TemplatesFitApp(TemplatesApp):
             g_puratio.SetPoint(mb+1,massbin,0.)
             g_puerr.SetPoint(mb+1,massbin,nom_tree.purity_pp)
             err=sqrt(pow(rms,2)+pow(nom_tree.error_pp,2) )
-            print mb, rms, err
+            print mb, "rms", rms, "tot err",err
             g_puerr.SetPointError(mb+1,masserror,err)
             g_puratio.SetPointError(mb+1,masserror,err/nom_tree.purity_pp)
         cpurity = ROOT.TCanvas("cpurity%s_%s" % (jkID,cat),"cpurity%s_%s" % (jkID,cat))
