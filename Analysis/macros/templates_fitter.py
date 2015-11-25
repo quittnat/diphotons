@@ -61,30 +61,7 @@ class TemplatesFitApp(TemplatesApp):
     ## ------------------------------------------------------------------------------------------------------------
     def __init__(self,option_list=[],option_groups=[]):
         super(TemplatesFitApp,self).__init__(option_groups=[
-                ( "Fit definition options. Usually specified through JSON configuration (see templates_maker.json for details)", [
-                        make_option("--fit-categories",dest="fit_categories",action="callback",type="string",callback=optpars_utils.ScratchAppend(),help="sets specific category for fit, e.g. EBEB or EBEE",default=["EBEB","EBEE"]),
-                        make_option("--fit-massbins",dest="fit_massbins",action="callback",type="string",callback=optpars_utils.ScratchAppend(),help="sets massbins for fit or templates comparison: first integer is total number of massbins, 2. how many bins we want to run over, 3. startbin",default=["1","1","0"]),
-                        make_option("--fit-templates",dest="fit_templates",action="callback",type="string",callback=optpars_utils.ScratchAppend(),help="get templates for fit: either unrolled_template,unrolled_template_mix or unrolled_mctruth",default=["unrolled_template"]),
-                        make_option("--plot-closure",dest="plot_closure",action="callback",callback=optpars_utils.ScratchAppend(),type="string",
-                                    default=["template"],
-                                    help="choose template or mctruth."),
-                        make_option("--plot-purityvalue",dest="plot_purityvalue",action="callback",callback=optpars_utils.ScratchAppend(),type="string",
-                                    default=["fraction"],
-                                    help="purity either as fraction or as number of events in signalregion.Choose 'fraction' or 'events'"),
-                        make_option("--plot-mctruth",dest="plotMCtruth",action="callback",callback=optpars_utils.ScratchAppend(),type="string",
-                                    default=["mctruth"]),
-                        make_option("--plot-purity",dest="plot_purity",action="store_true",default=False,
-                                    help="Plot purities, purity vs massbin and pull function",
-                                    ),
-                        make_option("--fits",dest="fits",action="callback",callback=optpars_utils.Load(),type="string",
-                                    default={},help="List of templates fits to be performed. Categories, componentd and templates can be specified."),
-                        make_option("--template-binning",dest="template_binning",action="callback",callback=optpars_utils.ScratchAppend(float),
-                                    type="string",
-                                    default=[],
-                                    help="Binning of the parametric observable to be used for templates",
-                                    ),                        
-                        ]
-                  ), ("General templates preparation options", [
+                ("General templates preparation options", [
                         make_option("--compare-templates",dest="compare_templates",action="store_true",default=False,
                                     help="Make templates comparison plots",
                                     ),
@@ -263,8 +240,8 @@ class TemplatesFitApp(TemplatesApp):
                         massrange=[0,len(diphomass)-1]
                     truth_pp= "mctruth_%s_%s_%s" % (compname,fitname,cat)
                     if d2:
-                        tp_mcpu = ROOT.TNtuple("tree_truth_purity_all_%s_%s_%s" % (compname,fitname,cat),"tree_truth_purity_%s_%s_%s" % (compname,fitname,cat),"number_pu:frac_pu:massbin:masserror" )
-                        ntp_mcpu = ROOT.TNtuple("tree_truth_purity_signalregion_%s_%s_%s" % (compname,fitname,cat),"tree_truth_purity_signalrange_%s_%s_%s" % (compname,fitname,cat),"number_pu:frac_pu:massbin:masserror" )
+                        tp_mcpu = ROOT.TNtuple("tree_truth_fraction_all_%s_%s_%s" % (compname,fitname,cat),"tree_truth_fraction_%s_%s_%s" % (compname,fitname,cat),"number_pu:frac_pu:massbin:masserror" )
+                        ntp_mcpu = ROOT.TNtuple("tree_truth_fraction_signalregion_%s_%s_%s" % (compname,fitname,cat),"tree_truth_fraction_signalrange_%s_%s_%s" % (compname,fitname,cat),"number_pu:frac_pu:massbin:masserror" )
                         self.store_[ntp_mcpu.GetName()] =ntp_mcpu
                         self.store_[tp_mcpu.GetName()] =tp_mcpu
 
@@ -371,7 +348,7 @@ class TemplatesFitApp(TemplatesApp):
 
     def histounroll(self,templatelist, template_binning,isoargs,comp,cat,mcut_s,prepfit,sigRegionlow,sigRegionup,extra_shape_unc=None,plot=True):
         pad_it=0
-        c1=ROOT.TCanvas("d2hist_%s" % cat,"2d hists per category",1000,1000) 
+        c1=ROOT.TCanvas("d2hist_%s" % cat,"2d hists per category",1400,1000) 
         c1.Divide(1,2)
         histlistunroll=[]
         print
@@ -717,12 +694,17 @@ class TemplatesFitApp(TemplatesApp):
         b.SetTextSize(0.035)
         b.SetTextColor(ROOT.kBlack)
         denominator=0
-        if "unroll" in title:
-                leg = ROOT.TLegend(0.2,0.2,0.4,0.4)
-        else:leg = ROOT.TLegend(0.65,0.65,0.85,0.9  )
+        if not "ff" in histlist[0].GetName():
+                if "unroll" in title:
+                        leg = ROOT.TLegend(0.2,0.2,0.6,0.4)
+                else:leg = ROOT.TLegend(0.65,0.65,0.85,0.9  )
+        else:
+                if "unroll" in title:
+                        leg = ROOT.TLegend(0.3,0.3,0.5,0.5)
+                else:leg = ROOT.TLegend(0.2,0.2,0.35,0.4  )
         leg.SetFillColor(ROOT.kWhite)
        # leg.SetHeader("#%s " % numEntries)
-        canv = ROOT.TCanvas(title,title)
+        canv = ROOT.TCanvas(title,title,1400,1000)
         canv.Divide(1,2)
         canv.cd(1)
         ROOT.gPad.SetPad(0., 0.3, 1., 1.0)
@@ -736,12 +718,17 @@ class TemplatesFitApp(TemplatesApp):
         # for dataMc plot MC as filled and data as points
         histstart=0
         ymin=5e-3
-        ymax = 1.
+        ymax = 5.
         histlist[histstart].GetYaxis().SetLabelSize( histlist[histstart].GetYaxis().GetLabelSize() * canv.GetWh() / ROOT.gPad.GetWh() )
         k=0
         minX=-0.5
         if dim1:histlist[histstart].GetXaxis().SetTitle(title[-17:])
-        else:histlist[histstart].GetXaxis().SetTitle("charged particle flow isolation (GeV)")
+        if not  "unroll" in title: 
+            histlist[histstart].GetXaxis().SetTitle("charged particle flow isolation (GeV)")
+            histlist[histstart].GetYaxis().SetTitle("arbitary units")
+        else: 
+            histlist[histstart].GetXaxis().SetTitle("bin")
+            histlist[histstart].GetYaxis().SetTitle("arbitary units")
         for i in range(histstart,len(histlist)):
             if "pp" in histlist[histstart].GetName():
                 comp="#gamma #gamma"
@@ -774,7 +761,7 @@ class TemplatesFitApp(TemplatesApp):
           #  ymax = max(ymax,histlist[histstart].GetMaximum())
             #histlist[i].GetYaxis().SetRangeUser(1e-4,ymax*2.)
             histlist[i].GetXaxis().SetRangeUser(minX,15.)
-            b.DrawLatex(0.45,.94,"#int L dt=2.4 /fb  CMS PRELIMINARY")
+          #  b.DrawLatex(0.45,.94,"#int L dt=1.7 /fb  CMS PRELIMINARY")
         if "unroll" in title:
             ymin = 1.e-5
             histlist[i].GetXaxis().SetRangeUser(minX,9.)
@@ -796,6 +783,7 @@ class TemplatesFitApp(TemplatesApp):
             ratios.GetYaxis().SetRangeUser(0.,3.5)
             ROOT.gStyle.SetOptStat(0)
         self.keep( [canv] )
+        self.format(canv,self.options.postproc)
         self.autosave(True)
             
 
@@ -934,33 +922,33 @@ class TemplatesFitApp(TemplatesApp):
                 else:
                     dset="_mc_"
               #get dataset and add column (actually filling values in)
-                if dodata:
-                    data = self.reducedRooData("data_2D_%s" % (catd),setargs,False,sel=weight_cut, redo=False)
-                else:
-                    data = self.reducedRooData("mc_2D_%s" % (catd),setargs,False,sel=weight_cut, redo=False)
-               # data = self.reducedRooData("data_2D_%s" % (catd),setargs,False,sel=weight_cut, redo=False)
+               # if dodata:
+               #     data = self.reducedRooData("data_2D_%s" % (catd),setargs,False,sel=weight_cut, redo=False)
+               # else:
+               #     data = self.reducedRooData("mc_2D_%s" % (catd),setargs,False,sel=weight_cut, redo=False)
+                data = self.reducedRooData("data_2D_%s" % (catd),setargs,False,sel=weight_cut, redo=False)
                 print data.sumEntries()
                 data.addColumn(unrolledVar)
                 data=data.reduce(ROOT.RooArgSet(mass,observable))
                 data.Print()
-                tree_mass=self.treeData("%s_pp_2D_%s"%(options.plotPurity["treetruth"], cat))
+                tree_mass=self.treeData("%s_pp_2D_%s"%(options.plotfraction["treetruth"], cat))
                 if not dodata:
-                    tp = ROOT.TNtuple("tree_fitresult_fraction%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_fraction_%s_%s_%s" % (tempname,dim,cat),"purity_pp:error_pp_sumw2on:error_pp:purity_pf:error_pf_sumw2on:error_pf:purity_ff:error_ff:massbin:masserror" )
+                    tp = ROOT.TNtuple("tree_fitresult_fraction%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_fraction_%s_%s_%s" % (tempname,dim,cat),"fraction_pp:error_pp_sumw2on:error_pp:fraction_pf:error_pf_sumw2on:error_pf:fraction_ff:error_ff:massbin:masserror" )
                     self.store_[tp.GetName()] = tp
                 if dodata:
                     tps=[]
                     for i in range(num):
-                        if not (jkpf or jkpp):tpi = ROOT.TNtuple("tree_fitresult_fraction%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_fraction_%s_%s_%s" % (tempname,dim,cat),"purity_pp:error_pp:purity_pf:error_pf:purity_ff:error_ff:massbin:masserror" )
-                        elif jkpf: tpi = ROOT.TNtuple("tree_fitresult_fraction%s%s_jkpf%i_%s_%s" % (dset,tempname,i,dim,cat),"tree_fitresult_fraction_%s_jk%i_%s_%s" % (tempname,i,dim,cat),"purity_pp:error_pp:purity_pf:error_pf:massbin:masserror" )
+                        if not (jkpf or jkpp):tpi = ROOT.TNtuple("tree_fitresult_fraction%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_fraction_%s_%s_%s" % (tempname,dim,cat),"fraction_pp:error_pp:fraction_pf:error_pf:fraction_ff:error_ff:massbin:masserror" )
+                        elif jkpf: tpi = ROOT.TNtuple("tree_fitresult_fraction%s%s_jkpf%i_%s_%s" % (dset,tempname,i,dim,cat),"tree_fitresult_fraction_%s_jk%i_%s_%s" % (tempname,i,dim,cat),"fraction_pp:error_pp:fraction_pf:error_pf:massbin:masserror" )
 
-                        elif jkpp: tpi = ROOT.TNtuple("tree_fitresult_fraction%s%s_jkpp%i_%s_%s" % (dset,tempname,i,dim,cat),"tree_fitresult_fraction_%s_jk%i_%s_%s" % (tempname,i,dim,cat),"purity_pp:error_pp:purity_pf:error_pf:massbin:masserror" )
+                        elif jkpp: tpi = ROOT.TNtuple("tree_fitresult_fraction%s%s_jkpp%i_%s_%s" % (dset,tempname,i,dim,cat),"tree_fitresult_fraction_%s_jk%i_%s_%s" % (tempname,i,dim,cat),"fraction_pp:error_pp:fraction_pf:error_pf:massbin:masserror" )
                         self.store_[tpi.GetName()] = tpi
                         tps.append(tpi)
                     if extended_fit:
-                        ntp = ROOT.TNtuple("tree_fitresult_events%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_events_%s_%s_%s" % (tempname,dim,cat),"norm:purity_pp:error_pp_sumw2off:error_pp_sumw2on:purity_pf:error_pf_sumw2off:error_pf_sumw2on:massbin:masserror" )
+                        ntp = ROOT.TNtuple("tree_fitresult_events%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_events_%s_%s_%s" % (tempname,dim,cat),"norm:fraction_pp:error_pp_sumw2off:error_pp_sumw2on:fraction_pf:error_pf_sumw2off:error_pf_sumw2on:massbin:masserror" )
                         self.store_[ntp.GetName()] = ntp
                 if options.pu_sigregion:
-                    tpSig = ROOT.TNtuple("tree_fitresult_fraction_sigRegion%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_fraction_sigRegion_%s_%s_%s" % (tempname,dim,cat),"purity_pp:error_pp:purity_pf:error_pf:purity_ff:error_ff:massbin:masserror" )
+                    tpSig = ROOT.TNtuple("tree_fitresult_fraction_sigRegion%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_fraction_sigRegion_%s_%s_%s" % (tempname,dim,cat),"fraction_pp:error_pp:fraction_pf:error_pf:fraction_ff:error_ff:massbin:masserror" )
                     tpRatSig = ROOT.TNtuple("tree_fitresult_fraction_RatsigRegion%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_fraction_RatsigRegion_%s_%s_%s" % (tempname,dim,cat),"ratSig_pp:ratSig_pf:ratSig_ff:massbin:masserror" )
                     self.store_[tpSig.GetName()] = tpSig
                     self.store_[tpRatSig.GetName()] = tpRatSig
@@ -1149,8 +1137,8 @@ class TemplatesFitApp(TemplatesApp):
         b.SetTextSize(0.035)
         b.SetTextColor(ROOT.kBlack)
         if "mc" in data.GetName():
-            cFit = ROOT.TCanvas("c%s_%u_%s_mc_%i" %(rooaddpdf.GetName(),len(components),log,i),"cFit",1200,800)
-        else:cFit = ROOT.TCanvas("c%s_%u_%s_%i" %(rooaddpdf.GetName(),len(components),log,i),"cFit",1200,800)
+            cFit = ROOT.TCanvas("c%s_%u_%s_mc_%i" %(rooaddpdf.GetName(),len(components),log,i),"cFit",1400,1000)
+        else:cFit = ROOT.TCanvas("c%s_%u_%s_%i" %(rooaddpdf.GetName(),len(components),log,i),"cFit",1400,1000)
         if not log: leg =ROOT.TLegend(0.65,0.7,0.85,0.9)
         else: leg =ROOT.TLegend(0.2,0.2,0.4,0.4)
         leg.SetFillColor(ROOT.kWhite)
@@ -1176,8 +1164,9 @@ class TemplatesFitApp(TemplatesApp):
         if len(components)>2:
             leg.AddEntry("ff","fake-fake ","l")
         leg.Draw()
-        if data:
-            b.DrawLatex(0.45,.94,"#int L dt=2.4 /fb  CMS PRELIMINARY")
+      #  if data:
+     #       b.DrawLatex(0.45,.94,"#int L dt=1.7 /fb  CMS PRELIMINARY")
+        self.format(cFit,self.options.postproc)
         self.keep([cFit])
         self.autosave(True)
 
@@ -1199,8 +1188,11 @@ class TemplatesFitApp(TemplatesApp):
                     if options.pu_sigregion:
                         tree_template=self.treeData("fitresult_fraction_sigRegion_unrolled_%s_%s_%s"%(opt,dim, cat))
                         tree_templateRat=self.treeData("fitresult_fraction_RatsigRegion_unrolled_%s_%s_%s"%(opt,dim, cat))
+                        tree_mctruth=self.treeData("fitresult_fraction_sigRegion_mc_unrolled_mctruth_%s_%s"%( dim, cat))
+                        tree_mctruthInt=self.treeData("fitresult_fraction_RatsigRegion_mc_unrolled_mctruth_%s_%s"%( dim, cat))
                     else:
                         tree_template=self.treeData("fitresult_fraction_unrolled_%s_%s_%s"%(opt,dim, cat))
+                        tree_mctruth=self.treeData("fitresult_fraction_mc_unrolled_mctruth_%s_%s"%( dim, cat))
                     g_templatepp=ROOT.TGraphAsymmErrors(tree_template.GetEntries())
                     g_templatepf=ROOT.TGraphErrors(tree_template.GetEntries())
                     g_templateff=ROOT.TGraphErrors(tree_template.GetEntries())
@@ -1223,39 +1215,40 @@ class TemplatesFitApp(TemplatesApp):
                     g_templatepfmc=ROOT.TGraphErrors(tree_templatemc.GetEntries())
                     g_templateffmc=ROOT.TGraphErrors(tree_templatemc.GetEntries())
                     nentries=tree_templatemc.GetEntries()
-                if options.pu_sigregion:
-                        treetruthSigname="truth_purity_signalregion"
-                        tree_truthpp=self.treeData("%s_pp_%s_%s"%(treetruthSigname, dim, cat))
-                        tree_truthpf=self.treeData("%s_pf_%s_%s"%(treetruthSigname,dim, cat))
-                        tree_truthff=self.treeData("%s_ff_%s_%s"%(treetruthSigname,dim, cat))
-                else:
-                    tree_truthpp=self.treeData("%s_pp_%s_%s"%(treetruthname, dim, cat))
-                    tree_truthpf=self.treeData("%s_pf_%s_%s"%(treetruthname,dim, cat))
-                    tree_truthff=self.treeData("%s_ff_%s_%s"%(treetruthname,dim, cat))
-                if tree_truthff!=None:
-                    g_truthff=ROOT.TGraphErrors(tree_truthff.GetEntries())
-                else:
-                    g_truthff=ROOT.TGraphErrors()
-                    print "no truth ff component"
-                g_truthpp=ROOT.TGraphErrors(tree_truthpp.GetEntries())
-                g_truthpf=ROOT.TGraphErrors(tree_truthpf.GetEntries())
+          #      if options.pu_sigregion:
+          #              treetruthSigname="truth_fraction_signalregion"
+          #              tree_truthpp=self.treeData("%s_pp_%s_%s"%(treetruthSigname, dim, cat))
+          #              tree_truthpf=self.treeData("%s_pf_%s_%s"%(treetruthSigname,dim, cat))
+          #              tree_truthff=self.treeData("%s_ff_%s_%s"%(treetruthSigname,dim, cat))
+           #     else:
+           #         tree_truthpp=self.treeData("%s_pp_%s_%s"%(treetruthname, dim, cat))
+           #         tree_truthpf=self.treeData("%s_pf_%s_%s"%(treetruthname,dim, cat))
+           #         tree_truthff=self.treeData("%s_ff_%s_%s"%(treetruthname,dim, cat))
+           #     if tree_truthff!=None:
+           #         g_truthff=ROOT.TGraphErrors(tree_truthff.GetEntries())
+           #     else:
+           #         g_truthff=ROOT.TGraphErrors()
+           #         print "no truth ff component"
+           #     g_truthpp=ROOT.TGraphErrors(tree_truthpp.GetEntries())
+          #      g_truthpf=ROOT.TGraphErrors(tree_truthpf.GetEntries())
+                g_mctruthpp=ROOT.TGraphAsymmErrors(tree_mctruth.GetEntries())
+                g_mctruthpf=ROOT.TGraphErrors(tree_mctruth.GetEntries())
+                g_mctruthff=ROOT.TGraphErrors(tree_mctruth.GetEntries())
                 if not data:
-                    g_mctruthpp=ROOT.TGraphAsymmErrors(tree_mctruth.GetEntries())
-                    g_mctruthpf=ROOT.TGraphErrors(tree_mctruth.GetEntries())
-                    g_mctruthff=ROOT.TGraphErrors(tree_mctruth.GetEntries())
                     g_pullpp=ROOT.TGraphErrors(nentries)
-                    h_pullpp=ROOT.TH1F("h_pullpp_%s" % cat,"h_pullpp_%s"% cat,10*tree_truthpp.GetEntries(),-2.,2.)
-                    if ((tree_truthpp.GetEntries()!=nentries)):
-                        print "number of entries in trees dont agree"
+                    h_pullpp=ROOT.TH1F("h_pullpp_%s" % cat,"h_pullpp_%s"% cat,10*tree_mctruth.GetEntries(),-2.,2.)
+            #        if ((tree_truthpp.GetEntries()!=nentries)):
+            #            print "number of entries in trees dont agree"
                 #todo as option
                 tot_err=True
                 #todo last JK correctly
                 if data and tot_err:
-                    if cat=="EBEB": JK=[0.00969710708263638, 0.00745549032581063, 0.00746436270731503, 0.00687231555828861, 0.010172747399738,   0.0154827562059132,   0.0130907454386619,  0.0252044794540751,  0.0505652363533445,  0.0259307676481065 , 0.0384838948670937]
-
-                    else: JK=[0.0677086661319579,    0.0557853121914891,  0.0314866474190474,  0.0807265277265779,  0.0390236237234707,  0.00135495227648337, 0.00294198502876117]
-                    
+                    if cat=="EBEB": 
+                        JK=[0.00969710708263638 ,0.00745549032581063, 0.00746436270731503, 0.00687231555828861, 0.010172747399738  , 0.0154827562059132 , 0.0130907454386619, 0.0252044794540751,  0.0505652363533445 , 0.0259307676481065,  0.0384838948670937]
+                    else:
+                        JK=[0.00969710708263638, 0.00745549032581063, 0.00746436270731503, 0.00687231555828861 ,0.010172747399738  , 0.0154827562059132 , 0.0130907454386619, 0.0252044794540751,  0.0505652363533445,  0.0259307676481065,  0.0384838948670937] 
                 for mb in range(0,nentries):
+                    tree_mctruth.GetEntry(mb)
                     if data:
                         tree_template.GetEntry(mb)
                         if mb==nentries-1:
@@ -1272,11 +1265,9 @@ class TemplatesFitApp(TemplatesApp):
                             pp_err=tree_template.error_pp
                             ff_err=tree_template.error_ff
                         elif tot_err and cat=="EBEB":
-                            #sys=0.0723
-                            sys=0.084
+                            sys=0.087
                         elif tot_err and cat=="EBEE":
-                           # sys=0.14852
-                            sys=0.158
+                            sys=0.144
                         if tot_err:
                             if not options.pu_sigregion:
                                 stat_pp=sqrt(JK[mb]*JK[mb]+tree_template.error_pp*tree_template.error_pp)
@@ -1299,10 +1290,14 @@ class TemplatesFitApp(TemplatesApp):
                                 pp_err=sqrt(pp_sys+stat_pp*stat_pp)
                                 pf_err=sqrt(pf_sys+stat_pf*stat_pf)
                                 ff_err=sqrt(ff_sys+stat_ff*stat_ff)
-                            print "mb",mb,"pp_p", pp_p, "pp_err",stat_pp ,"pp_sys", sqrt(pp_sys)
-                            print "pf_p",pf_p, "pf_err",stat_pf,"pf_sys", sqrt(pf_sys)
-                            print "ff_p",ff_p, "ff_err",stat_ff,"ff_sys", sqrt(ff_sys)
-                            print
+                          #  print "mb",mb,"pp_p", pp_p, "pp_err",stat_pp ,"pp_sys", sqrt(pp_sys)
+                          #  print "pf_p",pf_p, "pf_err",stat_pf,"pf_sys", sqrt(pf_sys)
+                          #  print "ff_p",ff_p, "ff_err",stat_ff,"ff_sys", sqrt(ff_sys)
+                           # print "mb",mb
+                            print "pp_p", pp_p, "pp_err",pp_err
+                         #   print "pf_p",pf_p, "pf_err",pf_err
+                          #  print "ff_p",ff_p, "ff_err",ff_err
+                          #  print
                             g_syspf.SetPoint(mb,massbin,pf_p)
                             g_syspp.SetPoint(mb,massbin,pp_p)
                             g_sysff.SetPoint(mb,massbin,ff_p)
@@ -1341,50 +1336,51 @@ class TemplatesFitApp(TemplatesApp):
                             g_templateppmc.SetPointError(mb,masserror,masserror,tree_templatemc.error_pp,new_error)
                         else:
                             g_templateppmc.SetPointError(mb,masserror,masserror,tree_templatemc.error_pp,tree_templatemc.error_pp)
-                        tree_mctruth.GetEntry(mb)
-                        g_mctruthpp.SetPoint(mb,massbin,tree_mctruth.purity_pp)
-                        if tree_mctruth.purity_pp+tree_mctruth.error_pp>1:
-                            new_error=1-tree_mctruth.purity_pp
-                            g_mctruthpp.SetPointError(mb,masserror,masserror,tree_mctruth.error_pp,new_error)
-                        else:
-                            g_mctruthpp.SetPointError(mb,masserror,masserror,tree_mctruth.error_pp,tree_mctruth.error_pp)
-                    tree_truthpp.GetEntry(mb)
-                    tree_truthpf.GetEntry(mb)
-                    if tree_truthff!=None:
-                        tree_truthff.GetEntry(mb)
-                    g_truthpp.SetPoint(mb,massbin,tree_truthpp.frac_pu)
-                    g_truthpp.SetPointError(mb,masserror,0.)
-                    g_truthpf.SetPoint(mb,massbin,tree_truthpf.frac_pu)
-                    g_truthff.SetPoint(mb,massbin,tree_truthff.frac_pu)
-                    g_truthpf.SetPointError(mb,masserror,0.)
-                    g_truthff.SetPointError(mb,masserror,0.)
+                    g_mctruthpp.SetPoint(mb,massbin,tree_mctruth.purity_pp)
+                    if tree_mctruth.purity_pp+tree_mctruth.error_pp>1:
+                         new_error=1-tree_mctruth.purity_pp
+                         g_mctruthpp.SetPointError(mb,masserror,masserror,tree_mctruth.error_pp,new_error)
+                    else:
+                         g_mctruthpp.SetPointError(mb,masserror,masserror,tree_mctruth.error_pp,tree_mctruth.error_pp)
+                 #   tree_truthpp.GetEntry(mb)
+                 #   tree_truthpf.GetEntry(mb)
+                 #   if tree_truthff!=None:
+                 #       tree_truthff.GetEntry(mb)
+                 #   g_truthpp.SetPoint(mb,massbin,tree_truthpp.frac_pu)
+                 #   g_truthpp.SetPointError(mb,masserror,0.)
+                 #   g_truthpf.SetPoint(mb,massbin,tree_truthpf.frac_pu)
+                 #   g_truthff.SetPoint(mb,massbin,tree_truthff.frac_pu)
+                 #   g_truthpf.SetPointError(mb,masserror,0.)
+                 #   g_truthff.SetPointError(mb,masserror,0.)
+                    tree_mctruth.GetEntry(mb)
                     if data:
-                        g_ratiopp.SetPoint(mb,massbin,(pp_p-tree_truthpp.frac_pu)/pp_err)
+                  #      g_ratiopp.SetPoint(mb,massbin,(pp_p-tree_truthpp.frac_pu)/pp_err)
+                        g_ratiopp.SetPoint(mb,massbin,(pp_p-tree_mctruth.purity_pp)/pp_err)
                         g_ratiopp.SetPointError(mb,0.,pp_err)
                     if not data:
                         if opt=="template_mix":
                             pullpp=(tree_templatemc.purity_pp-tree_mctruth.purity_pp)/tree_templatemc.error_pp
-                        elif opt=="mctruth":
-                            pullpp=(tree_mctruth.purity_pp-tree_truthpp.frac_pu)/tree_mctruth.error_pp
                         else:print "dont know what to compare to truth"
                         g_pullpp.SetPoint(mb,massbin,pullpp)
                         h_pullpp.Fill(pullpp)
-                        g_mctruthpf.SetPoint(mb,massbin,tree_mctruth.purity_pf)
-                        g_mctruthff.SetPoint(mb,massbin,tree_mctruth.purity_ff)
-                        g_mctruthpf.SetPointError(mb,masserror,tree_mctruth.error_pf)
-                        g_mctruthff.SetPointError(mb,masserror,tree_mctruth.error_ff)
+                    g_mctruthpf.SetPoint(mb,massbin,tree_mctruth.purity_pf)
+                    g_mctruthff.SetPoint(mb,massbin,tree_mctruth.purity_ff)
+                    g_mctruthpf.SetPointError(mb,masserror,tree_mctruth.error_pf)
+                    g_mctruthff.SetPointError(mb,masserror,tree_mctruth.error_ff)
                 if not data:
                     if options.pu_sigregion:  self.plotClosure(cat,pu_val,opt,"sigRegionMC",g_templateppmc,g_templatepfmc,g_templateffmc,g_pullpp,g_mctruthpp,g_mctruthpf,g_mctruthff)
                     else: self.plotClosure(cat,pu_val,opt,"fullRegionMC",g_templateppmc,g_templatepfmc,g_templateffmc,g_pullpp,g_mctruthpp,g_mctruthpf,g_mctruthff)
+                    #if options.pu_sigregion:  self.plotClosure(cat,pu_val,opt,"sigRegionMC",g_truthpp,g_truthpf,g_truthff,g_mctruthpp,g_mctruthpf,g_mctruthff)
+                    #else: self.plotClosure(cat,pu_val,opt,"fullRegionMC",g_truthpp,g_truthpf,g_truthff,g_pullpp,g_mctruthpp,g_mctruthpf,g_mctruthff)
                 else:
                     if options.pu_sigregion:
-                        self.plotPurityMassbins(cat,pu_val,opt,"sigRegionData",g_templatepp,g_templatepf,g_templateff,g_syspp,g_syspf,g_sysff)
-                        self.plotPurityMassbins(cat,pu_val,opt,"sigRegionData+MC",g_templatepp,g_templatepf,g_templateff,g_mctruthpp=g_truthpp,g_mctruthpf=g_truthpf,g_mctruthff=g_truthff,g_ratiopp=g_ratiopp)
-                        self.plotPurityMassbins(cat,pu_val,opt,"sigRegionData+MC+sys",g_templatepp,g_templatepf,g_templateff,g_syspp,g_syspf,g_sysff,g_truthpp,g_truthpf,g_truthff,g_ratiopp)
+                     #   self.plotPurityMassbins(cat,pu_val,opt,"sigRegionData",g_templatepp,g_templatepf,g_templateff,g_syspp,g_syspf,g_sysff)
+                        self.plotPurityMassbins(cat,pu_val,opt,"sigRegionData+MC",g_templatepp,g_templatepf,g_templateff,g_mctruthpp=g_mctruthpp,g_mctruthpf=g_mctruthpf,g_mctruthff=g_mctruthff,g_ratiopp=g_ratiopp)
+                        self.plotPurityMassbins(cat,pu_val,opt,"sigRegionData+MC+sys",g_templatepp,g_templatepf,g_templateff,g_syspp,g_syspf,g_sysff,g_mctruthpp,g_mctruthpf,g_mctruthff,g_ratiopp)
                     else: 
-                        self.plotPurityMassbins(cat,pu_val,opt,"data+sys",g_templatepp,g_templatepf,g_templateff,g_syspp,g_syspf,g_sysff)
-                        self.plotPurityMassbins(cat,pu_val,opt,"data+MC",g_templatepp,g_templatepf,g_templateff,g_mctruthpp=g_truthpp,g_mctruthpf=g_truthpf,g_mctruthff=g_truthff,g_ratiopp=g_ratiopp)
-                        self.plotPurityMassbins(cat,pu_val,opt,"data+MC+sys",g_templatepp,g_templatepf,g_templateff,g_syspp,g_syspf,g_sysff,g_truthpp,g_truthpf,g_truthff,g_ratiopp)
+                      #  self.plotPurityMassbins(cat,pu_val,opt,"data+sys",g_templatepp,g_templatepf,g_templateff,g_syspp,g_syspf,g_sysff)
+                        self.plotPurityMassbins(cat,pu_val,opt,"data+MC",g_templatepp,g_templatepf,g_templateff,g_mctruthpp=g_mctruthpp,g_mctruthpf=g_mctruthpf,g_mctruthff=g_mctruthff,g_ratiopp=g_ratiopp)
+                        self.plotPurityMassbins(cat,pu_val,opt,"data+MC+sys",g_templatepp,g_templatepf,g_templateff,g_syspp,g_syspf,g_sysff,g_mctruthpp,g_mctruthpf,g_mctruthff,g_ratiopp)
             ## ------------------------------------------------------------------------------------------------------------
     def pullFunction(self,g_pull,h_pull,cat,comp,opt,pu_val):
         leg = ROOT.TLegend(0.5,0.8,0.9,0.9)
@@ -1396,8 +1392,8 @@ class TemplatesFitApp(TemplatesApp):
         ROOT.gStyle.SetOptFit(1)
         cpull.cd(2)
         ROOT.gPad.SetPad(0.,  0., 1., 0.5)
-        ROOT.gPad.SetGridx()
-        ROOT.gPad.SetGridy()
+        #ROOT.gPad.SetGridx()
+        #ROOT.gPad.SetGridy()
         ROOT.gPad.SetLogx()
         cpull.cd(1)
         fitgauss=ROOT.TF1("fitgauss","gaus",-5.,5.)
@@ -1424,23 +1420,24 @@ class TemplatesFitApp(TemplatesApp):
 
     ## ------------------------------------------------------------------------------------------------------------
     def plotClosure(self,cat,pu_val,opt,opt2,g_templatepp=None,g_templatepf=None,g_templateff=None,g_ratiopp=None,g_mctruthpp=None,g_mctruthpf=None,g_mctruthff=None):
-        leg = ROOT.TLegend(0.6,0.6,0.8,0.9)
-        basicStyle = [["SetMarkerSize",1.3],["SetLineWidth",2],
-        ["SetTitle",";m_{#gamma #gamma} (GeV);purity"]]
-        mc_expectedStyle = basicStyle+ [["SetMarkerStyle",ROOT.kFullTriangleUp]]
-        mctruth_expectedStyle = basicStyle+ [["SetMarkerStyle",ROOT.kOpenCircle],["SetLineStyle",ROOT.kDashed]]
-        cpu = ROOT.TCanvas("cpu_%s_%s_%s_%s" % (opt,cat,pu_val,opt2),"cpu_%s_%s_%s_%s" %(opt,cat,pu_val,opt2))
+        leg = ROOT.TLegend(0.4,0.65,0.8,0.9)
+        leg.SetNColumns(2)
+        basicStyle = [["SetMarkerSize",1.3],["SetLineWidth",2]]
+        mc_expectedStyle = basicStyle+ [["SetMarkerStyle",ROOT.kFullTriangleUp],["SetTitle",";m_{#gamma #gamma} (GeV);Fraction"]]
+        ratio_expectedStyle = basicStyle+ [["SetMarkerStyle",ROOT.kFullTriangleUp]]
+        mctruth_expectedStyle = basicStyle+ [["SetMarkerStyle",ROOT.kOpenCircle],["SetLineStyle",ROOT.kDashed],["SetTitle",";m_{#gamma #gamma} (GeV);Fraction"]]
+        cpu = ROOT.TCanvas("cpu_%s_%s_%s_%s" % (opt,cat,pu_val,opt2),"cpu_%s_%s_%s_%s" %(opt,cat,pu_val,opt2),1400,1000)
         cpu.Divide(1,2)
         cpu.cd(1)
         ROOT.gPad.SetPad(0., 0.3, 1., 1.0)
         ROOT.gPad.SetLogx()
-        ROOT.gPad.SetGridx()
-        ROOT.gPad.SetTicky()
-        ROOT.gPad.SetGridy()
+       # ROOT.gPad.SetGridx()
+        #ROOT.gPad.SetTicky()
+       # ROOT.gPad.SetGridy()
         cpu.cd(2)
         ROOT.gPad.SetPad(0., 0., 1., 0.3)
-        ROOT.gPad.SetTicky()
-        ROOT.gPad.SetGridx()
+       # ROOT.gPad.SetTicky()
+       # ROOT.gPad.SetGridx()
         ROOT.gPad.SetGridy()
         ROOT.gPad.SetLogx()
         cpu.cd(1)
@@ -1451,39 +1448,52 @@ class TemplatesFitApp(TemplatesApp):
         style_utils.apply(g_mctruthpf, [["colors",ROOT.kBlue]]+mctruth_expectedStyle )
         style_utils.apply(g_templateff, [["colors",ROOT.kBlack]]+mc_expectedStyle )
         style_utils.apply(g_mctruthff, [["colors",ROOT.kBlack]]+mctruth_expectedStyle )
-        g_templatepp.GetYaxis().SetRangeUser(-0.1,1.9)
-        g_templatepp.GetXaxis().SetLimits(200.,5000.)
-        g_templatepp.Draw("AP")
+        g_templatepp.GetXaxis().SetLabelSize( 1.05*g_templatepp.GetXaxis().GetLabelSize() )
+        g_templatepp.GetXaxis().SetTitleSize( 1. *g_templatepp.GetXaxis().GetTitleSize() )
+        g_templatepp.GetXaxis().SetTitleOffset( 0.8 )
+        g_templatepp.GetYaxis().SetLabelSize( g_templatepp.GetXaxis().GetLabelSize() * cpu.GetWh() / ROOT.gPad.GetWh() )
+        g_templatepp.GetYaxis().SetTitleSize(1* g_templatepp.GetXaxis().GetTitleSize() * cpu.GetWh() / ROOT.gPad.GetWh() )
+        g_templatepp.GetYaxis().SetTitleOffset( 0.8 )
+        g_templatepp.GetYaxis().SetRangeUser(0.,1.5)
         g_templatepp.GetXaxis().SetMoreLogLabels()
+        g_templatepp.GetXaxis().SetLimits(200.,5000.)
+        g_templatepp.GetYaxis().SetNdivisions(505)
+        g_templatepp.Draw("AP")
         g_mctruthpf.Draw("P SAME")
         g_mctruthpp.Draw("P SAME")
         g_mctruthff.Draw("P SAME")
         g_templatepf.Draw("P SAME")
         g_templateff.Draw("P SAME")
         leg.AddEntry(g_mctruthpp,"#gamma #gamma MC truth","lp")  
-        leg.AddEntry(g_mctruthpf,"#gamma j MC truth","lp")
-        leg.AddEntry(g_mctruthff,"j j MC truth","lp")
         leg.AddEntry(g_templatepp,"#gamma #gamma  MC","lp")  
+        leg.AddEntry(g_mctruthpf,"#gamma j MC truth","lp")
         leg.AddEntry(g_templatepf,"#gamma j  MC","lp")
+        leg.AddEntry(g_mctruthff,"j j MC truth","lp")
         leg.AddEntry(g_templateff,"j j  MC","lp")
+     #   leg.AddEntry(g_templatepp,"#gamma #gamma  MC truth count","lp")  
+     #   leg.AddEntry(g_templatepf,"#gamma j  MC truth count","lp")
+     #   leg.AddEntry(g_templateff,"j j  MC truth count","lp")
 
         leg.Draw()
         g_ratiopp.SetMarkerStyle(20)
         cpu.cd(2)
-        style_utils.apply(g_ratiopp, [["colors",ROOT.kRed]]+mc_expectedStyle )
-        g_ratiopp.GetYaxis().SetTitle("pull fct")
+        style_utils.apply(g_ratiopp, [["colors",ROOT.kRed]]+ratio_expectedStyle )
+        g_ratiopp.GetYaxis().SetTitle("(data-MC)/#sigma_{data}")
         g_ratiopp.GetYaxis().SetRangeUser(-3.,3.)
-        g_ratiopp.GetYaxis().SetTitleSize( g_templatepp.GetYaxis().GetTitleSize() *7./3. )
+        g_ratiopp.GetYaxis().SetTitleSize( g_templatepp.GetYaxis().GetTitleSize() *6./3. )
         g_ratiopp.GetYaxis().SetLabelSize( g_templatepp.GetYaxis().GetLabelSize()*7./3.  )
+        g_ratiopp.GetXaxis().SetTitleSize(  g_templatepp.GetXaxis().GetTitleSize() * 7/3. )
         g_ratiopp.GetYaxis().SetTitleOffset(g_templatepp.GetYaxis().GetTitleOffset()*3./7. )
-        g_ratiopp.GetXaxis().SetTitleSize( g_templatepp.GetXaxis().GetTitleSize() *4./3. )
-        g_ratiopp.GetXaxis().SetLabelSize( g_templatepp.GetXaxis().GetLabelSize()*7./3. )
+        g_ratiopp.GetXaxis().SetTitleOffset(  g_templatepp.GetXaxis().GetTitleOffset() )
+        g_ratiopp.GetXaxis().SetLabelSize( g_templatepp.GetXaxis().GetLabelSize()*6./3. )
         g_ratiopp.GetXaxis().SetLimits(200.,5000.)
         g_ratiopp.GetXaxis().SetMoreLogLabels()
+     #   g_ratiopp.Draw("A")
         g_ratiopp.Draw("AP")
         self.keep( [g_mctruthpp,g_ratiopp] )
         self.keep( [g_mctruthpp,g_mctruthpf, g_mctruthff] )
         self.keep( [cpu,g_templatepp,g_templatepf,g_templateff] )
+        self.format(cpu,self.options.postproc)
         self.autosave(True)
 
     ## ------------------------------------------------------------------------------------------------------------
@@ -1492,28 +1502,52 @@ class TemplatesFitApp(TemplatesApp):
         b.SetNDC()
         b.SetTextSize(0.035)
         b.SetTextColor(ROOT.kBlack)
-        leg = ROOT.TLegend(0.6,0.6,0.8,0.9)
-        basicStyle = [["SetMarkerSize",1.3],["SetLineWidth",4],
-        ["SetTitle",";m_{#gamma #gamma} (GeV);purity"]]
-        data_expectedStyle = basicStyle+ [["SetMarkerStyle",ROOT.kFullTriangleUp],["SetLineStyle",1]]
-        mctruth_expectedStyle = basicStyle+ [["SetMarkerStyle",ROOT.kOpenCircle],["SetLineStyle",ROOT.kDashed]]
-        cpu = ROOT.TCanvas("cpu_%s_%s_%s_%s" % (opt,cat,pu_val,opt2),"cpu_%s_%s_%s_%s" %(opt,cat,pu_val,opt2))
+        basicStyle = [["SetMarkerSize",1.3],["SetLineWidth",4]]
+        data_expectedStyle = basicStyle+ [["SetMarkerStyle",ROOT.kFullTriangleUp],["SetLineStyle",1],["SetTitle",";m_{#gamma #gamma} (GeV);Fraction"]]
+        ratio_expectedStyle = basicStyle+ [["SetMarkerStyle",ROOT.kFullTriangleUp],["SetLineStyle",1]]
+        mctruth_expectedStyle = basicStyle+ [["SetMarkerStyle",ROOT.kOpenCircle],["SetLineStyle",ROOT.kDashed],["SetTitle",";m_{#gamma #gamma} (GeV);Fraction"]]
         if g_mctruthpp:
+            leg = ROOT.TLegend(0.4,0.65,0.8,0.9)
+            cpu = ROOT.TCanvas("cpu_%s_%s_%s_%s" % (opt,cat,pu_val,opt2),"cpu_%s_%s_%s_%s" %(opt,cat,pu_val,opt2),1400,1000)
+        else: 
+            leg = ROOT.TLegend(0.7,0.7,0.8,0.9)
+            cpu = ROOT.TCanvas("cpu_%s_%s_%s_%s" % (opt,cat,pu_val,opt2),"cpu_%s_%s_%s_%s" %(opt,cat,pu_val,opt2),1400,700)
+        if g_mctruthpp:
+                leg.SetNColumns(2)
                 cpu.Divide(1,2)
                 cpu.cd(1)
                 ROOT.gPad.SetPad(0., 0.3, 1., 1.0)
                 cpu.cd(2)
                 ROOT.gPad.SetPad(0., 0., 1., 0.3)
-                ROOT.gPad.SetTicky()
-                ROOT.gPad.SetGridx()
+             #   ROOT.gPad.SetTicky()
+             #   ROOT.gPad.SetGridx()
                 ROOT.gPad.SetGridy()
                 ROOT.gPad.SetLogx()
         cpu.cd(1)
-        ROOT.gPad.SetTicky()
-        ROOT.gPad.SetGridx()
-        ROOT.gPad.SetGridy()
+     #   ROOT.gPad.SetTicky()
+     #   ROOT.gPad.SetGridx()
+    #    ROOT.gPad.SetGridy()
         ROOT.gPad.SetLogx()
-        g_templatepp.GetYaxis().SetLabelSize(g_templatepp.GetYaxis().GetLabelSize() * cpu.GetWh() / ROOT.gPad.GetWh() )
+        
+        if not g_mctruthpp:
+                g_templatepp.GetXaxis().SetLabelSize( 1.*g_templatepp.GetXaxis().GetLabelSize() )
+                g_templatepp.GetXaxis().SetTitleSize( 1.0 *g_templatepp.GetXaxis().GetTitleSize() )
+                g_templatepp.GetXaxis().SetTitleOffset( 1.0 )
+                g_templatepp.GetYaxis().SetLabelSize( g_templatepp.GetXaxis().GetLabelSize() * cpu.GetWh() / ROOT.gPad.GetWh() )
+                g_templatepp.GetYaxis().SetTitleSize(1* g_templatepp.GetXaxis().GetTitleSize() * cpu.GetWh() / ROOT.gPad.GetWh() )
+                g_templatepp.GetYaxis().SetTitleOffset( 0.5 )
+                g_templatepp.GetYaxis().SetRangeUser(0.,1.4)
+        else:
+                g_templatepp.GetXaxis().SetLabelSize( 1.05*g_templatepp.GetXaxis().GetLabelSize() )
+                g_templatepp.GetXaxis().SetTitleSize( 1. *g_templatepp.GetXaxis().GetTitleSize() )
+                g_templatepp.GetXaxis().SetTitleOffset( 0.8 )
+                g_templatepp.GetYaxis().SetLabelSize( g_templatepp.GetXaxis().GetLabelSize() * cpu.GetWh() / ROOT.gPad.GetWh() )
+                g_templatepp.GetYaxis().SetTitleSize(1* g_templatepp.GetXaxis().GetTitleSize() * cpu.GetWh() / ROOT.gPad.GetWh() )
+                g_templatepp.GetYaxis().SetTitleOffset( 0.8 )
+                g_templatepp.GetYaxis().SetRangeUser(0.,1.5)
+        g_templatepp.GetXaxis().SetMoreLogLabels()
+        g_templatepp.GetXaxis().SetLimits(200.,5000.)
+        g_templatepp.GetYaxis().SetNdivisions(505)
         style_utils.apply(g_templatepp, [["colors",ROOT.kRed]]+data_expectedStyle)
         style_utils.apply(g_templatepf, [["colors",ROOT.kBlue]]+data_expectedStyle )
         style_utils.apply(g_templateff, [["colors",ROOT.kBlack]]+data_expectedStyle )
@@ -1525,8 +1559,6 @@ class TemplatesFitApp(TemplatesApp):
             style_utils.apply(g_syspp, [["SetFillStyle",3002],["colors",ROOT.kRed]]+data_expectedStyle )
             style_utils.apply(g_syspf, [["SetFillStyle",3002],["colors",ROOT.kBlue]]+data_expectedStyle )
             style_utils.apply(g_sysff, [["SetFillStyle",3002],["colors",ROOT.kBlack]]+data_expectedStyle )
-        g_templatepp.GetYaxis().SetRangeUser(0.,1.9)
-        g_templatepp.GetXaxis().SetLimits(200.,5000.)
         g_templatepp.Draw("AP")
         g_templatepf.Draw("P SAME")
         g_templateff.Draw("P SAME")
@@ -1535,32 +1567,38 @@ class TemplatesFitApp(TemplatesApp):
             g_syspf.Draw("E2 SAME")
             g_sysff.Draw("E2 SAME")
         if g_mctruthpp:
-                g_mctruthpp.Draw("p SAME")
-                g_mctruthpf.Draw("p SAME")
-                g_mctruthff.Draw("p SAME")
-                leg.AddEntry(g_mctruthpp,"#gamma #gamma MC truth","lp")  
-                leg.AddEntry(g_mctruthpf,"#gamma j MC truth","lp")
-                leg.AddEntry(g_mctruthff,"j j MC truth","lp")
+            g_mctruthpp.Draw("p SAME")
+            g_mctruthpf.Draw("p SAME")
+            g_mctruthff.Draw("p SAME")
+            leg.AddEntry(g_mctruthpp,"#gamma #gamma MC truth","lp")  
+            leg.AddEntry(g_templatepp,"#gamma #gamma data","lp")  
+            leg.AddEntry(g_mctruthpf,"#gamma j MC truth","lp")
+            leg.AddEntry(g_templatepf,"#gamma j data","lp")
+            leg.AddEntry(g_mctruthff,"j j MC truth","lp")
+            leg.AddEntry(g_templateff,"j j data","lp")
+        else:
+            leg.AddEntry(g_templatepp,"#gamma #gamma","lp")  
+            leg.AddEntry(g_templatepf,"#gamma j","lp")
+            leg.AddEntry(g_templateff,"j j","lp")
         g_templatepp.GetXaxis().SetMoreLogLabels()
-        leg.AddEntry(g_templatepp,"#gamma #gamma data","lp")  
-        leg.AddEntry(g_templatepf,"#gamma j data","lp")
-        leg.AddEntry(g_templateff,"j j data","lp")
         leg.Draw()
-        b.DrawLatex(0.45,.94,"#int L dt=2.4 /fb  CMS PRELIMINARY")
+        #b.DrawLatex(0.45,.94,"#int L dt=1.7 /fb  CMS PRELIMINARY")
         if g_ratiopp:
                 cpu.cd(2)
-                style_utils.apply(g_ratiopp, [["colors",ROOT.kRed]]+data_expectedStyle )
-                g_ratiopp.GetYaxis().SetTitle("pull fct")
+                style_utils.apply(g_ratiopp, [["colors",ROOT.kRed]]+ratio_expectedStyle )
+                g_ratiopp.GetYaxis().SetTitle("(data-MC)/#sigma_{data}")
                 g_ratiopp.GetYaxis().SetRangeUser(-3,3)
-                g_ratiopp.GetYaxis().SetTitleSize( g_templatepp.GetYaxis().GetTitleSize() *7./3. )
-                g_ratiopp.GetYaxis().SetLabelSize( g_templatepp.GetYaxis().GetLabelSize()*7./3.  )
-                g_ratiopp.GetYaxis().SetTitleOffset(g_templatepp.GetYaxis().GetTitleOffset()*3/7. )
-                g_ratiopp.GetXaxis().SetTitleSize( g_templatepp.GetXaxis().GetTitleSize() *4./3. )
-                g_ratiopp.GetXaxis().SetLabelSize( g_templatepp.GetXaxis().GetLabelSize()*7./3. )
+                g_ratiopp.GetYaxis().SetTitleSize(  g_templatepp.GetYaxis().GetTitleSize() * 6/3. )
+                g_ratiopp.GetYaxis().SetTitleOffset(  g_templatepp.GetYaxis().GetTitleOffset() * 3/7. ) # not clear why the ratio should be upside down, but it does
+                g_ratiopp.GetYaxis().SetLabelSize(  g_templatepp.GetYaxis().GetLabelSize() * 7/3. )
+                g_ratiopp.GetXaxis().SetTitleSize(  g_templatepp.GetXaxis().GetTitleSize() * 7/3. )
+                g_ratiopp.GetXaxis().SetTitleOffset(  g_templatepp.GetXaxis().GetTitleOffset() )
+                g_ratiopp.GetXaxis().SetLabelSize(  g_templatepp.GetXaxis().GetLabelSize() * 6/3. )
                 g_ratiopp.GetXaxis().SetLimits(200.,5000.)
                 g_ratiopp.GetXaxis().SetMoreLogLabels()
                 g_ratiopp.Draw("AP")
                 self.keep( [g_ratiopp] )
+        self.format(cpu,self.options.postproc)
         self.keep( [cpu,g_templatepp,g_templatepf,g_templateff] )
         self.autosave(True)
 
@@ -1667,11 +1705,11 @@ class TemplatesFitApp(TemplatesApp):
     def plotJKpurity(self,options,cat,dim,tps,jkID="jk"):
         jks=int(options.jackknife.get("jk_source"))
         jkt=int(options.jackknife.get("jk_target"))
-      #   tree_fitresult_fraction_unrolled_template_mix_2D_EBEB
-        nom_tree =self.treeData("fitresult_fraction_unrolled_template_mix_2D_%s" % (cat))
+      #   tree_fitresult_purity_unrolled_template_mix_2D_EBEB
+        nom_tree =self.treeData("fitresult_purity_unrolled_template_mix_2D_%s" % (cat))
         nentries= nom_tree.GetEntries()
         g_purity=ROOT.TGraphErrors(nentries*len(tps))
-        g_ratio=ROOT.TGraphErrors(nentries)
+        g_purity=ROOT.TGraphErrors(nentries)
         g_puerr=ROOT.TGraphErrors(nentries)
         g_puratio=ROOT.TGraphErrors(nentries)
         histos=[]
@@ -1679,7 +1717,7 @@ class TemplatesFitApp(TemplatesApp):
             h_p=ROOT.TH1D("h_p%s_%s_%i"%(jkID,cat,mb),"h_p%s_%s_%i"%(jkID,cat,mb),50*len(tps),.3,1.)
             histos.append(h_p)
         g_purity.GetXaxis().SetTitle("Diphoton mass [GeV]")
-        g_purity.GetYaxis().SetTitle("purity")
+        g_purity.GetYaxis().SetTitle("Fraction")
         i=1
         for tree_template in tps:
             for mb in range(nentries):
@@ -1723,19 +1761,19 @@ class TemplatesFitApp(TemplatesApp):
         cpurity = ROOT.TCanvas("cpurity%s_%s" % (jkID,cat),"cpurity%s_%s" % (jkID,cat))
         cpurity.Divide(1,2)
         cpurity.cd(1)
-        ROOT.gPad.SetGridx()
-        ROOT.gPad.SetGridy()
+      #  ROOT.gPad.SetGridx()
+      #  ROOT.gPad.SetGridy()
         ROOT.gPad.SetPad(0., 0.5, 1., 1.0)
         ROOT.gPad.SetLogx()
         g_purity.SetMarkerSize(1.3)
         g_purity.SetMarkerStyle(20)
-        g_purity.GetYaxis().SetTitle("JK purities")
+        g_purity.GetYaxis().SetTitle("JK puritys")
         g_purity.Draw("AP")
         g_purity.GetXaxis().SetLimits(200.,5000.)
         cpurity.cd(2)
         ROOT.gPad.SetPad(0., 0., 1., 0.5)
         ROOT.gPad.SetLogx()
-        ROOT.gPad.SetGridy()
+       # ROOT.gPad.SetGridy()
         g_ratio.SetMarkerSize(1.0)
         g_ratio.SetMarkerStyle(20)
         g_ratio.Draw("AP" )
@@ -1745,7 +1783,7 @@ class TemplatesFitApp(TemplatesApp):
         g_ratio.GetYaxis().SetTitleOffset(g_purity.GetYaxis().GetTitleOffset() )
         g_ratio.GetXaxis().SetTitleSize( g_purity.GetXaxis().GetTitleSize()  )
         g_ratio.GetXaxis().SetLabelSize( g_purity.GetXaxis().GetLabelSize() )
-        g_ratio.GetYaxis().SetTitle("purity + JK stat error")
+        g_ratio.GetYaxis().SetTitle("Fraction + JK stat error")
         g_ratio.GetXaxis().SetLimits(200.,5000.)
         g_ratio.GetYaxis().SetRangeUser(0.4,1.)
         
@@ -1753,8 +1791,8 @@ class TemplatesFitApp(TemplatesApp):
         cpu = ROOT.TCanvas("cpurity_%s" % (cat),"cpurity_%s" % (cat))
         cpu.Divide(1,2)
         cpu.cd(1)
-        ROOT.gPad.SetGridx()
-        ROOT.gPad.SetGridy()
+       # ROOT.gPad.SetGridx()
+       # ROOT.gPad.SetGridy()
         leg =ROOT.TLegend(0.4,0.2,0.7,0.5)
         leg.SetFillColor(ROOT.kWhite)
         leg.AddEntry(g_puerr,"full stat. error","l")
@@ -1773,7 +1811,7 @@ class TemplatesFitApp(TemplatesApp):
         leg.Draw()
         g_puerr.GetXaxis().SetLimits(200.,5000.)
         cpu.cd(2)
-        ROOT.gPad.SetGridy()
+        #ROOT.gPad.SetGridy()
         ROOT.gPad.SetPad(0., 0., 1., 0.4)
         ROOT.gPad.SetLogx()
         g_puratio.SetMarkerSize(1.3)

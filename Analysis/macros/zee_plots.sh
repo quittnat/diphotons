@@ -1,8 +1,5 @@
 #!/bin/bash
 
-set -x 
-
-set -x 
 
 data_file=""
 sig_file=""
@@ -51,7 +48,7 @@ done
 
 
 src=$1 && shift
-www=~/www/exo/spring15_7412
+www=~/www/exo/spring15_7415
 echo $1
 [ -n "$1" ] && www=$1 && shift
 
@@ -62,5 +59,5 @@ if [[ $target != "/*" ]]; then
     mkdir  $www/$target/
 fi
 
-./basic_plots.py --load zee_plots.json  -O $www/$target/selection  --input-dir $src  $lumi $data_file
+./basic_plots.py --load zee_plots.json  -O $www/$target/selection  --input-dir $src  $lumi $data_file $opts
 
