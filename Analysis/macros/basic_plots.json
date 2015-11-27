@@ -15,7 +15,6 @@
 	      ["rsg_02_4000","G #rightarrow #gamma #gamma (k/M_{PL}=0.2 M_{G}=4TeV)",
 	      [["colors","kAzure"],["SetLineWidth",2],["Scale",1],["SetFillStyle",0],["legopt","f nostack"],["SetFillColor","kWhite"]],
 	      { "RSGravToGG_kMpl_02_M_4000_TuneCUEP8M1_13TeV_pythia8_13TeV:__infile__/%(sel)s" : [] }
-	      ]
 	    ],
 
     "_data" : [
@@ -25,8 +24,6 @@
 	      ]
 	     
 ], 
-    "50ns" :  ["Scale",65.7e-3],
-    "25ns" :  ["Scale",1],
 
     "_bkg" : [
       	      ["jetjet","j j",

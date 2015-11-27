@@ -1,9 +1,10 @@
 {
     "processes" : {
-"RSGravitonToGG_kMpl_01_M_500_TuneCUEP8M1_13TeV_pythia8" : [ "RSGravitonToGG_kMpl01_M_500_TuneCUEP8M1_13TeV_pythia8" ],
-"RSGravitonToGG_kMpl_01_M_1000_TuneCUEP8M1_13TeV_pythia8" : [ "RSGravitonToGG_kMpl01_M_1000_TuneCUEP8M1_13TeV_pythia8" ],
-"RSGravitonToGG_kMpl_01_M_2000_TuneCUEP8M1_13TeV_pythia8" : [ "RSGravitonToGG_kMpl01_M_2000_TuneCUEP8M1_13TeV_pythia8" ],
-"RSGravitonToGG_kMpl_01_M_4000_TuneCUEP8M1_13TeV_pythia8" : [ "RSGravitonToGG_kMpl01_M_4000_TuneCUEP8M1_13TeV_pythia8" ]
+"RSGravToGG_kMpl-01_M-5000_TuneCUEP8M1_13TeV-pythia8" : [ [ "/RSGravToGG_kMpl-01_M-5000_TuneCUEP8M1_13TeV-pythia8", { "njobs" : 2 } ] ],
+"RSGravToGG_kMpl-01_M-500_TuneCUEP8M1_13TeV-pythia8"  : [ [ "/RSGravToGG_kMpl-01_M-500_TuneCUEP8M1_13TeV-pythia8",  { "njobs" : 2 } ] ],
+"RSGravToGG_kMpl-01_M-1000_TuneCUEP8M1_13TeV-pythia8" : [ [ "/RSGravToGG_kMpl-01_M-1000_TuneCUEP8M1_13TeV-pythia8", { "njobs" : 2 } ] ],
+"RSGravToGG_kMpl-01_M-4000_TuneCUEP8M1_13TeV-pythia8" : [ [ "/RSGravToGG_kMpl-01_M-4000_TuneCUEP8M1_13TeV-pythia8", { "njobs" : 2 } ] ],
+"RSGravToGG_kMpl-01_M-2000_TuneCUEP8M1_13TeV-pythia8"  : [ [ "/RSGravToGG_kMpl-01_M-2000_TuneCUEP8M1_13TeV-pythia8",  { "njobs" : 2 } ] ]
     },
     "_processes" : {
 	    "GGJets_M-200To13000-sherpa" : [
@@ -88,7 +89,7 @@
 	    },
 
 	
-	"cmdLine" : "campaign=EXOSpring15_7415_v2_38T selection=diphoton idversion=V2 trigger=HLT_DoublePhoton60_v* ptLead=75 ptSublead=75 massCut=200"
+	"cmdLine" : "campaign=EXOSpring15_7415_v2_38T selection=diphoton idversion=V2 trigger=HLT_DoublePhoton60_v* ptLead=75 ptSublead=75 massCut=230:320"
 	
 
 }
