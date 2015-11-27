@@ -5,7 +5,7 @@
                 "categories" : ["EBEB","EBEE"],
                 "components": ["pf","ff",  ["pp",{ "2D" : {},"template_mc:2D":{}}] 
                 ],
-                "weight_cut": "weight <10000",
+                "weight_cut": "weight <1000.",
 		"redo" : true,
 		"doDataMc" :true,
                 "_plot_variables":{"subleadScEta": [-2.5,-2.0,-1.5,-1.0,-0.5,0.0,0.5,1.0,1.5,2.0,2.5],"leadScEta":[-2.5,-2.0,-1.5,-1.0,-0.5,0.0,0.5,1.0,1.5,2.0,2.5],"subleadPt":[75,100,200,500,7000],"leadPt":[75,100,200,500,7000]},
@@ -22,7 +22,7 @@
         "jk_pp": 0.0 ,
         "jk_source": 10.0 ,
         "jk_target": 10.0 ,
-            "categories":["EBEB","EBEE"],
+            "categories":["EBEE"],
             "components": ["pf"],
             "template_binning" : [ 0.0,0.1,5.0,15.0],
 			
@@ -38,7 +38,7 @@
                 "components": ["pp","pf","ff"],
                 "lowerLimitSigRegion": "0.", 
                 "upperLimitSigRegion": "4.", 
-				"jackknife_pf":true,
+				"jackknife_pf":false,
 				"jackknife_pp":false,
 		"mass_binning" :"mass[13000,0.0,13000.0]",
                 "extended_fit":false

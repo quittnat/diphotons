@@ -10,7 +10,7 @@
 		
             "selection"    : "cic",
             "components" : [ "pp", "pf", "ff" ],                                             "#" : "list of fit components                 ",
-            "dataset_variables" : ["mgg","mass","mggEBEB:=mgg","mggEBEE:=mgg","mggGen:=genMass","leadPt","subleadPt","leadEta","subleadEta", "leadMatchType", "subleadMatchType"],      "#" : "additional variables to be stored      ",
+            "dataset_variables" : ["mgg","mass","mggEBEB:=mgg","mggEBEE:=mgg","mggGen:=genMass","leadPt","subleadPt","leadEta","subleadEta", "leadMatchType", "subleadMatchType", "subleadGenIso" , "subleadMatchType", "leadGenIso" , "leadMatchType"],      "#" : "additional variables to be stored      ",
             "store_trees" : true,	
 
             "#" :"categories in which to split the fit       ",
@@ -193,7 +193,7 @@
 		        "sel"  : "cicNoChIso", "#" : "event selection",
                         "dataset" : ["data"],    "#" : "input dataset. can be data,mc or templates",
                         "datasetmc" : ["data","mc"],    "#" : "input dataset. can be data,mc or templates",
-                        "jk":10.0,
+                        "jk":0.0,
                                     "#" : "list of fit components                 ",
                         "#" : "How to fill different categories. Logic is the same as for the 'fill' instructions above",
                         "fill_categories" : {
@@ -427,8 +427,8 @@
 
     "mix" : { 
 	"kDSinglePho2D" : {
-        "jk_source": 10.0 ,
-        "jk_target": 10.0 ,
+        "jk_source": 0.0 ,
+        "jk_target": 0.0 ,
 		"target" : "2D",
 		"ptLeadMin" : 75.0, "ptSubleadMin" : 75.0, "massMin" : 200.0,
 		"pt" : "phoPt", "eta" : "phoEta", "phi" : "phoPhi", "energy" : "phoEnergy",

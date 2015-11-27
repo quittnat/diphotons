@@ -179,11 +179,11 @@ class TemplatesApp(PlotApp):
                                     ),
                         make_option("--fits",dest="fits",action="callback",callback=optpars_utils.Load(),type="string",
                                     default={},help="List of templates fits to be performed. Categories, componentd and templates can be specified."),
-                        ### make_option("--template-binning",dest="template_binning",action="callback",callback=optpars_utils.ScratchAppend(float),
-                        ###             type="string",
-                        ###             default=[],
-                        ###             help="Binning of the parametric observable to be used for templates",
-                        ###             ),                        
+                        make_option("--template-binning",dest="template_binning",action="callback",callback=optpars_utils.ScratchAppend(float),
+                                    type="string",
+                                    default=[],
+                                    help="Binning of the parametric observable to be used for templates",
+                                    ),                        
                         ]
                   )
             ]+option_groups,option_list=option_list)

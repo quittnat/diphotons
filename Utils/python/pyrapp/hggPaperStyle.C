@@ -20,8 +20,10 @@ void hggPaperStyle()
   hggStyle->SetPadColor(kWhite);
   hggStyle->SetCanvasColor(kWhite);
   
-  hggStyle->SetCanvasDefH(600); //Height of canvas
-  hggStyle->SetCanvasDefW(800); //Width of canvas
+//  hggStyle->SetCanvasDefH(600); //Height of canvas
+//  hggStyle->SetCanvasDefW(800); //Width of canvas
+  hggStyle->SetCanvasDefH(1000); //Height of canvas
+  hggStyle->SetCanvasDefW(1400); //Width of canvas
   hggStyle->SetCanvasDefX(0);   //POsition on screen
   hggStyle->SetCanvasDefY(0);
 
@@ -33,8 +35,8 @@ void hggPaperStyle()
   // For hgg axis titles:
   hggStyle->SetTitleColor(1, "XYZ");
   hggStyle->SetTitleFont(42, "XYZ");
-  hggStyle->SetTitleSize(0.05, "XYZ");
-  hggStyle->SetTitleYOffset(1.5); // => 1.15 if exponents
+  hggStyle->SetTitleSize(0.07, "XYZ");
+  hggStyle->SetTitleYOffset(1.15); // => 1.15 if exponents
   hggStyle->SetTitleXOffset(1.);//0.9);
 
   // For hgg axis labels:

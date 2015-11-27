@@ -51,7 +51,7 @@
             ],
 
      "#" : "mc dataset",
-      "signals" : { 
+      "_signals" : { 
 
 	   "grav_01_1000" : [ "RSGravToGG_kMpl_01_M_1000_TuneCUEP8M1_13TeV_pythia8_13TeV:__infile__/%(sel)sGenIso", "RSGravToGG_kMpl_01_M_1000_TuneCUEP8M1_13TeV_pythia8_13TeV:__infile__/%(sel)sNonGenIso"  ],
 	   "grav_01_1250" : [ "RSGravToGG_kMpl_01_M_1250_TuneCUEP8M1_13TeV_pythia8_13TeV:__infile__/%(sel)sGenIso", "RSGravToGG_kMpl_01_M_1250_TuneCUEP8M1_13TeV_pythia8_13TeV:__infile__/%(sel)sNonGenIso"  ],
@@ -110,30 +110,18 @@
       "grav_02_5000" : [ "RSGravToGG_kMpl_02_M_5000_13TeV:__infile__/%(sel)s" ]
       
       },
-      "_signals" : {
-     	       	 "grav_001_750" : ["RSGravToGG_kMpl_001_M_750_13TeV:__infile__/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_001_M_750_13TeV:__infile__/%(sel)sNonGenIso"
+      "signals" : {
+     	       	 "grav_01_500" : ["RSGravToGG_kMpl_01_M_500_13TeV:__infile__/%(sel)sGenIso",
+		       		  "RSGravToGG_kMpl_01_M_500_13TeV:__infile__/%(sel)sNonGenIso"
 		       		  ],
-     	       	 "grav_001_1500" : ["RSGravToGG_kMpl_001_M_1500_13TeV:__infile__/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_001_M_1500_13TeV:__infile__/%(sel)sNonGenIso"
+     	       	 "grav_01_1000" : ["RSGravToGG_kMpl_01_M_1000_13TeV:__infile__/%(sel)sGenIso",
+		       		  "RSGravToGG_kMpl_01_M_1000_13TeV:__infile__/%(sel)sNonGenIso"
 		       		  ],
-      	       	 "grav_01_1500" : ["RSGravToGG_kMpl_01_M_1500_13TeV:__infile__/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_01_M_1500_13TeV:__infile__/%(sel)sNonGenIso"
+      	       	 "grav_01_2000" : ["RSGravToGG_kMpl_01_M_2000_13TeV:__infile__/%(sel)sGenIso",
+		       		  "RSGravToGG_kMpl_01_M_2000_13TeV:__infile__/%(sel)sNonGenIso"
 		       		  ],
-      	       	 "grav_02_1500" : ["RSGravToGG_kMpl_02_M_1500_13TeV:__infile__/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_02_M_1500_13TeV:__infile__/%(sel)sNonGenIso"
-		       		  ],
-     	       	 "grav_02_3000" : ["RSGravToGG_kMpl_02_M_3000_13TeV:__infile__/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_02_M_3000_13TeV:__infile__/%(sel)sNonGenIso"
-		       		  ],
-     	       	 "grav_01_3000" : ["RSGravToGG_kMpl_01_M_3000_13TeV:__infile__/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_01_M_3000_13TeV:__infile__/%(sel)sNonGenIso"
-		       		  ],
-     	       	 "grav_02_5000" : ["RSGravToGG_kMpl_02_M_5000_13TeV:__infile__/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_02_M_5000_13TeV:__infile__/%(sel)sNonGenIso"
-		       		  ],
-     	       	 "grav_001_5000" : ["RSGravToGG_kMpl_001_M_5000_13TeV:__infile__/%(sel)sGenIso",
-		       		  "RSGravToGG_kMpl_001_M_5000_13TeV:__infile__/%(sel)sNonGenIso"
+      	       	 "grav_01_4000" : ["RSGravToGG_kMpl_01_M_4000_13TeV:__infile__/%(sel)sGenIso",
+		       		  "RSGravToGG_kMpl_01_M_4000_13TeV:__infile__/%(sel)sNonGenIso"
 		       		  ]
             },
 
@@ -161,7 +149,7 @@
     "#" : " %(cat)s is replaced with the category name                 ", 
     "treeName": "trees/%(sample)s_%(cat)s",
 
-    "preselection" : "(leadChIso < 15. && subleadChIso < 15. && leadPt> 75. && subleadPt > 75. && mass > 200. && (max(abs(leadScEta),abs(subleadScEta))<1.5 ||  mass > 300.) &&( max(abs(leadScEta),abs(subleadScEta))<1.5  || !(leadPixSeed||subleadPixSeed) ))",   
+    "preselection" : "(leadChIso < 15. && subleadChIso < 15. && leadPt> 75. && subleadPt > 75. && mass > 200. && (max(abs(leadScEta),abs(subleadScEta))<1.5 ||  mass > 300.)  )",   
 	"#" : "preselection cut applied to all trees",
     "selection"    : "cicNoChIso",                              "#" : "nominal selection",
     
@@ -181,9 +169,11 @@
                "subleadIsEB := abs(subleadScEta) < 1.5",
                "leadIsSB := (((leadPhoIso - rho*leadPhoIsoEA) -0.0045*leadPt < 2. ) && (leadIsEB    && (leadSigmaIeIe    > 0.0112) ))||( ((leadPhoIso - rho*leadPhoIsoEA) -0.003*leadPt < 11. ) &&!leadIsEB    && (leadSigmaIeIe>0.03    )  )",
                "subleadIsSB := ((((subleadPhoIso - rho*subleadPhoIsoEA) -0.0045*subleadPt < 2. ) && (subleadIsEB    && (subleadSigmaIeIe    > 0.0112) ))||( ((subleadPhoIso - rho*subleadPhoIsoEA) -0.003*subleadPt < 11. ) &&!subleadIsEB    && (subleadSigmaIeIe>0.03     )) )",
-               "leadPrompt    := leadGenIso < 10. && leadMatchType == 1",
+               "_leadPrompt    := leadGenIso < 10. && leadMatchType == 1",
+               "leadPrompt    := leadMatchType == 1",
                "leadFake      := ! leadPrompt",
-               "subleadPrompt := subleadGenIso < 10. && subleadMatchType == 1",
+               "_subleadPrompt := subleadGenIso < 10. && subleadMatchType == 1",
+               "subleadPrompt :=  subleadMatchType == 1",
                "subleadFake   := ! subleadPrompt",
                "phoPrompt := phoGenIso < 10. && phoMatchType == 1",
                "phoFake   := ! phoPrompt",

@@ -135,7 +135,7 @@
     "_categories": ["EBHighR9","EBLowR9","EEHighR9","EELowR9"], 
     "categories" : [],
 
-    "groups": {
+    "_groups": {
         "EB"       : ["EBHighR9","EBLowR9"],
         "EE"       : ["EEHighR9","EELowR9"],
         "EBHighR9" : ["EBHighR9"],
@@ -143,14 +143,17 @@
 	"EEHighR9" : ["EEHighR9"],
 	"EELowR9"  : ["EELowR9"]
 	}, 
+    "groups": {
+        "EE"       : ["EEHighR9","EELowR9"]
+	}, 
 
 
 	"plots":[
 
 
 	      ["mass"			,[["xtitle","m_{#gamma #gamma} (GeV)"],
-					  ["xrange",[230.0,1600.0]],
-					  "density",["ytitle","Events / %(binw)s GeV"]
+					  ["xrange",[320.0,1600.0]],
+					  ["density",25],["ytitle","Events / %(binw)s GeV"]
 					]
 					,null,null]
 

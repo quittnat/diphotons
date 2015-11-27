@@ -413,7 +413,7 @@ void DataSetMixer::fillLikeTarget(TTree * target,
             cdfs1.back()->graph()->Draw("apl");
             canv.cd(2);
             matchHisto1[idim]->Draw("hist");
-            canv.SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/%s.png",canv.GetName()));
+           // canv.SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/%s.png",canv.GetName()));
         }
         for(size_t idim=0; idim<matchHisto2.size(); ++idim) {
             cdfs2.push_back( cdf(matchHisto2[idim],matchHisto2[idim]->GetXaxis()->GetXmin(),matchHisto2[idim]->GetXaxis()->GetXmax()) );
@@ -424,7 +424,7 @@ void DataSetMixer::fillLikeTarget(TTree * target,
             cdfs2.back()->graph()->Draw("apl");
             canv.cd(2);
             matchHisto1[idim]->Draw("hist");
-            canv.SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/%s.png",canv.GetName()));
+//   canv.SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/%s.png",canv.GetName()));
         }
     }
 

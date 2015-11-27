@@ -55,7 +55,7 @@
 	"*Pt*" : [["logy",1e-4]],
 	"*Iso*"  : [["logy",1e-4]],     
 	"*rat"   : ["SetGridy"],
-	"*ratio" : [["ytitle","#varepsilon"],["applyTo",["GetYaxis",[["SetNdivisions",505],["SetRangeUser",[0.5,1.0]]]]]]
+	"*ratio" : [["ytitle","#varepsilon"],["applyTo",["GetYaxis",[["SetNdivisions",505],["SetRangeUser",[0.8,1.0]]]]]]
 	},	 
     "postproc" : {
     },

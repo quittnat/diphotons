@@ -160,6 +160,8 @@ variables=["mass","pt","rapidity",
            "subleadSigmaIeIe := subLeadingPhoton.full5x5_sigmaIetaIeta",
            "subleadPixSeed := subLeadingPhoton.hasPixelSeed",
            "subleadPassEleVeto := subLeadingPhoton.passElectronVeto",
+           "recoVtx            := vtx.z",
+           "genVtx            := ?leadingPhoton.hasMatchedGenPhoton?leadingPhoton.matchedGenPhoton.mother.vertex.z:1000",
            ]
 
 histograms=["mass>>mass(1500,0,15000)",
@@ -214,7 +216,9 @@ histograms=["mass>>mass(1500,0,15000)",
             
             "subleadPt:leadPt>>ptSubVsLead(145,100,3000:145,100,3000)",
             "minR9>>minR9(110,0,1.1)",
-            "maxEta>>maxEta(250,0,2.5)"
+            "maxEta>>maxEta(250,0,2.5)",
+            "recoVtx >>recoVtx(100,0.,20.)",
+            "genVtx >>genVtx(100,0.,20.)"
             ]
 
 
@@ -539,6 +543,7 @@ cfgTools.dumpOnly(minimalDumper,
                    "leadChIso","subleadChIso",
                    "leadSigmaIeIe","subleadSigmaIeIe",
                    "leadHoE","subleadHoE",
+                   "recoVtx","genVtx",
                    ])
 
 

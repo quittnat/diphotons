@@ -1,16 +1,22 @@
 #################prepare templates####################################
-#./templates_maker.py --input-dir=full_analysis_spring15_7412v2_sync_v3/  -o  templatesdataMCv3_SieieHigh.root --prepare-nosignal --only-subset="2D" --load templates_makerSieieHigh.json,templates_maker_prepare.json
-#./templates_maker.py --input-dir=full_analysis_spring15_7412v2_sync_v3_singlePho/ -o templatesdataMCSinglePhov3_SieieHigh.root --prepare-nosignal --only-subset="singlePho" --load templates_makerSieieHigh.json,templates_maker_prepare.json
-#./templates_maker.py --load templates_maker_prepare.json,templates_maker.json --read-ws templatesdataMCv3_SieieHigh.root,templatesdataMCv3_SieieHigh.root --mix-templates --mix-mc  --store-new-only -o mixdataMCv3_SieieHigh.root
+#./templates_maker.py --input-dir=full_analysis_spring15_7412v2_sync_v3/  -o  templatesdataMCv3.root --prepare-nosignal --only-subset="2D" --load templates_maker.json,templates_maker_prepare.json
+#./templates_maker.py --input-dir=full_analysis_spring15_7412v2_sync_v3_singlePho/ -o templatesdataMCSinglePhov3.root --prepare-nosignal --only-subset="singlePho" --load templates_maker.json,templates_maker_prepare.json
+#./templates_maker.py --input-dir=full_analysis_spring15_7412v2_sync_v3_singlePho/ -o templatesdataMCSinglePhov3_Sieie.root --prepare-data --prepare-nosignal --only-subset="singlePho" --load templates_makerSinglePhoSieie.json,templates_maker_SinglePhoSieie.json
+
+#./templates_maker.py --load templates_maker_prepare.json,templates_maker.json --read-ws templatesdataMCSinglePhov3.root,templatesdataMCv3.root --mix-templates --mix-mc  --store-new-only -o mixdataMCv3.root
+
 ################ compare templates#################################
 
-#./templates_fitter.py --load templates_fitter.json --fit-mc --read-ws templatesdataMCv3_SieieHigh.root,mixdataMCv3_SieieHigh.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b_SieieHigh/ -o fitv3_fixedmb_9b_SieieHigh.root --compare-templates --fixed-massbins --template-binning="0.0,0.1,5.0,15.0" --store-new-only
+
+#./templates_fitter.py --load templates_fitter.json,lumi.json --fit-mc --read-ws templatesdataMCv3.root,mixdataMCv3.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b/ -o fitv3_fixedmb_9b.root --compare-templates --fixed-massbins --template-binning="0.0,0.1,5.0,15.0" --store-new-only --lumi 2.4
+
+#./templates_fitter.py --load templates_fitter.json,lumi.json --fit-mc --read-ws fb24/templatesdataMCv3.root,fb24/mixdataMCv3.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3_24fb/fullmassrange_9b/ -o fitv3_fullmassrange_9b.root --compare-templates --fit-massbins 1,1,0 --template-binning="0.0,0.1,5.0,15.0" --store-new-only --lumi 2.4
 ####study mixing parameters####################################
 #./templates_fitter.py --load templates_fitter.json --fit-mc --read-ws templatesdataMCv3.root,mixdataMCv3_pt100.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b_pt100/ -o fitv3_fixedmb_9b_pt100.root --compare-templates --fixed-massbins --template-binning="0.0,0.1,5.0,15.0" --store-new-only
 
 #./templates_fitter.py --load templates_fitter.json --fit-mc --read-ws templatesdataMCv3.root,mixdataMCv3_pt75_RndMatch2up.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b_pt75_RndMatch2up/ -o fitv3_fixedmb_9b_pt75_RndMatch2up.root --compare-templates --fixed-massbins --template-binning="0.0,0.1,5.0,15.0" --store-new-only
 #./templates_fitter.py --load templates_fitter.json --fit-mc --read-ws templatesdataMCv3.root,mixdataMCv3.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b_fullmassrange/ -o fitv3_fixedmb_9b_fullmassrange.root --compare-templates --fit-massbins 1,1,0 --template-binning="0.0,0.1,5.0,15.0" --store-new-only
-#./templates_fitter.py --load templates_fitter.json --fit-mc --read-ws templatesdataMCv3.root,mixdataMCv3.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b/ -o fitv3_fixedmb_9b.root --compare-templates --fixed-massbins --template-binning="0.0,0.1,5.0,15.0" --store-new-only
+#./templates_fitter.py --load templates_fitter.json --fit-mc --read-ws templatesdataMCv3.root,mixdataMCv3.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b/ -o fitv3_fixedmb_9b.root --compare-templates --fixed-massbins --template-binning="0.0,0.1,5.0,15.0" --store-new-only 
 
 
 
@@ -20,13 +26,17 @@
 
 ###################3comp########################################
 
-#./templates_fitter.py --load templates_fitter.json --read-ws templatesdataMCv3.root,mixdataMCv3.root,fitv3_fixedmb_9b.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b_3comp_datapp_MCpf_toData/  --purity-sigregion --fit-mc -o fittedv3_fixedmb_9b_3comp_datapp_MCpf_toData.root --nominal-fit --fixed-massbins  --template-binning="0.0,0.1,5.0,15.0" --fit-template unrolled_template_mix --store-new-only 
+#./templates_fitter.py --load templates_fitter.json,lumi.json --read-ws templatesdataMCv3.root,mixdataMCv3.root,fitv3_fixedmb_9b.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b_3comp_datapp_MCpf_toData/  --purity-sigregion --fit-mc -o fittedv3_fixedmb_9b_3comp_datapp_MCpf_toData.root --nominal-fit --fixed-massbins  --template-binning="0.0,0.1,5.0,15.0" --fit-template unrolled_template_mix --store-new-only 
 
-#./templates_fitter.py --load templates_fitter.json --read-ws templatesdataMCv3.root,mixdataMCv3.root,fitv3_fixedmb_9b.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b_3comp/  --purity-sigregion -o fittedv3_fixedmb_9b_3comp_data.root --nominal-fit --fixed-massbins  --template-binning="0.0,0.1,5.0,15.0" --fit-template unrolled_template_mix --store-new-only 
-#./templates_fitter.py --load templates_fitter.json --read-ws templatesdataMCv3.root,mixdataMCv3.root,fitv3_fixedmb_9b.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b_3comp/ --fit-mc  --purity-sigregion -o fittedv3_fixedmb_9b_3comp_mc.root --nominal-fit --fixed-massbins  --template-binning="0.0,0.1,5.0,15.0" --fit-template unrolled_template_mix --store-new-only 
-#./templates_fitter.py --load templates_fitter.json --read-ws templatesdataMCv3.root,mixdataMCv3.root,fitv3_fixedmb_9b.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b/  --purity-sigregion -o fittedv3_fixedmb_9b_data.root --nominal-fit --fixed-massbins  --template-binning="0.0,0.1,5.0,15.0" --fit-template unrolled_template_mix --store-new-only 
-#./templates_fitter.py --load templates_fitter.json --read-ws templatesdataMCv3.root,mixdataMCv3.root,fitv3_fixedmb_9b.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b/ --fit-mc --purity-sigregion -o fittedv3_fixedmb_9b_mc.root --nominal-fit --fixed-massbins  --template-binning="0.0,0.1,5.0,15.0" --fit-template unrolled_template_mix --store-new-only 
-#./templates_fitter.py --load templates_fitter.json --read-ws templatesdataMCv3.root,mixdataMCv3.root,fitv3_fixedmb_9b.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b/ --fit-mc --purity-sigregion -o fittedv3_fixedmb_9b_mctruth.root --nominal-fit --fixed-massbins  --template-binning="0.0,0.1,5.0,15.0" --fit-template unrolled_mctruth --store-new-only 
+
+#./templates_fitter.py --load templates_fitter.json,lumi.json --read-ws fb24/templatesdataMCv3.root,fb24/mixdataMCv3.root,fb24/fitv3_fixedmb_9b.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3_24fb/fixedmb_9b_3comp/  --purity-sigregion -o fittedv3_fixedmb_9b_3comp_data.root --nominal-fit --fixed-massbins  --template-binning="0.0,0.1,5.0,15.0" --fit-template unrolled_template_mix --store-new-only  --lumi 2.4
+
+
+#./templates_fitter.py --load templates_fitter.json,lumi.json --read-ws templatesdataMCv3.root,mixdataMCv3.root,fitv3_fixedmb_9b.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b_3comp_mc/ --fit-mc  --purity-sigregion -o fittedv3_fixedmb_9b_3comp_mc.root --nominal-fit --fixed-massbins  --template-binning="0.0,0.1,5.0,15.0" --fit-template unrolled_template_mix --store-new-only --lumi 2.4
+#./templates_fitter.py --load templates_fitter.json,lumi.json --read-ws templatesdataMCv3.root,mixdataMCv3.root,fitv3_fixedmb_9b.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b/  --purity-sigregion -o fittedv3_fixedmb_9b_data.root --nominal-fit --fixed-massbins  --template-binning="0.0,0.1,5.0,15.0" --fit-template unrolled_template_mix --store-new-only --lumi 2.4
+#./templates_fitter.py --load templates_fitter.json,lumi.json --read-ws templatesdataMCv3.root,mixdataMCv3.root,fitv3_fixedmb_9b.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b/ --fit-mc --purity-sigregion -o fittedv3_fixedmb_9b_mc.root --nominal-fit --fixed-massbins  --template-binning="0.0,0.1,5.0,15.0" --fit-template unrolled_template_mix --store-new-only --lumi 2.4 
+
+#./templates_fitter.py --load templates_fitter.json --read-ws templatesdataMCv3.root,mixdataMCv3.root,fitv3_fixedmb_9b.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b_2comp_mc/ --fit-mc --purity-sigregion -o fittedv3_fixedmb_9b_mctruth.root --nominal-fit --fixed-massbins  --template-binning="0.0,0.1,5.0,15.0" --fit-template unrolled_mctruth --store-new-only --lumi 2.4
 
 
 
@@ -52,23 +62,27 @@
 
 
 
-#./templates_fitter.py --load templates_fitter.json --fit-mc --read-ws templatesdataMCv3.root,fitv3_fixedmb_9b.root,fittedv3_fixedmb_9b_3comp_mc.root,fittedv3_fixedmb_9b_mctruth.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb2_9b_3comp_sigRegion_closure/ --plot-purity --plot-closure template_mix --plot-purityvalue fraction
+#./templates_fitter.py --load templates_fitter.json --fit-mc --read-ws templatesdataMCv3.root,fitv3_fixedmb_9b.root,fittedv3_fixedmb_9b_3comp_mc.root,fittedv3_fixedmb_9b_mctruth.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb2_9b_3comp_sigRegion_closure/ --plot-purity --plot-closure template_mix --plot-purityvalue fraction --lumi 2.4
 
 ############plot purity closure########################
 #standard
 #./templates_fitter.py --load templates_fitter.json  --read-ws templatesdataMCv3.root,fitv3_fixedmb_9b.root,fittedv3_fixedmb_9b_data.root,fittedv3_fixedmb_9b_mc.root,fittedv3_fixedmb_9b_mctruth.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b/ --plot-purity --plot-closure template_mix --plot-purityvalue fraction
-#./templates_fitter.py --load templates_fitter.json --fit-mc --read-ws templatesdataMCv3.root,fitv3_fixedmb_9b.root,fittedv3_fixedmb_9b_mc.root,fittedv3_fixedmb_9b_mctruth.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b/ --plot-purity --plot-closure template_mix --plot-purityvalue fraction
 
+#./templates_fitter.py --load templates_fitter.json --fit-mc --read-ws fb24/templatesdataMCv3.root,fb24/fitv3_fixedmb_9b.root,fb24/fittedv3_fixedmb_9b_3comp_mc.root,fb24/fittedv3_fixedmb_9b_mctruth.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3_24fb/fixedmb_9b/ --plot-purity --plot-closure template_mix --plot-purityvalue fraction
+
+#./templates_fitter.py --load templates_fitter.json  --read-ws fb24/templatesdataMCv3.root,fb24/fitv3_fixedmb_9b.root,fb24/fittedv3_fixedmb_9b_3comp_data.root,fb24/fittedv3_fixedmb_9b_3comp_mc.root,fb24/fittedv3_fixedmb_9b_mctruth.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3_24fb/fixedmb_9b_3comp/ --plot-purity --plot-closure template_mix --plot-purityvalue fraction --fit-mc 
 #3 comp
 
-#./templates_fitter.py --load templates_fitter.json  --read-ws templatesdataMCv3.root,fitv3_fixedmb_9b.root,fittedv3_fixedmb_9b_3comp_data.root,fittedv3_fixedmb_9b_3comp_mc.root,fittedv3_fixedmb_9b_mctruth.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b_3comp/ --plot-purity --plot-closure template_mix --plot-purityvalue fraction --fit-mc 
-./templates_fitter.py --load templates_fitter.json --saveas png,root --read-ws templatesdataMCv3.root,fitv3_fixedmb_9b.root,fittedv3_fixedmb_9b_3comp_data.root,fittedv3_fixedmb_9b_3comp_mc.root,fittedv3_fixedmb_9b_mctruth.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b_3comp/ --plot-purity --plot-closure template_mix --plot-purityvalue fraction  
+
+./templates_fitter.py --load templates_fitter.json,lumi.json  --read-ws fb24/templatesdataMCv3.root,fb24/fitv3_fixedmb_9b.root,fb24/fittedv3_fixedmb_9b_3comp_data.root,fb24/fittedv3_fixedmb_9b_3comp_mc.root,fb24/fittedv3_fixedmb_9b_mctruth.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3_24fb/fixedmb_9b_3comp/ --plot-purity --plot-closure template_mix --plot-purityvalue fraction --fit-mc --lumi 2.4
+./templates_fitter.py --load templates_fitter.json,lumi.json --saveas png,root --read-ws fb24/templatesdataMCv3.root,fb24/fitv3_fixedmb_9b.root,fb24/fittedv3_fixedmb_9b_mctruth.root,fb24/fittedv3_fixedmb_9b_3comp_mc.root,fb24/fittedv3_fixedmb_9b_3comp_data.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3_24fb/fixedmb_9b_3comp/ --plot-purity --plot-closure template_mix --plot-purityvalue fraction  --lumi 2.4
 
 #sigregion
 
-#./templates_fitter.py --load templates_fitter.json  --read-ws templatesdataMCv3.root,fitv3_fixedmb_9b.root,fittedv3_fixedmb_9b_3comp_data.root,fittedv3_fixedmb_9b_mc.root,fittedv3_fixedmb_9b_mctruth.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b_3comp/ --fit-mc --plot-purity --plot-closure template_mix --plot-purityvalue fraction --purity-sigregion
-#./templates_fitter.py --load templates_fitter.json  --read-ws templatesdataMCv3.root,fitv3_fixedmb_9b.root,fittedv3_fixedmb_9b_data.root,fittedv3_fixedmb_9b_mc.root,fittedv3_fixedmb_9b_mctruth.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b/ --plot-purity --plot-closure template_mix --plot-purityvalue fraction --purity-sigregion
-./templates_fitter.py --load templates_fitter.json --saveas png,root   --read-ws templatesdataMCv3.root,fitv3_fixedmb_9b.root,fittedv3_fixedmb_9b_3comp_data.root,fittedv3_fixedmb_9b_3comp_mc.root,fittedv3_fixedmb_9b_mctruth.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b_3comp/ --plot-purity --plot-closure template_mix --plot-purityvalue fraction  --purity-sigregion
+
+
+./templates_fitter.py --load templates_fitter.json,lumi.json  --read-ws fb24/templatesdataMCv3.root,fb24/fitv3_fixedmb_9b.root,fb24/fittedv3_fixedmb_9b_3comp_data.root,fb24/fittedv3_fixedmb_9b_3comp_mc.root,fb24/fittedv3_fixedmb_9b_mctruth.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3_24fb/fixedmb_9b_3comp/ --fit-mc --plot-purity --plot-closure template_mix --plot-purityvalue fraction --purity-sigregion --lumi 2.4
+./templates_fitter.py --load templates_fitter.json,lumi.json --saveas png,root   --read-ws fb24/templatesdataMCv3.root,fb24/fitv3_fixedmb_9b.root,fb24/fittedv3_fixedmb_9b_3comp_data.root,fb24/fittedv3_fixedmb_9b_3comp_mc.root,fb24/fittedv3_fixedmb_9b_mctruth.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3_24fb/fixedmb_9b_3comp/ --plot-purity --plot-closure template_mix --plot-purityvalue fraction  --purity-sigregion --lumi 2.4
 
 ############plot purity mctruth########################
 #./templates_fitter.py --load templates_fitter.json --fit-mc --read-ws templatesdataMCv3.root,fitv3_fixedmb_9b.root,fittedv3_fixedmb_9b_mc.root,fittedv3_fixedmb_9b_mctruth.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b/  --plot-purity --plot-closure mctruth --plot-purityvalue fraction
