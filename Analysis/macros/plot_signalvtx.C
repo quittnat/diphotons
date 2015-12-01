@@ -1,14 +1,6 @@
 {
-TNtuple* tree=tree_grav_01_750_cic2_EBEE;
-TNtuple* tree1=tree_grav_01_5000_cic2_EBEE ;
-TNtuple* tree2=tree_grav_01_1250_cic2_EBEE ;
-TNtuple* tree3=tree_grav_01_750_cic2_EBEE  ;
-TNtuple* tree4=tree_grav_01_3000_cic2_EBEE ;
-TNtuple* tree5=tree_grav_01_2750_cic2_EBEE ;
-TNtuple* tree6=tree_grav_01_4000_cic2_EBEE ;
-TNtuple* tree7=tree_grav_01_1000_cic2_EBEE ;
-TNtuple* tree8=tree_grav_01_2000_cic2_EBEE ;
-                           
+//TNtuple* tree=tree_grav_01_750_cic2_EBEB;
+TNtuple* tree=tree_grav_01_allmasses_cic2_EBEB;
 
 
 Float_t leadPt=0.;
@@ -30,11 +22,10 @@ tree->SetBranchAddress("subleadPhi",&subleadPhi);
 tree->SetBranchAddress("genVtxZ",&genVtxZ);
 tree->SetBranchAddress("recoVtx",&recoVtx);
 tree->SetBranchAddress("nvtx",&nvtx);
-//int n=tree->GetEntries();
-int n=tree->GetEntries()+tree1->GetEntries()+tree2->GetEntries()+tree3->GetEntries()+tree4->GetEntries()+tree5->GetEntries()+tree6->GetEntries()+tree7->GetEntries()+tree8->GetEntries();
+int n=tree->GetEntries();
 double bins[17]={0.,50.,100.,150.,200.,250.,300.,350.,400.,450.,500.,550.,600.,700.,800.,1000.,1500.};
-// TEfficiency*eff = new TEfficiency("histo","vtx efficiency for grav k=01, 750 GeV, EBEE;p_{t,#gamma#gamma} (GeV);fraction of |z_{reco}-z_{gen}| < 1 cm",16,bins);
- TEfficiency*eff = new TEfficiency("histo","vtx efficiency for grav k=01, 750 -5000 GeV , EBEE;p_{t,#gamma#gamma} (GeV);fraction of |z_{reco}-z_{gen}| < 1 cm",16,bins);
+// TEfficiency*eff = new TEfficiency("histo","vtx efficiency for grav k=01, 750 GeV, EBEB;p_{t,#gamma#gamma} (GeV);fraction of |z_{reco}-z_{gen}| < 1 cm",16,bins);
+ TEfficiency*eff = new TEfficiency("histo","vtx efficiency for grav k=01, 750 -5000 GeV , EBEB;p_{t,#gamma#gamma} (GeV);fraction of |z_{reco}-z_{gen}| < 1 cm",16,bins);
 //TH1D* histo=new TH1D("signal_vtx","signal_vtx",n*0.1, 0.,1500.);
 for(int ev=0;ev< n;ev++){
 	tree->GetEntry(ev);
@@ -56,8 +47,8 @@ c1->cd();
 eff->SetLineColor(kRed);
 eff->Draw("AP");
 eff->SetMarkerColor(kRed);
-//c1->SaveAs("/afs/cern.ch/user/m/mquittna/www/diphoton/signalvtxEfficiency/vtxeff_grav01_750_EBEE.png");
-//c1->SaveAs("/afs/cern.ch/user/m/mquittna/www/diphoton/signalvtxEfficiency/vtxeff_grav01_750_EBEE.root");
-c1->SaveAs("/afs/cern.ch/user/m/mquittna/www/diphoton/signalvtxEfficiency/vtxeff_grav01_allmasses_EBEE.png");
-c1->SaveAs("/afs/cern.ch/user/m/mquittna/www/diphoton/signalvtxEfficiency/vtxeff_grav01_allmasses_EBEE.root");
+//c1->SaveAs("/afs/cern.ch/user/m/mquittna/www/diphoton/signalvtxEfficiency/vtxeff_grav01_750_EBEB.png");
+//c1->SaveAs("/afs/cern.ch/user/m/mquittna/www/diphoton/signalvtxEfficiency/vtxeff_grav01_750_EBEB.root");
+c1->SaveAs("/afs/cern.ch/user/m/mquittna/www/diphoton/signalvtxEfficiency/vtxeff_grav01_allmasses_EBEB.png");
+c1->SaveAs("/afs/cern.ch/user/m/mquittna/www/diphoton/signalvtxEfficiency/vtxeff_grav01_allmasses_EBEB.root");
 }
