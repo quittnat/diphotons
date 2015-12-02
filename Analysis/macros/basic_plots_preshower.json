@@ -1,0 +1,152 @@
+{
+    "drawopts" : ["Draw,DrawRatio[0.7]","e","hist","hist nostack"],
+    "legpos"  : [0.580,0.65,0.930,0.91],
+
+    "_sig" : null,
+
+    "data" : [
+	      ["Data","Data",
+	      [["SetBinErrorOption",1],["colors","kBlack"],["SetLineWidth",2],["SetFillStyle",0],["Scale",1],["legopt","pe"],["SetMarkerStyle","kFullCircle"],["SetFillColor","kWhite"]],
+	      { "Data_13TeV:__infile__/%(sel)s" : [] }
+	      ]
+	      
+    ],
+
+    "_bkg" : [
+      	      ["jetjet","j j",
+	      [["colors","myColorD1"],["Scale",1],["SetLineWidth",2],["SetFillStyle",1001],["legopt","f"],["SetFillColor","myColorC3tr"]],
+	      { "QCD_Pt_30toInf_13TeV:__infile__/%(sel)s" : [] }
+	      ],
+	      
+	      ["gjet","#gamma j",
+	      [["colors","myColorA1"],["SetLineWidth",2],["Scale",1],["SetFillStyle",1001],["legopt","f"],["SetFillColor","myColorA3tr"]],
+	      { "GJets_HT_100toInf_13TeV:__infile__/%(sel)s" : [] }
+	      ],
+
+	      ["ggjet_iso","#gamma #gamma",
+	      [["colors","myColorB1"],["SetLineWidth",2],["SetFillStyle",1001],["Scale",1],["legopt","f"],["SetFillColor","myColorB3tr"]],
+	      { "GGJets_M_200To13000_sherpa_13TeV:__infile__/%(sel)s" : [] }
+	      ]
+	      
+	     ],
+	"bkg":[
+	      ["gjet","#gamma j",
+	      [["colors","myColorA1"],["SetLineWidth",2],["Scale",1],["SetFillStyle",1001],["legopt","f"],["SetFillColor","myColorA3tr"]],
+	      { "GJets_HT_100toInf_13TeV:__infile__/%(sel)s" : [] }
+	      ],
+
+
+	      ["ggjet_iso","#gamma #gamma",
+	      [["colors","myColorB1"],["SetLineWidth",2],["SetFillStyle",1001],["Scale",1],["legopt","f"],["SetFillColor","myColorB3tr"]],
+	      { "GGJets_M_200To13000_sherpa_13TeV:__infile__/%(sel)s" : [] }
+	      ]
+],
+	"_bkg":[
+	      ["","",
+	      [["SetBinErrorOption",1],["colors","kWhite"],["SetLineWidth",2],["SetFillStyle",0],["Scale",1],["legopt","pe"],["SetMarkerStyle","kFullCircle"],["SetFillColor","kWhite"]],
+	      { "Data_13TeV:__infile__/%(sel)s" : [] }
+	      ]
+],
+
+
+    "bkg_file" : "output.root", 
+    "data_file"  : "output_data.root",
+
+    "categories" : [],
+
+    "groups": {
+        "EE"       : ["EEHighR9","EELowR9"]
+	}, 
+
+
+	"plots":[
+
+
+	      ["PreshowerEnergyPlane1"			,[["xtitle","PreshowerEnergyPlane1 (GeV)"],["overflow",[null]],
+					  ["ytitle","Events / %(binw)s GeV"]
+					]
+					,null,null],
+	      ["PreshowerEnergyPlane2"			,[["xtitle","PreshowerEnergyPlane2 (GeV)"],["overflow",[null]],
+					  ["ytitle","Events / %(binw)s GeV"]
+					]
+					,null,null],
+	      ["PreshowerEnergy"			,[["xtitle","PreshowerEnergy (GeV)"],["overflow",[null]],
+					  ["ytitle","Events / %(binw)s GeV"]
+					]
+					,null,null],
+	      ["ESEnergy_Energy"			,[["xtitle","ratio PreshowerEnergy/Energy"],["overflow",[null]],
+					  ["ytitle","Events / %(binw)s"]
+					]
+					,null,null],
+	      ["ESEnergyPlane1_Energy"			,[["xtitle","ratio PreshowerEnergyPlane1/Energy"],["overflow",[null]],
+					  ["ytitle","Events / %(binw)s"]
+					]
+					,null,null],
+	      ["ESEnergyPlane2_Energy"			,[["xtitle","ratio PreshowerEnergyPlane2/Energy"],["overflow",[null]],
+					  ["ytitle","Events / %(binw)s"]
+					]
+					,null,null],
+	      ["ESEnergy_RawEnergy"			,[["xtitle","ratio PreshowerEnergy/SCRawEnergy"],["overflow",[null]],
+					  ["ytitle","Events / %(binw)s"]
+					]
+					,null,null],
+	      ["ESEnergyPlane1_RawEnergy"			,[["xtitle","ratio PreshowerEnergyPlane1/SCRawEnergy"],["overflow",[null]],
+					  ["ytitle","Events / %(binw)s"]
+					]
+					,null,null],
+	      ["ESEnergyPlane2_RawEnergy"			,[["xtitle","ratio PreshowerEnergyPlane2/SCRawEnergy"],["overflow",[null]],
+					  ["ytitle","Events / %(binw)s"]
+					]
+					,null,null],
+	      ["RawEnergy_Energy"			,[["xtitle","ratio SCRawEnergy/Energy"],["overflow",[null]],
+					  ["ytitle","Events / %(binw)s"]
+					]
+					,null,null],
+	      ["ScRawEnergy"			,[["xtitle","SCRawEnergy (GeV)"],["overflow",[null]],
+					  ["ytitle","Events / %(binw)s GeV"]
+					]
+					,null,null]
+
+],
+
+
+
+
+    "selections" : [
+        ["cic","cic",["PreshowerEnergy","PreshowerEnergyPlane1","PreshowerEnergyPlane2","ESEnergy_Energy","ESEnergyPlane1_Energy","ESEnergyPlane2_Energy"]]
+		    ],
+    "_selections" : [
+        ["cic","cic",["ScRawEnergy","RawEnergy_Energy","ESEnergyPlane1_RawEnergy","ESEnergyPlane2_RawEnergy","ESEnergy_RawEnergy"]]
+		    ],
+
+
+	      
+    "styles": { 
+	"*mass*" : [["logy",1e-2]],
+	"*Iso*"  : [["logy",1e-2]],
+	"*Pt*"  : [["logy",1e-1]],
+	"*pt*"  : [["logy",1e-2]],
+	"*HoE*"  : [["logy",1e-3]],
+	"*rat"   : ["SetGridy"],
+	    "*ratio" : [["ytitle","Data / MC"],["applyTo",["GetYaxis",[["SetNdivisions",505],["SetRangeUser",[0.5,1.5]]]]]],
+     	"*SigmaIeIe_EB*_frame" : [ ["xrange",[3e-3,1.5e-2]] ],	 
+     	"*SigmaIeIe_EE*_frame" : [ ["xrange",[1.8e-2,3e-2]],["yrezoom",0.25] ],
+     	"*SigmaIeIe_EB*_ratio" : [ ["xrange",[3e-3,1.5e-2]] ],	 
+     	"*SigmaIeIe_EE*_ratio" : [ ["xrange",[1.8e-2,3e-2]] ]
+	},	 
+    "postproc" : {
+    },
+
+    "template": "histograms/%(sample)s_%(cat)s%(name)s",
+
+    "rootstyle_extra" : [
+    		  "TGaxis::SetMaxDigits(3);",
+		  "TH1::SetDefaultSumw2(1);",
+		  "lumiTextSize = 0.5; lumiTextOffset = 0.4; cmsTextSize = 0.6; relExtraDY = 0.;"
+    ],
+
+    "postproc" : {
+    	       "*" : [["addCmsLumi",[4,1,"Preliminary"]]]
+	       }	
+    
+}

@@ -1,6 +1,6 @@
 {
-//TNtuple* tree=tree_grav_01_750_cic2_EBEB;
-TNtuple* tree=tree_grav_01_allmasses_cic2_EBEB;
+TNtuple* tree=tree_grav_01_1250_cic2_EBEE;
+//TNtuple* tree=tree_grav_01_allmasses_cic2_EBEE;
 
 
 Float_t leadPt=0.;
@@ -23,10 +23,13 @@ tree->SetBranchAddress("genVtxZ",&genVtxZ);
 tree->SetBranchAddress("recoVtx",&recoVtx);
 tree->SetBranchAddress("nvtx",&nvtx);
 int n=tree->GetEntries();
-double bins[17]={0.,50.,100.,150.,200.,250.,300.,350.,400.,450.,500.,550.,600.,700.,800.,1000.,1500.};
-// TEfficiency*eff = new TEfficiency("histo","vtx efficiency for grav k=01, 750 GeV, EBEB;p_{t,#gamma#gamma} (GeV);fraction of |z_{reco}-z_{gen}| < 1 cm",16,bins);
- TEfficiency*eff = new TEfficiency("histo","vtx efficiency for grav k=01, 750 -5000 GeV , EBEB;p_{t,#gamma#gamma} (GeV);fraction of |z_{reco}-z_{gen}| < 1 cm",16,bins);
+//double bins[17]={0.,50.,100.,150.,200.,250.,300.,350.,400.,450.,500.,550.,600.,700.,800.,1000.,1500.};
+double bins[2]={0.,13000.};
+// TEfficiency*eff = new TEfficiency("histo","vtx efficiency for grav k=01, 750 GeV, EBEE;p_{t,#gamma#gamma} (GeV);fraction of |z_{reco}-z_{gen}| < 1 cm",16,bins);
+ TEfficiency* eff = new TEfficiency("histo","vtx efficiency for grav k=01, EBEE;p_{t,#gamma#gamma} (GeV);fraction of |z_{reco}-z_{gen}| < 1 cm",1,bins);
+ //TEfficiency* eff = new TEfficiency("histo","vtx efficiency for grav k=01, 750 -750 GeV , EBEE;p_{t,#gamma#gamma} (GeV);fraction of |z_{reco}-z_{gen}| < 1 cm",16,bins);
 //TH1D* histo=new TH1D("signal_vtx","signal_vtx",n*0.1, 0.,1500.);
+	int i=0;
 for(int ev=0;ev< n;ev++){
 	tree->GetEntry(ev);
 	TLorentzVector p1;
@@ -36,19 +39,25 @@ for(int ev=0;ev< n;ev++){
 	diphopt=(p1+p2).Pt();
 	double diff=abs(recoVtx-genVtxZ);
 	double passed=0.;
-//	if (diff < 1.){
-	//	histo->Fill(diphopt);		
-//	}
+	if (diff < 1.){
+	//	histo->Fill(diphopt);	
+		i++;	
+	}
 	passed= diff < 1.;
 	eff->Fill(passed,diphopt);
 }
-TCanvas* c1 = new TCanvas("c1","c1",200,10,700,500);
+
+std::cout << "eff " << i/double(n) << std::endl;
+cout << "error low " << eff->GetEfficiencyErrorLow(1) << endl;
+cout << "error high " << eff->GetEfficiencyErrorUp(1) << endl;
+/*TCanvas* c1 = new TCanvas("c1","c1",200,10,700,500);
 c1->cd();
 eff->SetLineColor(kRed);
 eff->Draw("AP");
 eff->SetMarkerColor(kRed);
-//c1->SaveAs("/afs/cern.ch/user/m/mquittna/www/diphoton/signalvtxEfficiency/vtxeff_grav01_750_EBEB.png");
-//c1->SaveAs("/afs/cern.ch/user/m/mquittna/www/diphoton/signalvtxEfficiency/vtxeff_grav01_750_EBEB.root");
-c1->SaveAs("/afs/cern.ch/user/m/mquittna/www/diphoton/signalvtxEfficiency/vtxeff_grav01_allmasses_EBEB.png");
-c1->SaveAs("/afs/cern.ch/user/m/mquittna/www/diphoton/signalvtxEfficiency/vtxeff_grav01_allmasses_EBEB.root");
+c1->SaveAs("/afs/cern.ch/user/m/mquittna/www/diphoton/signalvtxEfficiency/vtxeff_grav01_750_overall_EBEE.png");
+c1->SaveAs("/afs/cern.ch/user/m/mquittna/www/diphoton/signalvtxEfficiency/vtxeff_grav01_750_overall_EBEE.root");
+//c1->SaveAs("/afs/cern.ch/user/m/mquittna/www/diphoton/signalvtxEfficiency/vtxeff_grav01_allmasses_EBEE.png");
+//c1->SaveAs("/afs/cern.ch/user/m/mquittna/www/diphoton/signalvtxEfficiency/vtxeff_grav01_allmasses_EBEE.root");
+*/
 }

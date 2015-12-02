@@ -11,19 +11,6 @@
 	      ]
 	      
     ],
-    "_sig" : [
-	      ["rsg_02_4000","G #rightarrow #gamma #gamma (k/M_{PL}=0.2 M_{G}=4TeV)",
-	      [["colors","kAzure"],["SetLineWidth",2],["Scale",1],["SetFillStyle",0],["legopt","f nostack"],["SetFillColor","kWhite"]],
-	      { "RSGravToGG_kMpl_02_M_4000_TuneCUEP8M1_13TeV_pythia8_13TeV:__infile__/%(sel)s" : [] }
-	    ],
-
-    "_data" : [
-	      ["Data","Data",
-	      [["SetBinErrorOption",1],["colors","kBlack"],["SetLineWidth",2],["SetFillStyle",0],["Scale",1],["legopt","pe nostack"],["SetMarkerStyle","kFullCircle"],["SetFillColor","kWhite"]],
-	      { "Data_13TeV:__infile__/%(sel)s" : [] }
-	      ]
-	     
-], 
 
     "_bkg" : [
       	      ["jetjet","j j",
@@ -43,6 +30,11 @@
 	      
 	     ],
 	"bkg":[
+	      ["gjet","#gamma j",
+	      [["colors","myColorA1"],["SetLineWidth",2],["Scale",1],["SetFillStyle",1001],["legopt","f"],["SetFillColor","myColorA3tr"]],
+	      { "GJets_HT_100toInf_13TeV:__infile__/%(sel)s" : [] }
+	      ],
+
 
 	      ["ggjet_iso","#gamma #gamma",
 	      [["colors","myColorB1"],["SetLineWidth",2],["SetFillStyle",1001],["Scale",1],["legopt","f"],["SetFillColor","myColorB3tr"]],
@@ -141,16 +133,51 @@
 	"EELowR9"  : ["EELowR9"]
 	}, 
     "groups": {
-        "EE"       : ["EEHighR9","EELowR9"]
+        "EB"       : ["EBHighR9","EBLowR9"]
 	}, 
 
 
 	"plots":[
 
 
-	      ["mass"			,[["xtitle","m_{#gamma #gamma} (GeV)"],
-					  ["xrange",[320.0,1600.0]],
-					  ["density",25],["ytitle","Events / %(binw)s GeV"]
+	      ["dijet30Mass"			,[["xtitle","m_{jj} (GeV), p_{T} > 30 GeV"],["overflow",[null]],
+					  ["ytitle","Events / %(binw)s GeV"]
+					]
+					,null,null],
+	      ["dijet60Mass"			,[["xtitle","m_{jj} (GeV),  p_{T} > 60 GeV"],["overflow",[null]],
+					  ["ytitle","Events / %(binw)s GeV"]
+					]
+					,null,null],
+	      ["mht30Mass"			,[["xtitle","m_{HT} (GeV), p_{T} > 30 GeV"],["overflow",[null]],
+					  ["ytitle","Events / %(binw)s GeV"]
+					]
+					,null,null],
+	      ["mht60Mass"			,[["xtitle","m_{HT} (GeV),  p_{T} > 60 GeV"],["overflow",[null]],
+					  ["ytitle","Events / %(binw)s GeV"]
+					]
+					,null,null],
+	      ["mht30CleanMass"			,[["xtitle","clean m_{HT} (GeV), p_{T} > 30 GeV"],["overflow",[null]],
+					  ["ytitle","Events / %(binw)s GeV"]
+					]
+					,null,null],
+	      ["mht60CleanMass"			,[["xtitle","clean m_{HT} (GeV),  p_{T} > 60 GeV"],["overflow",[null]],
+					  ["ytitle","Events / %(binw)s GeV"]
+					]
+					,null,null],
+	      ["nJets30"			,[["xtitle","number of jets, p_{T} > 30 GeV"],["overflow",[null]],
+					 ["ytitle","Events /bin "]
+					]
+					,null,null],
+	      ["nJets60"			,[["xtitle","number of jets,  p_{T} > 60 GeV"],["overflow",[null]],
+					 ["ytitle","Events / bin"]
+					]
+					,null,null],
+	      ["deltaEta"			,[["xtitle","#Delta #eta,  p_{T} > 30 GeV"],["overflow",[null]],
+					  ["ytitle","Events / %(binw)s GeV"]
+					]
+					,null,null],
+	      ["diffdeltaEta"			,[["xtitle","Difference #Delta #eta between photons and jets,  p_{T} > 30 GeV"],["overflow",[null]],
+					["ytitle","Events / %(binw)s GeV"]
 					]
 					,null,null]
 
@@ -274,8 +301,12 @@
     ],
 
     "selections" : [
-        ["cic","cic","mass"]
+        ["cic","cic",["dijet30Mass","dijet60Mass","mht30CleanMass","mht60CleanMass","mht30Mass","mht60Mass","nJets60","nJets30"]]
 		    ],
+    "_selections" : [
+        ["cic","cic",["diffdeltaEta","deltaEta"]]
+		    ],
+
 
     "_selections" : [
         ["cic",""],
