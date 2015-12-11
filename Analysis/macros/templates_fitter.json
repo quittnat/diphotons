@@ -2,7 +2,7 @@
     "comparisons" : {
 	"fit2DTruth" : { "fit" : "2D",
 		"templates" : { "mix:kDSinglePho2DMC" : {}, "mix:kDSinglePho2D" : {}},
-                "categories" : ["EBEB","EBEE"],
+                "categories" : ["EBEB"],
                 "components": ["pf","ff",  ["pp",{ "2D" : {},"template_mc:2D":{}}] 
                 ],
                 "weight_cut": "weight <1000.",
@@ -53,8 +53,8 @@
         }
     },
    "plotPurity":{
-                "treetruth":"truth_purity_all",
-                "_treetruth":"truth_purity_signalregion",
+                "treetruth":"truth_fraction_all",
+                "_treetruth":"truth_fraction_signalregion",
                 "dimensions" :"2D", 
                 "categories" :["EBEE","EBEB"]
     },
