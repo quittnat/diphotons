@@ -517,6 +517,7 @@ class TemplatesFitApp(TemplatesApp):
         prob = array.array('d',[])
         dpmq = array.array('d',[0.0 for i in range((mass_split[1]+1))])
         for i in range(0,mass_split[1]+1):
+            self.keep( [c1] )
             prob.append((i+float(mass_split[2]))/mass_split[0])
             print dpmq
         massH.GetQuantiles(mass_split[1]+1,dpmq,prob)
@@ -818,6 +819,8 @@ class TemplatesFitApp(TemplatesApp):
         components = options.build3d.get("components")
         for catd in categories:
             print "-----------------------------------------------------------------"
+            catd=="EBEE"
+            cat=="EBEE"
             if catd=="EEEB": cat="EBEE" 
             else:cat=catd
             data_book=self.rooData("hist2d_forUnrolled")
@@ -895,6 +898,7 @@ class TemplatesFitApp(TemplatesApp):
             setargs.add(mass)
             hist_Eta=[]
             categories = options.fit_categories
+          ##  categories = ["EBEE"]
             mass_split= [int(x) for x in options.fit_massbins]
             jkpf=nomFit.get("jackknife_pf",False)
             jkpp=nomFit.get("jackknife_pp",False)
@@ -1039,7 +1043,7 @@ class TemplatesFitApp(TemplatesApp):
                         ArgListPdf=pdf_collections[k]
                         ArgListPdf.Print()
                         fitUnrolledPdf=ROOT.RooAddPdf("fitPdfs_%s%s%s_%s_mb_%s" % (tempname,dset,cat,dim,cut_s),"fitPdfs_%s_%s_%s_mb_%s" % (tempname,cat,dim,cut_s),ArgListPdf,pu_estimates,True )
-                        self.workspace_.rooImport(fitUnrolledPdf)
+                        
               #save roofitresult in outputfile
                         data_massc.Print()
                         print data_massc.sumEntries()
@@ -1047,6 +1051,10 @@ class TemplatesFitApp(TemplatesApp):
                         pu_pp=fpp.getParameter("jpp").getVal()
                         err_pp=fpp.getParameter("jpp").getError()
                         print "pu_pp",pu_pp, "err_pp",err_pp
+                        name=fitUnrolledPdf.GetName()
+                        fitUnrolledPdf.Print("v")
+                        self.workspace_.rooImport(fitUnrolledPdf)
+
                         if len(components)>2: 
                             fpu_pf= ROOT.RooFormulaVar("fpu_pf","fpu_pf","(1-@0)*@1",ROOT.RooArgList(fpp.getParameter("jpp"),fpf.getParameter("jpf")))
                             pu_pf=fpu_pf.getVal()
@@ -1065,14 +1073,14 @@ class TemplatesFitApp(TemplatesApp):
                             err_ff=0.
                             err_pf=err_pp
                         print
+                        print cat, cut_s
+                        self.histunrollback(data_massc,observable,catd,cut_s,options.template_binning,pu_pp,pu_pf,pu_ff)
                         if dodata:
                             tps[k].Fill(pu_pp,err_pp,pu_pf,err_pf,pu_ff,err_ff,tree_mass.massbin,tree_mass.masserror)
                         if dodata and not (jkpp or jkpf):
-                                self.plotFit(observable,fitUnrolledPdf,ArgListPdf,data_massc,components,cat,log=True,i=k) 
                                 self.plotFit(observable,fitUnrolledPdf,ArgListPdf,data_massc,components,cat,log=False,i=k)
-                        elif not (jkpp or jkpf):
-                                self.plotFit(observable,fitUnrolledPdf,ArgListPdf,data_massc,components,cat,log=True,i=k) 
-                                self.plotFit(observable,fitUnrolledPdf,ArgListPdf,data_massc,components,cat,log=False,i=k)
+                        ##elif not (jkpp or jkpf):
+                      ##          self.plotFit(observable,fitUnrolledPdf,ArgListPdf,data_massc,components,cat,log=False,i=k)
                         if options.pu_sigregion:
                             fpuSig_pp= ROOT.RooFormulaVar("fpuSig_pp","fpuSig_pp","(@0*@1)/@2",ROOT.RooArgList(fpp,fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion")))
                             puSig_pp=fpuSig_pp.getVal()
@@ -1125,10 +1133,165 @@ class TemplatesFitApp(TemplatesApp):
                 print "done fit ...."
                 print
     ## ---------------#--------------------------------------------------------------------------------------------
+    def histunrollback(self,dataset,observable,cat,cut,template_binning,pu_pp,pu_pf,pu_ff):
+        leg = ROOT.TLegend(0.6,0.5,0.85,0.9  )
+        fit_expectedStyle =  [["SetLineWidth",2],["SetLineColor",ROOT.kBlue]]
+        pdf_expectedStyle =  [["SetLineWidth",3],["SetLineStyle",ROOT.kDashed]]
+        data_expectedStyle =[["SetLineWidth",3],["SetMarkerStyle",20],["SetMarkerSize",2.0],["SetMarkerColor",ROOT.kBlack],["SetLineColor",ROOT.kBlack]]
+        template_binning = array.array('d',template_binning)
+        pppdf=self.rooPdf("pdf_unrolled_template_pp_2D_%s_mb_%s" %(cat,cut))
+        pppdf.Print()
+        pp1d=pppdf.createHistogram("pdf%s" %pppdf.GetName(),observable, RooFit.Binning(9,0.,9))
+        pp2d=ROOT.TH2D("d2%s" % (pppdf.GetName()),"d2%s" % (pppdf.GetName()),len(template_binning)-1,template_binning,len(template_binning)-1,template_binning)
+        pfpdf=self.rooPdf("pdf_unrolled_template_mix_pf_2D_%s_mb_%s" %(cat,cut))
+         
+        pf1d=pfpdf.createHistogram("pdf%s" %pfpdf.GetName(),observable, RooFit.Binning(9,0.,9))
+        pf2d=ROOT.TH2D("d2%s" % (pfpdf.GetName()),"d2%s" % (pfpdf.GetName()),len(template_binning)-1,template_binning,len(template_binning)-1,template_binning)
+        ffpdf=self.rooPdf("pdf_unrolled_template_mix_ff_2D_%s_mb_%s" %(cat,cut))
+        ff1d=pfpdf.createHistogram("pdf%s" %pfpdf.GetName(),observable, RooFit.Binning(9,0.,9))
+        ff2d=ROOT.TH2D("d2%s" % (ffpdf.GetName()),"d2%s" % (ffpdf.GetName()),len(template_binning)-1,template_binning,len(template_binning)-1,template_binning)
+        fitpdf=self.rooPdf("fitPdfs_unrolled_template_mix_%s_2D_mb_%s" %(cat,cut))
+        fit1d=fitpdf.createHistogram("pdf%s" %fitpdf.GetName(),observable, RooFit.Binning(9,0.,9))
+        fit2d=ROOT.TH2D("d2%s" % (fitpdf.GetName()),"d2%s" % (fitpdf.GetName()),len(template_binning)-1,template_binning,len(template_binning)-1,template_binning)
+        fitpdf.Print()
+        dataset=self.rooData("reduced_data_2D_%s"%cat)
+        entries=dataset.sumEntries()
+        print entries
+        data2d=ROOT.TH2D("d2%s" % (dataset.GetName()),"d2%s" % (dataset.GetName()),len(template_binning)-1,template_binning,len(template_binning)-1,template_binning)
+        dataset.fillHistogram(data2d,ROOT.RooArgList(self.rooVar("templateNdim2Dim0"),self.rooVar("templateNdim2Dim1")))
+        dataset=self.fill2d(data2d,template_binning)
+        fit2d=self.fill2d(fit2d,template_binning,fit1d)
+        fit2d.Scale(entries)
+        pp2d=self.fill2d(pp2d,template_binning,pp1d)
+        pf2d=self.fill2d(pf2d,template_binning,pf1d)
+        ff2d=self.fill2d(ff2d,template_binning,ff1d)
+        pp2d.Scale(entries*pu_pp)
+        pf2d.Scale(entries*pu_pf)
+        ff2d.Scale(entries*pu_ff)
+        
+        c1=ROOT.TCanvas("d2hist_%s" % cat,"2d hists per category") 
+        data2d.Draw("COLZ") 
+        cfitx=ROOT.TCanvas("cfitxproj_%s" % cat,"projection of the fit") 
+        pt=ROOT.TPaveText(0.2,0.8,0.28,0.95,"nbNDC")
+        pt.SetFillStyle(0)
+        pt.SetLineColor(ROOT.kWhite)
+        pt.AddText("%s" % cat)
+        ROOT.gStyle.SetOptStat(0)
+        cfitx.SetLogy()
+        data2dx=data2d.ProjectionX("%s_X" %dataset.GetName())
+        style_utils.apply(data2dx,data_expectedStyle)
+        fit2dx=fit2d.ProjectionX("%s_X" %fitpdf.GetName())
+        style_utils.apply(fit2dx,fit_expectedStyle)
+        pp2dx=pp2d.ProjectionX("%s_X" %pppdf.GetName())
+        style_utils.apply(pp2dx,pdf_expectedStyle)
+        pp2dx.SetLineColor(ROOT.kRed)
+        pf2dx=pf2d.ProjectionX("%s_X" %pfpdf.GetName())
+        style_utils.apply(pf2dx,pdf_expectedStyle)
+        pf2dx.SetLineColor(ROOT.kCyan+2)
+        ff2dx=ff2d.ProjectionX("%s_X" %ffpdf.GetName())
+        style_utils.apply(ff2dx,pdf_expectedStyle)
+        ff2dx.SetLineColor(ROOT.kBlack)
+        
+        data2dx.Draw()
+        data2dx.GetXaxis().SetTitle("I_{Ch}^{1} (GeV)")
+        data2dx.GetYaxis().SetTitle("Events / (GeV)")
+   #     fit2dx.Scale(data2dx.Integral())
+   #     pp2dx.Scale(data2dx.Integral())
+   #     pf2dx.Scale(data2dx.Integral())
+      ##  fit2dx.Draw("")
+        fit2dx.Draw("same")
+        pp2dx.Draw("same")
+        pf2dx.Draw("same")
+        ff2dx.Draw("same")
+
+        data2dx.GetXaxis().SetRangeUser(-0.5,15.)
+        data2dx.GetYaxis().SetRangeUser(1e1,1e5)
+        data2dx.GetXaxis().SetLabelSize( 1.1*data2dx.GetXaxis().GetLabelSize() )
+        data2dx.GetXaxis().SetTitleSize( 0.75 *data2dx.GetXaxis().GetTitleSize() )
+        data2dx.GetXaxis().SetTitleOffset( 1.02 )
+        data2dx.GetYaxis().SetLabelSize( 1*data2dx.GetXaxis().GetLabelSize() * cfitx.GetWh() / ROOT.gPad.GetWh() )
+        data2dx.GetYaxis().SetTitleSize(1.2*data2dx.GetXaxis().GetTitleSize() * cfitx.GetWh() / ROOT.gPad.GetWh() )
+        data2dx.GetYaxis().SetTitleOffset(1.0 )
+        leg.AddEntry(data2dx,"data","pl")
+        leg.AddEntry(fit2dx,"fit","l")
+        leg.AddEntry(pp2dx,"#gamma #gamma ","l")
+        leg.AddEntry(pf2dx,"#gamma j ","l")
+        leg.AddEntry(ff2dx,"j j ","l")
+        leg.Draw()
+        pt.Draw("same")
+        
+        cfity=ROOT.TCanvas("cfityproj_%s" % cat,"projection of the fit") 
+        ROOT.gStyle.SetOptStat(0)
+        cfity.SetLogy()
+        data2dy=data2d.ProjectionY("%s_Y" %dataset.GetName())
+        style_utils.apply(data2dy,data_expectedStyle)
+        fit2dy=fit2d.ProjectionX("%s_Y" %fitpdf.GetName())
+        style_utils.apply(fit2dy,fit_expectedStyle)
+        pp2dy=pp2d.ProjectionY("%s_Y" %pppdf.GetName())
+        style_utils.apply(pp2dy,pdf_expectedStyle)
+        pp2dy.SetLineColor(ROOT.kRed)
+        pf2dy=pf2d.ProjectionY("%s_Y" %pfpdf.GetName())
+        style_utils.apply(pf2dy,pdf_expectedStyle)
+        pf2dy.SetLineColor(ROOT.kCyan+2)
+        ff2dy=ff2d.ProjectionX("%s_Y" %ffpdf.GetName())
+        style_utils.apply(ff2dy,pdf_expectedStyle)
+        ff2dy.SetLineColor(ROOT.kBlack)
+        
+        data2dy.Draw()
+        data2dy.GetXaxis().SetTitle("I_{Ch}^{2} (GeV)")
+        data2dy.GetYaxis().SetTitle("Events / (GeV)")
+        data2dy.GetXaxis().SetLabelSize( 1.1*data2dy.GetXaxis().GetLabelSize() )
+        data2dy.GetXaxis().SetTitleSize( 0.75 *data2dy.GetXaxis().GetTitleSize() )
+        data2dy.GetXaxis().SetTitleOffset( 1.02 )
+        data2dy.GetYaxis().SetLabelSize( 1*data2dy.GetXaxis().GetLabelSize() * cfitx.GetWh() / ROOT.gPad.GetWh() )
+        data2dy.GetYaxis().SetTitleSize(1.2*data2dy.GetXaxis().GetTitleSize() * cfitx.GetWh() / ROOT.gPad.GetWh() )
+        data2dy.GetYaxis().SetTitleOffset(1.0 )
+        fit2dy.Draw("same")
+        pp2dy.Draw("same")
+        pf2dy.Draw("same")
+        ff2dy.Draw("same")
+        leg.Draw()
+        pt.Draw("same")
+        data2dy.GetXaxis().SetRangeUser(-0.1,15.)
+        data2dy.GetYaxis().SetRangeUser(1e1,1e5)
+        self.format(cfitx,self.options.postproc)
+        self.format(cfity,self.options.postproc)
+        self.keep( [c1,cfitx,cfity] )
+        self.autosave(True)
     
-    
-    
-    
+##############################---------------------------------------------------    
+
+    def fill2d(self,temp2d,template_binning,temp1d=None):
+        sum=0.
+        bin=0
+        binslist=[]
+        #book bin list
+        for b in range(1,len(template_binning)):
+            for x in range(1,b+1):
+                bin+=1
+                binslist.append((x,b))
+            for y in range (b-1,0,-1):
+                bin+=1
+                binslist.append((b,y))
+        # fill bin list
+        b=0
+        for bin1, bin2 in binslist:
+            b=b+1
+            binErr=0.
+            area=0.
+            binCont=0.
+            area=(temp2d.GetXaxis().GetBinWidth(bin1))*(temp2d.GetYaxis().GetBinWidth(bin2))
+            sum+=1
+            if temp1d:
+                temp2d.SetBinContent(bin1,bin2,temp1d.GetBinContent(b)/area)
+                temp2d.SetBinError(bin1,bin2,temp1d.GetBinError(b)/area)
+            else:
+                temp2d.SetBinContent(bin1,bin2,temp2d.GetBinContent(bin1,bin2)/area)
+                temp2d.SetBinError(bin1,bin2,temp2d.GetBinError(bin1,bin2)/area)
+
+         ##   temp2d.SetBinContent(bin1,bin2,temp1d.GetBinContent(b))
+        ##    temp2d.SetBinError(bin1,bin2,temp1d.GetBinError(b))
+        return temp2d 
     
     ## ---------------#--------------------------------------------------------------------------------------------
     def plotFit(self,roovar,rooaddpdf,roopdfs,data,components,cat,log,i=None):
@@ -1154,11 +1317,11 @@ class TemplatesFitApp(TemplatesApp):
         if len(components)>2:
             rooaddpdf.plotOn(frame,RooFit.Components(roopdfs[2].GetName()),RooFit.LineStyle(ROOT.kDashed),RooFit.LineColor(ROOT.kBlack),RooFit.Name("ff"))
         frame.Draw()
-        frame.GetXaxis().SetLabelSize( 1.3*frame.GetXaxis().GetLabelSize() )
-        frame.GetXaxis().SetTitle("(I_{CH}^{1},I_{CH}^{2})_{bin}")
+        frame.GetXaxis().SetLabelSize( 1.1*frame.GetXaxis().GetLabelSize() )
+        frame.GetXaxis().SetTitle("(I_{Ch}^{1},I_{Ch}^{2}) bin")
         frame.GetYaxis().SetTitle("Events / bin")
         frame.GetXaxis().SetTitleSize( 0.75 *frame.GetXaxis().GetTitleSize() )
-        frame.GetXaxis().SetTitleOffset( 1.0 )
+        frame.GetXaxis().SetTitleOffset( 1.02 )
         frame.GetYaxis().SetLabelSize( 1*frame.GetXaxis().GetLabelSize() * cFit.GetWh() / ROOT.gPad.GetWh() )
         frame.GetYaxis().SetTitleSize(1.2*frame.GetXaxis().GetTitleSize() * cFit.GetWh() / ROOT.gPad.GetWh() )
         frame.GetYaxis().SetTitleOffset(1.0 )
@@ -1170,10 +1333,16 @@ class TemplatesFitApp(TemplatesApp):
         if len(components)>2:
             leg.AddEntry("ff","j j ","l")
         leg.Draw()
+        pt=ROOT.TPaveText(0.25,0.8,0.33,0.95,"nbNDC")
+        pt.SetFillStyle(0)
+        pt.SetLineColor(ROOT.kWhite)
+        pt.AddText("%s" % cat)
+        pt.Draw("same")
         self.format(cFit,self.options.postproc)
         self.keep([cFit])
         self.autosave(True)
 
+    ## ------------------------------------------------------------------------------------------------------------
     ## ------------------------------------------------------------------------------------------------------------
     def plotPurity(self,options,args):
         
@@ -1600,6 +1769,11 @@ class TemplatesFitApp(TemplatesApp):
             leg.AddEntry(g_templateff,"j j","lp")
         g_templatepp.GetXaxis().SetMoreLogLabels()
         leg.Draw()
+        pt=ROOT.TPaveText(0.19,0.81,0.26,0.92,"nbNDC")
+        pt.SetFillStyle(0)
+        pt.SetLineColor(ROOT.kWhite)
+        pt.AddText("%s" % cat)
+        pt.Draw("same")
         #b.DrawLatex(0.45,.94,"#int L dt=1.7 /fb  CMS PRELIMINARY")
         if g_ratiopp:
                 cpu.cd(2)
