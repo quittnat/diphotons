@@ -7,13 +7,16 @@ set -x
 ##output=full_analysis_spring15_7415v2_sync_v9_preshower_630_790
 ##cutlead='(mass > 630 && mass < 790 && abs(leadScEta) > 1.5 )'
 ##cutsublead='(mass > 630 && mass < 790 && abs(subleadScEta) > 1.5 )'
-##output=full_analysis_spring15_7415v2_sync_v9_preshower_0_630
-##cutlead='(mass < 630 && abs(leadScEta) > 1.5 )'
-##cutsublead='( mass < 630 && abs(subleadScEta) > 1.5 )'
+##output=full_analysis_spring15_7415v2_sync_v9_preshower_500_630
+##cutlead='( mass > 500 && mass < 630 && abs(leadScEta) > 1.5 )'
+##cutsublead='( mass > 500 && mass < 630 && abs(subleadScEta) > 1.5 )'
+output=full_analysis_spring15_7415v2_sync_v9_preshower_0_630
+cutlead='( mass < 630 && abs(leadScEta) > 1.5 )'
+cutsublead='( mass < 630 && abs(subleadScEta) > 1.5 )'
 fudge=1.4
-output=full_analysis_spring15_7415v2_sync_v9_preshower_780_Inf
-cutlead='(mass > 780 && abs(leadScEta) > 1.5 )'
-cutsublead='( mass > 780 && abs(subleadScEta) > 1.5 )'
+#output=full_analysis_spring15_7415v2_sync_v9_preshower_780_Inf
+#cutlead='(mass > 780 && abs(leadScEta) > 1.5 )'
+#cutsublead='( mass > 780 && abs(subleadScEta) > 1.5 )'
 
 mkdir $output
 
