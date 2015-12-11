@@ -1124,7 +1124,6 @@ class TemplatesFitApp(TemplatesApp):
                     self.plotJKpurity(options,cat,dim,tps,jkID)
                 print "done fit ...."
                 print
-                return
     ## ---------------#--------------------------------------------------------------------------------------------
     
     
@@ -1134,14 +1133,10 @@ class TemplatesFitApp(TemplatesApp):
     ## ---------------#--------------------------------------------------------------------------------------------
     def plotFit(self,roovar,rooaddpdf,roopdfs,data,components,cat,log,i=None):
         ROOT.TH1F.SetDefaultSumw2(True)
-        b=ROOT.TLatex()
-        b.SetNDC()
-        b.SetTextSize(0.035)
-        b.SetTextColor(ROOT.kBlack)
         if "mc" in data.GetName():
-            cFit = ROOT.TCanvas("c%s_%u_%s_mc_%i" %(rooaddpdf.GetName(),len(components),log,i),"cFit",1400,1000)
-        else:cFit = ROOT.TCanvas("c%s_%u_%s_%i" %(rooaddpdf.GetName(),len(components),log,i),"cFit",1400,1000)
-        if not log: leg =ROOT.TLegend(0.65,0.7,0.85,0.9)
+            cFit = ROOT.TCanvas("c%s_%u_%s_mc_%i" %(rooaddpdf.GetName(),len(components),log,i),"cFit")
+        else:cFit = ROOT.TCanvas("c%s_%u_%s_%i" %(rooaddpdf.GetName(),len(components),log,i),"cFit")
+        if not log: leg =ROOT.TLegend(0.7,0.5,0.88,0.9)
         else: leg =ROOT.TLegend(0.2,0.2,0.4,0.4)
         leg.SetFillColor(ROOT.kWhite)
         cFit.cd(1)
@@ -1155,16 +1150,25 @@ class TemplatesFitApp(TemplatesApp):
     #     data.plotOn(frame,RooFit.Name("datasigRegion"),RooFit.Range("sigRegion"),RooFit.LineColor(ROOT.kCyan+1))
         rooaddpdf.plotOn(frame,RooFit.Name("fit"))
         rooaddpdf.plotOn(frame,RooFit.Components(roopdfs[0].GetName()),RooFit.LineStyle(ROOT.kDashed),RooFit.LineColor(ROOT.kRed),RooFit.Name("pp"))
-        rooaddpdf.plotOn(frame,RooFit.Components(roopdfs[1].GetName()),RooFit.LineStyle(ROOT.kDashed),RooFit.LineColor(ROOT.kCyan+1),RooFit.Name("pf"))
+        rooaddpdf.plotOn(frame,RooFit.Components(roopdfs[1].GetName()),RooFit.LineStyle(ROOT.kDashed),RooFit.LineColor(ROOT.kCyan+2),RooFit.Name("pf"))
         if len(components)>2:
             rooaddpdf.plotOn(frame,RooFit.Components(roopdfs[2].GetName()),RooFit.LineStyle(ROOT.kDashed),RooFit.LineColor(ROOT.kBlack),RooFit.Name("ff"))
         frame.Draw()
+        frame.GetXaxis().SetLabelSize( 1.3*frame.GetXaxis().GetLabelSize() )
+        frame.GetXaxis().SetTitle("bin")
+        frame.GetYaxis().SetTitle("arbitrary units")
+        frame.GetXaxis().SetTitleSize( 0.9 *frame.GetXaxis().GetTitleSize() )
+        frame.GetXaxis().SetTitleOffset( 0.8 )
+        frame.GetYaxis().SetLabelSize( 1*frame.GetXaxis().GetLabelSize() * cFit.GetWh() / ROOT.gPad.GetWh() )
+        frame.GetYaxis().SetTitleSize(1*frame.GetXaxis().GetTitleSize() * cFit.GetWh() / ROOT.gPad.GetWh() )
+        frame.GetYaxis().SetTitleOffset(1.0 )
+        
+        leg.AddEntry("data","data","pl")
         leg.AddEntry("fit","fit","l")
-        leg.AddEntry("data","data","l")
-        leg.AddEntry("pp","prompt-prompt ","l")
-        leg.AddEntry("pf","prompt-fake ","l")
+        leg.AddEntry("pp","#gamma #gamma ","l")
+        leg.AddEntry("pf","#gamma j ","l")
         if len(components)>2:
-            leg.AddEntry("ff","fake-fake ","l")
+            leg.AddEntry("ff","j j ","l")
         leg.Draw()
         self.format(cFit,self.options.postproc)
         self.keep([cFit])
