@@ -156,6 +156,8 @@ class TemplatesApp(PlotApp):
                                     default=False,help="prepare templates only with data, no mc, signals, or templatesMC,mctruth)"),
                         make_option("--prepare-nosignal",dest="prep_nosig",action="store_true",
                                     default=False,help="prepare templates without signals"),
+                        make_option("--prepare-signal",dest="prep_sig",action="store_true",
+                                    default=False,help="prepare  signals"),
                         make_option("--mix-mc",dest="mix_mc",action="store_true",
                                     default=False,help="template mixing also with MC"),
                         make_option("--only-subset",dest="only_subset",action="callback",type="string", callback=optpars_utils.ScratchAppend(),
@@ -505,7 +507,7 @@ class TemplatesApp(PlotApp):
             bins            = fit["bins"]
             components      = fit["components"]
             categories      = fit["categories"]
-            if not options.prep_data:
+            if not (options.prep_data or options.prep_sig):
                 truth_selection = fit["truth_selection"]
             if not options.prep_data:
                 if not options.prep_nosig:
@@ -540,15 +542,16 @@ class TemplatesApp(PlotApp):
             tmp.cd()
             
             ## prepare data
-            dataTrees = self.prepareTrees("data",selection,options.verbose,"Data trees")
-            self.buildRooDataSet(dataTrees,"data",name,fit,categories,fulllist,weight,preselection,storeTrees)
-            for cat in categories.keys():
-                print "dataset - %s" % (cat), self.rooData("data_%s_%s" % (name,cat) ).sumEntries()
-                print "number of entries data - %s" % (cat), self.rooData("data_%s_%s" % (name,cat) ).numEntries()
+            if not options.prep_sig:
+                dataTrees = self.prepareTrees("data",selection,options.verbose,"Data trees")
+                self.buildRooDataSet(dataTrees,"data",name,fit,categories,fulllist,weight,preselection,storeTrees)
+                for cat in categories.keys():
+                    print "dataset - %s" % (cat), self.rooData("data_%s_%s" % (name,cat) ).sumEntries()
+                    print "number of entries data - %s" % (cat), self.rooData("data_%s_%s" % (name,cat) ).numEntries()
           ## prepare mc
-            if not options.prep_data:
-                mcTrees =  self.prepareTrees("mc",selection,options.verbose,"MC trees")
-                self.buildRooDataSet(mcTrees,"mc",name,fit,categories,fulllist,weight,preselection,storeTrees)
+                if not options.prep_data:
+                    mcTrees =  self.prepareTrees("mc",selection,options.verbose,"MC trees")
+                    self.buildRooDataSet(mcTrees,"mc",name,fit,categories,fulllist,weight,preselection,storeTrees)
           
           ## prepare signal
             if not (options.prep_data or options.prep_nosig):
@@ -557,7 +560,7 @@ class TemplatesApp(PlotApp):
                     self.buildRooDataSet(sigTrees,sig,name,fit,categories,fulllist,weight,preselection,storeTrees)
             
           ## prepare truth templates
-            if not options.prep_data:
+            if not (options.prep_data or options.prep_sig):
                 for truth,sel in truth_selection.iteritems():
                     cut = ROOT.TCut(preselection)
                     cut *= ROOT.TCut(sel)
@@ -569,7 +572,7 @@ class TemplatesApp(PlotApp):
               
             print
           ## sanity check
-            if not options.prep_data:
+            if not (options.prep_data or options.prep_sig):
                 for cat in categories.keys():
                     catCounts = {}
                     catCounts["tot"] = self.rooData("mc_%s_%s" % (name,cat) ).sumEntries()
@@ -586,32 +589,33 @@ class TemplatesApp(PlotApp):
                         print
                       
             ## prepare templates
-            print 
-            for component,cfg in fit["templates"].iteritems():
-                if component.startswith("_"): continue
-                # templates (data) is default one
-                if options.prep_data:
-                    datasets=cfg.get("dataset",["templates"])
-                else: 
-                    datasets=cfg.get("datasetmc",["templates"])  
-                for dat in datasets:
-                    print dat
-                    trees = self.prepareTrees(dat,cfg["sel"],options.verbose,"Templates selection for %s %s" % (dat,component))
-                    if dat=="data" or dat=="templates":
-                        dat="_"
-                    if not options.prep_data and dat=="templatesMC" or dat=="mc":
-                        dat="_mc_"
-                    cats = {}
-                    presel = cfg.get("presel",preselection)
-                    for cat,fill in cfg["fill_categories"].iteritems():
-                        if cat.startswith("_"): continue
-                        config = { "src" : categories[cat]["src"],
-                                   "fill": fill
-                                   }
-                        cats[cat] = config
-                    
+            print
+            if not options.prep_sig:
+                for component,cfg in fit["templates"].iteritems():
+                    if component.startswith("_"): continue
+                    # templates (data) is default one
+                    if options.prep_data:
+                        datasets=cfg.get("dataset",["templates"])
+                    else: 
+                        datasets=cfg.get("datasetmc",["templates"])  
+                    for dat in datasets:
+                        print dat
+                        trees = self.prepareTrees(dat,cfg["sel"],options.verbose,"Templates selection for %s %s" % (dat,component))
+                        if dat=="data" or dat=="templates":
+                            dat="_"
+                        if not options.prep_data and dat=="templatesMC" or dat=="mc":
+                            dat="_mc_"
+                        cats = {}
+                        presel = cfg.get("presel",preselection)
+                        for cat,fill in cfg["fill_categories"].iteritems():
+                            if cat.startswith("_"): continue
+                            config = { "src" : categories[cat]["src"],
+                                       "fill": fill
+                                       }
+                            cats[cat] = config
                         
-                        self.buildRooDataSet(trees,"template%s%s" % (dat,component),name,fit,cats,fulllist,weight,presel,storeTrees)
+                            
+                            self.buildRooDataSet(trees,"template%s%s" % (dat,component),name,fit,cats,fulllist,weight,presel,storeTrees)
 
                     for cat in categories.keys():
                         tree=self.treeData("template%s%s_%s_%s" % (dat,component,name,cat) )
