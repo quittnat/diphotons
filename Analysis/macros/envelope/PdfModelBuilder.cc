@@ -378,7 +378,7 @@ RooAbsPdf* PdfModelBuilder::getDijet(string prefix, int order){
     RooArgList *dependents = new RooArgList();
     dependents->add(*obs_var);
   	for (int i=1; i<=order; i++){
-    	string logc =  Form("%s_logc%d",prefix.c_str(),i);
+    	string logc =  Form("%s_log%d",prefix.c_str(),i);
     	params.insert(pair<string,RooRealVar*>(logc, new RooRealVar(name.c_str(),name.c_str(),-1.,-100.0,100.)));
         formula_exp += Form(" + (@%d*TMath::Power(log(@0),%d))",i,i);
         dependents->add(*params[logc]);
@@ -392,7 +392,21 @@ RooAbsPdf* PdfModelBuilder::getDijet(string prefix, int order){
   }
 
 }
-
+RooAbsPdf* PdfModelBuilder::getDijetSimple(string prefix, int order){
+    string formula=""; 
+    RooArgList *dependents = new RooArgList();
+    dependents->add(*obs_var);
+    string linc =  Form("%s_lin%d",prefix.c_str(),i);
+    params.insert(pair<string,RooRealVar*>(linc, new RooRealVar(name.c_str(),name.c_str(),5.,-100.0,100.)));
+    string linc =  Form("%s_log%d",prefix.c_str(),i);
+    params.insert(pair<string,RooRealVar*>(linc, new RooRealVar(name.c_str(),name.c_str(),-1.,-100.0,100.)));
+    dependents->add(*params[logc]);
+    dependents->add(*params[linc]);
+  	formula= Form("TMath::Max(1e-50,TMath::Exp(@%s))",formula_exp) ; 
+  	RooGenericPdf* dijet = new RooGenericPdf(prefic.c_str(), prefix.c_str(),"TMath::Max(1e-50,pow(@0,@1+@2*log(@0))) ",*dependents );
+    dijet->Print("v");
+	return dijet;
+}
 void PdfModelBuilder::addBkgPdf(string type, int nParams, string name, bool cache){
  
   if (!obs_var_set){
