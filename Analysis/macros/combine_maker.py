@@ -56,6 +56,9 @@ class CombineApp(TemplatesApp):
                         make_option("--fit-background",dest="fit_background",action="store_true",default=False,
                                     help="Fit background",
                                     ),                       
+                        make_option("--use-envelope",dest="use_envelope",action="store_true",default=False,
+                                    help="Load multipdf for envelope method",
+                                    ),                       
                         make_option("--run-ks-test",dest="run_ks_test",action="store_true",default=False,
                                     help="Run KS test on  background fit",
                                     ),                       
@@ -686,6 +689,10 @@ kmax * number of nuisance parameters (source of systematic uncertainties)
                     datacard.write("# ")
                 datacard.write("%s param %1.3g %1.3g\n" % tuple(param) )            
             
+            if options.use_envelope:
+                for cat in categories:
+                    datacard.write(("pdfindex_%s discrete\n"% cat).ljust(15))
+
             # flat parameters
             datacard.write("\n")
             for param in fit.get("flat_params",[]):
