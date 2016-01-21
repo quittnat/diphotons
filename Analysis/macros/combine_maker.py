@@ -208,7 +208,7 @@ class CombineApp(TemplatesApp):
                                               ## "masses" : [10,500,5000],
                                               "masses" : ## [500,505,506,510],
                                               ## list(np.concatenate((np.arange(500,750,2),np.arange(750,1000,2),np.arange(1000,1600,4),np.arange(1600,4500,100)))),
-                                              [600.],
+                                              [750.],
                                               "interpolate_below" : 0,
                                               "pdfs"    : { "001" : {"EBEB" : "ConvolutionRhPdf_catEBEB_mass%1.5g_kpl001", 
                                                                      "EBEE" : "ConvolutionRhPdf_catEBEE_mass%1.5g_kpl001" },
@@ -2053,7 +2053,7 @@ kmax * number of nuisance parameters (source of systematic uncertainties)
     def generateParametricSignal(self,options,args):
         
         from templates_maker import WsList
-        tmp = self.open("/tmp/musella/cache.root","recreate")
+      ##  tmp = self.open("/tmp/musella/cache.root","recreate")
         ws = ROOT.RooWorkspace("w","w")
         workspace = WsList(ws)
         exp = map(lambda x: glob.glob("%s/*.root" % x) if x.endswith("/") else [x], options.parametric_signal)
