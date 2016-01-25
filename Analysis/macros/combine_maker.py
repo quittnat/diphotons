@@ -694,11 +694,12 @@ kmax * number of nuisance parameters (source of systematic uncertainties)
                     datacard.write(("pdfindex_%s discrete\n"% cat).ljust(15))
 
             # flat parameters
-            datacard.write("\n")
-            for param in fit.get("flat_params",[]):
-                if (param[-1] == 0):
-                    datacard.write("# ")
-                datacard.write("%s flatParam\n" % param )
+            if not options.use_envelope:
+                datacard.write("\n")
+                for param in fit.get("flat_params",[]):
+                    if (param[-1] == 0):
+                        datacard.write("# ")
+                    datacard.write("%s flatParam\n" % param )
             
             # groups of nuisances
             datacard.write("\n")

@@ -6,7 +6,7 @@ version=$1 && shift
 fitname=2D 
 www=~/www/exo/spring15_7415
 if [[ $(whoami) == "mquittna" ]]; then
-    www=/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/
+    www=/afs/cern.ch/user/m/mquittna/www/diphoton/
 fi
 
 shapes="default_shapes"
@@ -86,6 +86,10 @@ while [[ -n $1 ]]; do
 	    data_version="$(basename $(dirname $2))"
 	    shift
 	    ;;
+	--background-root-file)
+	    opts="$opts $1 $2"
+		shift
+		;;
 	--*-file)
 	    input_opts="$input_opts $1 $2"
 	    shift
@@ -122,11 +126,12 @@ label="$shapes"
 
 input=${version}_${fitname}_final_ws.root
 input_log=${version}_${fitname}_final_ws.log
-treesdir=~musella/public/workspace/exo/
-## ls $treesdir/$version
-ls $treesdir/$input_folder
+##treesdir=/afs/cern.ch/user/m/musella/public/workspace/exo
+treesdir=
+## ls $treesdir/$ $input_folder
 [[ ! -d $treesdir/$input_folder ]] && treesdir=$PWD
-workdir=${version}_${fitname}_${label}_lumi_${lumi}
+##workdir=${version}_${fitname}_${label}_lumi_${lumi}
+workdir=${version}_${fitname}_${label}
 
 if [[ -n $bias ]]; then
     if [[ -z $fwhm ]]; then
@@ -136,8 +141,8 @@ fi
 
 mkdir $workdir
 
-mkdir $www/$version
-
+##mkdir $www/$version
+##
 set -x
 if [[ -n $rerun  ]] || [[ ! -f $input ]]; then
     echo "**************************************************************************************************************************"
@@ -149,14 +154,14 @@ if [[ -n $rerun  ]] || [[ ! -f $input ]]; then
         mix="--mix-templates"
     fi
     ./templates_maker.py --load templates_maker.json,templates_maker_prepare.json --only-subset $subset $mix --input-dir $treesdir/$input_folder -o $input $verbose $input_opts 2>&1 | tee $input_log
-    echo "**************************************************************************************************************************"
+   echo "**************************************************************************************************************************"
 elif [[ -n $mix ]]; then
-    echo "**************************************************************************************************************************"
-    echo "running event mixing"
-    echo "**************************************************************************************************************************"    
-    ./templates_maker.py --load templates_maker_prepare.json --read-ws $input $mix $verbose 2>&1 | tee mix_$input_log
-    echo "**************************************************************************************************************************"
-fi
+   echo "**************************************************************************************************************************"
+   echo "running event mixing"
+   echo "**************************************************************************************************************************"    
+   ./templates_maker.py --load templates_maker_prepare.json --read-ws $input $mix $verbose 2>&1 | tee mix_$input_log
+   echo "**************************************************************************************************************************"
+   fi
 	    
 
 echo "**************************************************************************************************************************"
@@ -167,24 +172,19 @@ if [[ -z $just_fit_bkg ]]; then
     ##--binned-data-in-datacard \
     ./combine_maker.py \
 	--fit-name $fitname  --luminosity $lumi  --lumi $lumi \
-	--fit-background \
 	--generate-signal \
 	--generate-datacard \
 	--read-ws $input \
 	--ws-dir $workdir \
-	-O $www/$version/$workdir \
 	-o $workdir.root  \
 	--cardname datacard_${workdir}.txt $opts 2>&1 | tee $workdir/combine_maker${log_label}.log
 else
     ./combine_maker.py \
 	--fit-name $fitname  --luminosity $lumi  --lumi $lumi \
-	--fit-background \
 	--read-ws $input \
-	--ws-dir $workdir \
-	-O $www/$version/$workdir \
-	-o $workdir.root  \
 	$opts 2>&1 | tee $workdir/combine_maker_bkg_only${log_label}.log
     
 fi
-
+##-O $www/$version/$workdir \
+##	--fit-background \
 echo "**************************************************************************************************************************"
