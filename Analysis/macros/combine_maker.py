@@ -45,7 +45,7 @@ class CombineApp(TemplatesApp):
                                     help="Observable used in the fit default : [%default]",
                                     ),
                         make_option("--observables",dest="observables",action="callback",callback=optpars_utils.Load(scratch=True),type="string",
-                                    default={ "EBEE" : "mggEBEE[3400,330,10000]",
+                                    default={ "EBEE" : "mggEBEE[3400,320,10000]",
                                               "EBEB" : "mggEBEB[4000,230,10000]"
                                               },
                                     help="Per category observable ranges : [%default]",
