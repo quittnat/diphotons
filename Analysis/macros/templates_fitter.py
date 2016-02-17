@@ -89,6 +89,10 @@ class TemplatesFitApp(TemplatesApp):
                         make_option("--fixed-massbins",dest="fixed_massbins",action="store_true",default=False,
                                     help="if you want to fix the massbins otherwise --fit-massbins",
                                     ),
+                        make_option("--no-mctruth",dest="no_mctruth",action="store_true",default=False,
+                                    help="if you only run on data",
+                                    ),
+                        
                         
                         make_option("--extra-shape-unc",dest="extra_shape_unc",action="store",type="float",
                                     default=None,
@@ -203,11 +207,11 @@ class TemplatesFitApp(TemplatesApp):
                     setargs.Print()
                     #needed to estimate true purity for alter 2dfit
                   
-                    truthname= "mctruth_%s_%s_%s" % (compname,fitname,cat)
-                    truth = self.reducedRooData(truthname,setargs,False,sel=weight_cut,redo=ReDo)
-                    truth.Print()
-                    #if not doDataMc:
-                    templates.append(truth)
+                    if not options.no_mctruth:
+                        truthname= "mctruth_%s_%s_%s" % (compname,fitname,cat)
+                        truth = self.reducedRooData(truthname,setargs,False,sel=weight_cut,redo=ReDo)
+                        truth.Print()
+                        templates.append(truth)
 ### loop over templates
                     tempdatals=self.buildTemplates(templatesls,setargs,weight_cut,compname,cat) 
                     for temp in tempdatals:
@@ -220,7 +224,8 @@ class TemplatesFitApp(TemplatesApp):
                     setargs.add(massargs)
                     setargs.Print()
                     dset_data = self.reducedRooData("data_%s_%s" % (fitname,catd),setargs,False,sel=weight_cut,redo=ReDo)
-                    dset_mc = self.reducedRooData("mc_%s_%s" % (fitname,catd),setargs,False,sel=weight_cut,redo=ReDo)
+                    if not options.no_mctruth:
+                        dset_mc = self.reducedRooData("mc_%s_%s" % (fitname,catd),setargs,False,sel=weight_cut,redo=ReDo)
                     #mass_split= [int(x) for x in options.fit_massbins]
                    # diphomass=self.massquantiles(dset_data,massargs,mass_b,mass_split)
                     if not options.fixed_massbins:
@@ -229,10 +234,8 @@ class TemplatesFitApp(TemplatesApp):
                         diphomass=self.massquantiles(dset_data,massargs,mass_b,mass_split)
                         if cat=="EBEB":
                             diphomass=[230.0,12999.]
-                        #    diphomass=[200.0,12999.]
                         if cat=="EBEE":
                             diphomass=[320.0,12999.]
-                           # diphomass=[300.0,12999.]
                         massrange=[mass_split[2],mass_split[1]]
                     elif options.fixed_massbins and cat=="EBEB":
                         #diphomass=[700.,800.]
@@ -243,12 +246,13 @@ class TemplatesFitApp(TemplatesApp):
                         ##diphomass=[299.446153846,320.0,355.459828644,443.85640967,500.0, 600.,800.,12999.0153846]
                         diphomass=[320.0,355.459828644,443.85640967,500.0, 600.,800.,12999.0153846]
                         massrange=[0,len(diphomass)-1]
-                    truth_pp= "mctruth_%s_%s_%s" % (compname,fitname,cat)
-                    if d2:
-                        tp_mcpu = ROOT.TNtuple("tree_truth_fraction_all_%s_%s_%s" % (compname,fitname,cat),"tree_truth_fraction_%s_%s_%s" % (compname,fitname,cat),"number_pu:frac_pu:massbin:masserror" )
-                        ntp_mcpu = ROOT.TNtuple("tree_truth_fraction_signalregion_%s_%s_%s" % (compname,fitname,cat),"tree_truth_fraction_signalrange_%s_%s_%s" % (compname,fitname,cat),"number_pu:frac_pu:massbin:masserror" )
-                        self.store_[ntp_mcpu.GetName()] =ntp_mcpu
-                        self.store_[tp_mcpu.GetName()] =tp_mcpu
+                    if not options.no_mctruth:
+                        truth_pp= "mctruth_%s_%s_%s" % (compname,fitname,cat)
+                        if d2:
+                            tp_mcpu = ROOT.TNtuple("tree_truth_fraction_all_%s_%s_%s" % (compname,fitname,cat),"tree_truth_fraction_%s_%s_%s" % (compname,fitname,cat),"number_pu:frac_pu:massbin:masserror" )
+                            ntp_mcpu = ROOT.TNtuple("tree_truth_fraction_signalregion_%s_%s_%s" % (compname,fitname,cat),"tree_truth_fraction_signalrange_%s_%s_%s" % (compname,fitname,cat),"number_pu:frac_pu:massbin:masserror" )
+                            self.store_[ntp_mcpu.GetName()] =ntp_mcpu
+                            self.store_[tp_mcpu.GetName()] =tp_mcpu
 
                  
                     for mb in range(massrange[0],massrange[1]):
@@ -260,13 +264,14 @@ class TemplatesFitApp(TemplatesApp):
                         if d2:
                             cut_sigregion=ROOT.TCut("templateNdim2Dim0< %f && templateNdim2Dim1< %f" %(sigRegionup1D,sigRegionup1D))
                             dset_massc=self.masscutTemplates(dset_data,cut,cut_s)
-                            dset_massc_mc=self.masscutTemplates(dset_mc,cut,cut_s)
-                            temp_massc_truth=self.masscutTemplates(templates[0],cut,cut_s,"temp_truthinformation")
-                            number_pu=temp_massc_truth.sumEntries()
-                            if dset_massc_mc.sumEntries() !=0:
-                                frac_pu=number_pu/dset_massc_mc.sumEntries()
-                            else: frac_pu=0.
-                            tempSig_massc_truth=temp_massc_truth.Clone("tempSig_truthinformation")
+                            if not options.no_mctruth:
+                                dset_massc_mc=self.masscutTemplates(dset_mc,cut,cut_s)
+                                temp_massc_truth=self.masscutTemplates(templates[0],cut,cut_s,"temp_truthinformation")
+                                number_pu=temp_massc_truth.sumEntries()
+                                if dset_massc_mc.sumEntries() !=0:
+                                    frac_pu=number_pu/dset_massc_mc.sumEntries()
+                                else: frac_pu=0.
+                                tempSig_massc_truth=temp_massc_truth.Clone("tempSig_truthinformation")
                             templates_massc=[]
                             for temp_m in templates:
                                 temp_massc=self.masscutTemplates(temp_m,cut,cut_s)
@@ -274,15 +279,16 @@ class TemplatesFitApp(TemplatesApp):
                                     print "!!!!!!!!!!!! attention dataset ", temp_massc, " has no entries !!!!!!!!!!!!!!!!!"
                                 else:templates_massc.append(temp_massc)
 ###---------------get truth information per massbin and in signal range
-                            data_massc_truth = dset_massc_mc.Clone("data_truthinformation")
-                            data_massc_truth=data_massc_truth.reduce(cut_sigregion.GetTitle())
-                            tempSig_massc_truth=tempSig_massc_truth.reduce(cut_sigregion.GetTitle())
-                            number_pu_sigrange=tempSig_massc_truth.sumEntries()
-                            if data_massc_truth.sumEntries() !=0:
-                                frac_pu_sigrange=number_pu_sigrange/data_massc_truth.sumEntries()
-                            else: frac_pu_sigrange=0.
-                            tp_mcpu.Fill(number_pu,frac_pu,massbin, masserror)
-                            ntp_mcpu.Fill(number_pu_sigrange,frac_pu_sigrange,massbin, masserror)
+                            if not options.no_mctruth:
+                                data_massc_truth = dset_massc_mc.Clone("data_truthinformation")
+                                data_massc_truth=data_massc_truth.reduce(cut_sigregion.GetTitle())
+                                tempSig_massc_truth=tempSig_massc_truth.reduce(cut_sigregion.GetTitle())
+                                number_pu_sigrange=tempSig_massc_truth.sumEntries()
+                                if data_massc_truth.sumEntries() !=0:
+                                    frac_pu_sigrange=number_pu_sigrange/data_massc_truth.sumEntries()
+                                else: frac_pu_sigrange=0.
+                                tp_mcpu.Fill(number_pu,frac_pu,massbin, masserror)
+                                ntp_mcpu.Fill(number_pu_sigrange,frac_pu_sigrange,massbin, masserror)
                         elif not d2:
                             templates_massc=templates[:]
 ###----------------------- loop over 2 legs
