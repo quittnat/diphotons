@@ -1,13 +1,13 @@
 {
     "comparisons" : {
 	"fit2DTruth" : { "fit" : "2D",
-		"templates" : { "mix:kDSinglePho2DMC" : {}, "mix:kDSinglePho2D" : {}},
+		"templates" : {"2D" : {}},
                 "categories" : ["EBEB","EBEE"],
-                "components": ["pf","ff",  ["pp",{ "2D" : {},"template_mc:2D":{}}] 
+                "components": [["pp",{ "2D" : {}}] 
                 ],
-                "weight_cut": "weight <1000.",
 		"redo" : true,
-		"doDataMc" :true,
+                "weight_cut": "weight <1000.",
+		"doDataMc" :false,
                 "_plot_variables":{"subleadScEta": [-2.5,-2.0,-1.5,-1.0,-0.5,0.0,0.5,1.0,1.5,2.0,2.5],"leadScEta":[-2.5,-2.0,-1.5,-1.0,-0.5,0.0,0.5,1.0,1.5,2.0,2.5],"subleadPt":[75,100,200,500,7000],"leadPt":[75,100,200,500,7000]},
                 "lowerLimitSigRegion2D": "0.",
                 "prepfit": true, 

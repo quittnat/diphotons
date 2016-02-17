@@ -226,18 +226,22 @@ class TemplatesFitApp(TemplatesApp):
                     if not options.fixed_massbins:
                         mass_split= [int(x) for x in options.fit_massbins]
                         print mass_split
-                        #diphomass=self.massquantiles(dset_data,massargs,mass_b,mass_split)
+                        diphomass=self.massquantiles(dset_data,massargs,mass_b,mass_split)
                         if cat=="EBEB":
-                            diphomass=[200.0,12999.]
+                            diphomass=[230.0,12999.]
+                        #    diphomass=[200.0,12999.]
                         if cat=="EBEE":
-                            diphomass=[299.0,12999.]
+                            diphomass=[320.0,12999.]
+                           # diphomass=[300.0,12999.]
                         massrange=[mass_split[2],mass_split[1]]
                     elif options.fixed_massbins and cat=="EBEB":
-                        diphomass=[700.,800.]
-                        ##diphomass=[200.0,216.187076923,230.0,253.415384615,281.651965812,295.277948718,332.332307692,408.787692308,500.0,600.,800.,12999.0]
+                        #diphomass=[700.,800.]
+                        #diphomass=[200.0,216.187076923,230.0,253.415384615,281.651965812,295.277948718,332.332307692,408.787692308,500.0,600.,800.,12999.0]
+                        diphomass=[230.0,253.415384615,281.651965812,295.277948718,332.332307692,408.787692308,500.0,600.,800.,12999.0]
                         massrange=[0,len(diphomass)-1]
                     elif options.fixed_massbins and cat=="EBEE":
-                        diphomass=[299.446153846,320.0,355.459828644,443.85640967,500.0, 600.,800.,12999.0153846]
+                        ##diphomass=[299.446153846,320.0,355.459828644,443.85640967,500.0, 600.,800.,12999.0153846]
+                        diphomass=[320.0,355.459828644,443.85640967,500.0, 600.,800.,12999.0153846]
                         massrange=[0,len(diphomass)-1]
                     truth_pp= "mctruth_%s_%s_%s" % (compname,fitname,cat)
                     if d2:
@@ -259,7 +263,9 @@ class TemplatesFitApp(TemplatesApp):
                             dset_massc_mc=self.masscutTemplates(dset_mc,cut,cut_s)
                             temp_massc_truth=self.masscutTemplates(templates[0],cut,cut_s,"temp_truthinformation")
                             number_pu=temp_massc_truth.sumEntries()
-                            frac_pu=number_pu/dset_massc_mc.sumEntries()
+                            if dset_massc_mc.sumEntries() !=0:
+                                frac_pu=number_pu/dset_massc_mc.sumEntries()
+                            else: frac_pu=0.
                             tempSig_massc_truth=temp_massc_truth.Clone("tempSig_truthinformation")
                             templates_massc=[]
                             for temp_m in templates:
@@ -272,7 +278,9 @@ class TemplatesFitApp(TemplatesApp):
                             data_massc_truth=data_massc_truth.reduce(cut_sigregion.GetTitle())
                             tempSig_massc_truth=tempSig_massc_truth.reduce(cut_sigregion.GetTitle())
                             number_pu_sigrange=tempSig_massc_truth.sumEntries()
-                            frac_pu_sigrange=number_pu_sigrange/data_massc_truth.sumEntries()
+                            if data_massc_truth.sumEntries() !=0:
+                                frac_pu_sigrange=number_pu_sigrange/data_massc_truth.sumEntries()
+                            else: frac_pu_sigrange=0.
                             tp_mcpu.Fill(number_pu,frac_pu,massbin, masserror)
                             ntp_mcpu.Fill(number_pu_sigrange,frac_pu_sigrange,massbin, masserror)
                         elif not d2:
@@ -299,7 +307,7 @@ class TemplatesFitApp(TemplatesApp):
                                 histls.append(tempHisto)
                       #      if not prepfit: 
                            # print "plot 1d histos"
-                            self.plotHistos(histls,tit,template_binning,False,True,logx=False,logy=True,numEntries=numEntries_s)
+                            self.plotHistos(histls,tit,template_binning,False,True,logx=False,logy=True,numEntries=numEntries_s,ID=id)
                         
 
                         ## roll out for combine tool per category
@@ -453,6 +461,7 @@ class TemplatesFitApp(TemplatesApp):
         #    self.plotHistos(histlsY,"%s_Y" %title,template_binning,False,True,logx=True,logy=True)
             self.plotHistos(histlistunroll,"%s_unrolled" % (title),tempunroll_binning,False,True,False,True)
             self.keep( [c1] )
+            self.format(c1,self.options.postproc)
             self.autosave(True)
         else: return histlistunroll 
 
@@ -517,7 +526,6 @@ class TemplatesFitApp(TemplatesApp):
         prob = array.array('d',[])
         dpmq = array.array('d',[0.0 for i in range((mass_split[1]+1))])
         for i in range(0,mass_split[1]+1):
-            self.keep( [c1] )
             prob.append((i+float(mass_split[2]))/mass_split[0])
             print dpmq
         massH.GetQuantiles(mass_split[1]+1,dpmq,prob)
@@ -690,7 +698,7 @@ class TemplatesFitApp(TemplatesApp):
 
     ## ------------------------------------------------------------------------------------------------------------
 
-    def plotHistos(self,histlist,title,template_bins,dim1,doDataMc,logx=False,logy=False,numEntries=None):
+    def plotHistos(self,histlist,title,template_bins,dim1,doDataMc,logx=False,logy=False,numEntries=None,ID=99.):
         b=ROOT.TLatex()
         b.SetNDC()
         b.SetTextSize(0.035)
@@ -719,18 +727,17 @@ class TemplatesFitApp(TemplatesApp):
         canv.cd(1)
         # for dataMc plot MC as filled and data as points
         histstart=0
-        ymin=5e-3
+        ymin=5e-5
         ymax = 5.
         histlist[histstart].GetYaxis().SetLabelSize( histlist[histstart].GetYaxis().GetLabelSize() * canv.GetWh() / ROOT.gPad.GetWh() )
         k=0
         minX=-0.5
         if dim1:histlist[histstart].GetXaxis().SetTitle(title[-17:])
-        if not  "unroll" in title: 
-            histlist[histstart].GetXaxis().SetTitle("charged particle flow isolation (GeV)")
-            histlist[histstart].GetYaxis().SetTitle("arbitary units")
-        else: 
-            histlist[histstart].GetXaxis().SetTitle("bin")
-            histlist[histstart].GetYaxis().SetTitle("arbitary units")
+        histlist[histstart].GetYaxis().SetLabelSize( 1.5*histlist[histstart].GetYaxis().GetLabelSize() * canv.GetWh() / ROOT.gPad.GetWh() )
+        histlist[histstart].GetYaxis().SetTitleSize(1.2*histlist[histstart].GetYaxis().GetTitleSize() * canv.GetWh() / ROOT.gPad.GetWh() )
+        histlist[histstart].GetXaxis().SetTitle("")
+        histlist[histstart].GetXaxis().SetLabelSize(0.)
+        histlist[histstart].GetYaxis().SetTitle("arbitary units")
         for i in range(histstart,len(histlist)):
             if "pp" in histlist[histstart].GetName():
                 comp="#gamma #gamma"
@@ -776,14 +783,33 @@ class TemplatesFitApp(TemplatesApp):
             style_utils.apply(ratios,ratio_expectedStyle)
             ratios.Divide(denominator)
             ratios.Draw()        
-            ratios.GetYaxis().SetTitleSize( histlist[histstart].GetYaxis().GetTitleSize() * 7.0/3.0 )
-            ratios.GetYaxis().SetLabelSize( histlist[histstart].GetYaxis().GetLabelSize() *  7.0/3.0 )
-            ratios.GetYaxis().SetTitleOffset(histlist[histstart].GetYaxis().GetTitleOffset() *  3.0/7.0 )
-            ratios.GetXaxis().SetLabelSize( histlist[histstart].GetXaxis().GetLabelSize() *  7.0/3.0 )
-            ratios.GetYaxis().SetTitle("MCtemp/MCtruth")
+            ratios.GetYaxis().SetTitleSize(histlist[histstart].GetYaxis().GetTitleSize() * 5.0/3.0 )
+            ratios.GetYaxis().SetLabelSize(histlist[histstart].GetYaxis().GetLabelSize() *  7.0/3.0 )
+            ratios.GetYaxis().SetTitleOffset(histlist[histstart].GetYaxis().GetTitleOffset() *  4.0/7.0 )
+            ratios.GetXaxis().SetTitleOffset(ratios.GetXaxis().GetTitleOffset() *7.8/7.0)
+            ratios.GetXaxis().SetLabelSize(ratios.GetXaxis().GetLabelSize() *  7.0/3.0 )
+            ratios.GetXaxis().SetTitleSize( ratios.GetYaxis().GetTitleSize() * 4.0/3.0 )
+            ratios.GetXaxis().SetLabelSize( ratios.GetYaxis().GetLabelSize()  )
+            ratios.GetYaxis().SetTitle("MC_{temp}/MC_{truth}")
+            ratios.GetYaxis().SetNdivisions(505)
             ratios.GetXaxis().SetRangeUser(minX,15.)
             ratios.GetYaxis().SetRangeUser(0.,3.5)
+            if not  "unroll" in title:
+                ID=ID+1
+                ratios.GetXaxis().SetTitle("I_{Ch}(#gamma^{%d}) (GeV)" %ID)
+            else: 
+                ratios.GetXaxis().SetTitle("(I_{Ch}(#gamma^{1}),I_{Ch}(#gamma^{2})) bin")
             ROOT.gStyle.SetOptStat(0)
+        canv.cd(1)
+        margin = ROOT.gPad.GetBottomMargin()+ROOT.gPad.GetTopMargin()
+       #B ROOT.gPad.SetTopMargin(0.1*margin)
+        ROOT.gPad.SetBottomMargin(0.2*margin)
+
+        canv.cd(2)
+        margin = ROOT.gPad.GetBottomMargin()+ROOT.gPad.GetTopMargin()
+        ROOT.gPad.SetBottomMargin(1.8*margin)
+        ROOT.gPad.SetTopMargin(0.25*margin)
+                
         self.keep( [canv] )
         self.format(canv,self.options.postproc)
         self.autosave(True)
@@ -898,7 +924,7 @@ class TemplatesFitApp(TemplatesApp):
             setargs.add(mass)
             hist_Eta=[]
             categories = options.fit_categories
-          ##  categories = ["EBEE"]
+            #categories = ["EBEE"]
             mass_split= [int(x) for x in options.fit_massbins]
             jkpf=nomFit.get("jackknife_pf",False)
             jkpp=nomFit.get("jackknife_pp",False)
@@ -938,22 +964,22 @@ class TemplatesFitApp(TemplatesApp):
                 data.Print()
                 tree_mass=self.treeData("%s_pp_2D_%s"%(options.plotPurity["treetruth"], cat))
                 if not dodata:
-                    tp = ROOT.TNtuple("tree_fitresult_fraction%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_fraction_%s_%s_%s" % (tempname,dim,cat),"fraction_pp:error_pp_sumw2on:error_pp:fraction_pf:error_pf_sumw2on:error_pf:fraction_ff:error_ff:massbin:masserror" )
+                    tp = ROOT.TNtuple("tree_fitresult_fraction%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_fraction_%s_%s_%s" % (tempname,dim,cat),"purity_pp:error_pp_sumw2on:error_pp:purity_pf:error_pf_sumw2on:error_pf:purity_ff:error_ff:massbin:masserror" )
                     self.store_[tp.GetName()] = tp
                 if dodata:
                     tps=[]
                     for i in range(num):
-                        if not (jkpf or jkpp):tpi = ROOT.TNtuple("tree_fitresult_fraction%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_fraction_%s_%s_%s" % (tempname,dim,cat),"fraction_pp:error_pp:fraction_pf:error_pf:fraction_ff:error_ff:massbin:masserror" )
-                        elif jkpf: tpi = ROOT.TNtuple("tree_fitresult_fraction%s%s_jkpf%i_%s_%s" % (dset,tempname,i,dim,cat),"tree_fitresult_fraction_%s_jk%i_%s_%s" % (tempname,i,dim,cat),"fraction_pp:error_pp:fraction_pf:error_pf:massbin:masserror" )
+                        if not (jkpf or jkpp):tpi = ROOT.TNtuple("tree_fitresult_fraction%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_fraction_%s_%s_%s" % (tempname,dim,cat),"purity_pp:error_pp:purity_pf:error_pf:purity_ff:error_ff:massbin:masserror" )
+                        elif jkpf: tpi = ROOT.TNtuple("tree_fitresult_fraction%s%s_jkpf%i_%s_%s" % (dset,tempname,i,dim,cat),"tree_fitresult_fraction_%s_jk%i_%s_%s" % (tempname,i,dim,cat),"purity_pp:error_pp:purity_pf:error_pf:massbin:masserror" )
 
-                        elif jkpp: tpi = ROOT.TNtuple("tree_fitresult_fraction%s%s_jkpp%i_%s_%s" % (dset,tempname,i,dim,cat),"tree_fitresult_fraction_%s_jk%i_%s_%s" % (tempname,i,dim,cat),"fraction_pp:error_pp:fraction_pf:error_pf:massbin:masserror" )
+                        elif jkpp: tpi = ROOT.TNtuple("tree_fitresult_fraction%s%s_jkpp%i_%s_%s" % (dset,tempname,i,dim,cat),"tree_fitresult_fraction_%s_jk%i_%s_%s" % (tempname,i,dim,cat),"purity_pp:error_pp:purity_pf:error_pf:massbin:masserror" )
                         self.store_[tpi.GetName()] = tpi
                         tps.append(tpi)
                     if extended_fit:
-                        ntp = ROOT.TNtuple("tree_fitresult_events%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_events_%s_%s_%s" % (tempname,dim,cat),"norm:fraction_pp:error_pp_sumw2off:error_pp_sumw2on:fraction_pf:error_pf_sumw2off:error_pf_sumw2on:massbin:masserror" )
+                        ntp = ROOT.TNtuple("tree_fitresult_events%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_events_%s_%s_%s" % (tempname,dim,cat),"norm:purity_pp:error_pp_sumw2off:error_pp_sumw2on:purity_pf:error_pf_sumw2off:error_pf_sumw2on:massbin:masserror" )
                         self.store_[ntp.GetName()] = ntp
                 if options.pu_sigregion:
-                    tpSig = ROOT.TNtuple("tree_fitresult_fraction_sigRegion%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_fraction_sigRegion_%s_%s_%s" % (tempname,dim,cat),"fraction_pp:error_pp:fraction_pf:error_pf:fraction_ff:error_ff:massbin:masserror" )
+                    tpSig = ROOT.TNtuple("tree_fitresult_fraction_sigRegion%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_fraction_sigRegion_%s_%s_%s" % (tempname,dim,cat),"purity_pp:error_pp:purity_pf:error_pf:purity_ff:error_ff:massbin:masserror" )
                     tpRatSig = ROOT.TNtuple("tree_fitresult_fraction_RatsigRegion%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_fraction_RatsigRegion_%s_%s_%s" % (tempname,dim,cat),"ratSig_pp:ratSig_pf:ratSig_ff:massbin:masserror" )
                     self.store_[tpSig.GetName()] = tpSig
                     self.store_[tpRatSig.GetName()] = tpRatSig
@@ -1052,7 +1078,6 @@ class TemplatesFitApp(TemplatesApp):
                         err_pp=fpp.getParameter("jpp").getError()
                         print "pu_pp",pu_pp, "err_pp",err_pp
                         name=fitUnrolledPdf.GetName()
-                        fitUnrolledPdf.Print("v")
                         self.workspace_.rooImport(fitUnrolledPdf)
 
                         if len(components)>2: 
@@ -1073,8 +1098,7 @@ class TemplatesFitApp(TemplatesApp):
                             err_ff=0.
                             err_pf=err_pp
                         print
-                        print cat, cut_s
-                        self.histunrollback(data_massc,observable,catd,cut_s,options.template_binning,pu_pp,pu_pf,pu_ff)
+                       # self.histunrollback(data_massc,observable,catd,cut_s,options.template_binning,pu_pp,pu_pf,pu_ff)
                         if dodata:
                             tps[k].Fill(pu_pp,err_pp,pu_pf,err_pf,pu_ff,err_ff,tree_mass.massbin,tree_mass.masserror)
                         if dodata and not (jkpp or jkpf):
@@ -1138,6 +1162,7 @@ class TemplatesFitApp(TemplatesApp):
         fit_expectedStyle =  [["SetLineWidth",2],["SetLineColor",ROOT.kBlue]]
         pdf_expectedStyle =  [["SetLineWidth",3],["SetLineStyle",ROOT.kDashed]]
         data_expectedStyle =[["SetLineWidth",3],["SetMarkerStyle",20],["SetMarkerSize",2.0],["SetMarkerColor",ROOT.kBlack],["SetLineColor",ROOT.kBlack]]
+        ratio_expectedStyle =[["SetLineWidth",3],["SetMarkerStyle",20],["SetMarkerSize",2.0],["SetMarkerColor",ROOT.kBlack],["SetLineColor",ROOT.kBlack]]
         template_binning = array.array('d',template_binning)
         pppdf=self.rooPdf("pdf_unrolled_template_pp_2D_%s_mb_%s" %(cat,cut))
         pppdf.Print()
@@ -1171,13 +1196,22 @@ class TemplatesFitApp(TemplatesApp):
         
         c1=ROOT.TCanvas("d2hist_%s" % cat,"2d hists per category") 
         data2d.Draw("COLZ") 
+        
         cfitx=ROOT.TCanvas("cfitxproj_%s" % cat,"projection of the fit") 
+        cfitx.Divide(1,2)
+        cfitx.cd(1)
+        ROOT.gPad.SetPad(0., 0.3, 1., 1.0)
+        ROOT.gPad.SetLogy()
+        cfitx.cd(2)
+        ROOT.gPad.SetPad(0., 0.0, 1., 0.3)
+        ROOT.gPad.SetGridy()
+        cfitx.cd(1)
+        # for dataMc plot MC as filled and data as points
         pt=ROOT.TPaveText(0.2,0.8,0.28,0.95,"nbNDC")
         pt.SetFillStyle(0)
         pt.SetLineColor(ROOT.kWhite)
         pt.AddText("%s" % cat)
         ROOT.gStyle.SetOptStat(0)
-        cfitx.SetLogy()
         data2dx=data2d.ProjectionX("%s_X" %dataset.GetName())
         style_utils.apply(data2dx,data_expectedStyle)
         fit2dx=fit2d.ProjectionX("%s_X" %fitpdf.GetName())
@@ -1193,36 +1227,80 @@ class TemplatesFitApp(TemplatesApp):
         ff2dx.SetLineColor(ROOT.kBlack)
         
         data2dx.Draw()
-        data2dx.GetXaxis().SetTitle("I_{Ch}^{1} (GeV)")
+        data2dx.GetXaxis().SetTitle("I_{Ch}(#gamma^{1}) (GeV)")
         data2dx.GetYaxis().SetTitle("Events / (GeV)")
-   #     fit2dx.Scale(data2dx.Integral())
-   #     pp2dx.Scale(data2dx.Integral())
-   #     pf2dx.Scale(data2dx.Integral())
-      ##  fit2dx.Draw("")
         fit2dx.Draw("same")
         pp2dx.Draw("same")
         pf2dx.Draw("same")
         ff2dx.Draw("same")
 
-        data2dx.GetXaxis().SetRangeUser(-0.5,15.)
+        data2dx.GetXaxis().SetRangeUser(-0.1,15.)
+      #  data2dx.GetXaxis().SetLimits(-2,15.)
         data2dx.GetYaxis().SetRangeUser(1e1,1e5)
-        data2dx.GetXaxis().SetLabelSize( 1.1*data2dx.GetXaxis().GetLabelSize() )
-        data2dx.GetXaxis().SetTitleSize( 0.75 *data2dx.GetXaxis().GetTitleSize() )
-        data2dx.GetXaxis().SetTitleOffset( 1.02 )
-        data2dx.GetYaxis().SetLabelSize( 1*data2dx.GetXaxis().GetLabelSize() * cfitx.GetWh() / ROOT.gPad.GetWh() )
-        data2dx.GetYaxis().SetTitleSize(1.2*data2dx.GetXaxis().GetTitleSize() * cfitx.GetWh() / ROOT.gPad.GetWh() )
+     #   data2dx.GetXaxis().SetLabelSize( 1.1*data2dx.GetXaxis().GetLabelSize() )
+      #  data2dx.GetXaxis().SetTitleSize( 0.75 *data2dx.GetXaxis().GetTitleSize() )
+    #    data2dx.GetXaxis().SetTitleOffset( 1.02 )
+        data2dx.GetXaxis().SetTitle("")
+        data2dx.GetXaxis().SetLabelSize(0.)
+        data2dx.GetYaxis().SetLabelSize( 1.5*data2dx.GetYaxis().GetLabelSize() * cfitx.GetWh() / ROOT.gPad.GetWh() )
+        data2dx.GetYaxis().SetTitleSize(1.2*data2dx.GetYaxis().GetTitleSize() * cfitx.GetWh() / ROOT.gPad.GetWh() )
         data2dx.GetYaxis().SetTitleOffset(1.0 )
-        leg.AddEntry(data2dx,"data","pl")
-        leg.AddEntry(fit2dx,"fit","l")
+        leg.AddEntry(data2dx,"Data","pl")
+        leg.AddEntry(fit2dx,"Fit","l")
         leg.AddEntry(pp2dx,"#gamma #gamma ","l")
         leg.AddEntry(pf2dx,"#gamma j ","l")
         leg.AddEntry(ff2dx,"j j ","l")
         leg.Draw()
         pt.Draw("same")
+       
+
+        residualx=ROOT.TGraphErrors(data2dx.GetNbinsX())
+        for bn in range(1,data2dx.GetNbinsX()+1):
+            residualP=(data2dx.GetBinContent(bn)-fit2dx.GetBinContent(bn))/data2dx.GetBinError(bn)
+            mass=data2dx.GetXaxis().GetBinCenter(bn) 
+            residualx.SetPoint(bn-1,mass,residualP)
+            residualx.SetPointError(bn-1,(mass-data2dx.GetBinLowEdge(bn)),1.)
+        cfitx.cd(2)
+        style_utils.apply(residualx,ratio_expectedStyle)
+        residualx.Draw("AP")        
+        #residualx.GetYaxis().SetTitleSize( data2dx.GetYaxis().GetTitleSize() * 7.0/3.0 )
+        residualx.GetYaxis().SetTitleSize( data2dx.GetYaxis().GetTitleSize() *5.5/3.0 )
+        residualx.GetYaxis().SetTitleOffset(data2dx.GetYaxis().GetTitleOffset() *3.5/7.0)
+        residualx.GetYaxis().SetLabelSize( data2dx.GetYaxis().GetLabelSize() *  7.0/3.0 )
+       # residualx.GetXaxis().SetLabelSize(residualx.GetXaxis().GetLabelSize() )
+      #  residualx.GetXaxis().SetTitleOffset(data2dx.GetXaxis().GetTitleOffset() *  3.0/7.0 )
+        residualx.GetXaxis().SetTitleOffset(residualx.GetXaxis().GetTitleOffset() *  7.8/7.0 )
+       # residualx.GetXaxis().SetLabelSize(data2dx.GetXaxis().GetLabelSize() *  7.0/3.0 )
+        #residualx.GetYaxis().SetLabelSize( data2dx.GetYaxis().GetLabelSize() *  7.0/3.0 )
+       # residualx.GetXaxis().SetTitleSize( data2dx.GetYaxis().GetTitleSize() * 7.0/3.0 )
+        residualx.GetXaxis().SetTitleSize( data2dx.GetYaxis().GetTitleSize() * 7.0/3.0 )
+        residualx.GetXaxis().SetLabelSize( residualx.GetYaxis().GetLabelSize()  )
+        residualx.GetYaxis().SetNdivisions(505)
+        residualx.GetYaxis().SetTitle("(Data-Fit)/#sigma_{stat}")
+        residualx.GetXaxis().SetTitle("I_{Ch}(#gamma^{1}) (GeV)")
+        ######residualx.GetXaxis().SetRangeUser(-5,15.)
+        residualx.GetXaxis().SetLimits(-5,15.)
+        residualx.GetYaxis().SetRangeUser(-2.,2.)
+        cfitx.cd(1)
+        margin = ROOT.gPad.GetBottomMargin()+ROOT.gPad.GetTopMargin()
+       #B ROOT.gPad.SetTopMargin(0.1*margin)
+        ROOT.gPad.SetBottomMargin(0.1*margin)
+
+        cfitx.cd(2)
+        margin = ROOT.gPad.GetBottomMargin()+ROOT.gPad.GetTopMargin()
+        ROOT.gPad.SetBottomMargin(1.8*margin)
+        ROOT.gPad.SetTopMargin(0.25*margin)
+                
         
         cfity=ROOT.TCanvas("cfityproj_%s" % cat,"projection of the fit") 
-        ROOT.gStyle.SetOptStat(0)
-        cfity.SetLogy()
+        cfity.Divide(1,2)
+        cfity.cd(1)
+        ROOT.gPad.SetPad(0., 0.3, 1., 1.0)
+        ROOT.gPad.SetLogy()
+        cfity.cd(2)
+        ROOT.gPad.SetPad(0., 0.0, 1., 0.3)
+        ROOT.gPad.SetGridy()
+        cfity.cd(1)
         data2dy=data2d.ProjectionY("%s_Y" %dataset.GetName())
         style_utils.apply(data2dy,data_expectedStyle)
         fit2dy=fit2d.ProjectionX("%s_Y" %fitpdf.GetName())
@@ -1238,22 +1316,70 @@ class TemplatesFitApp(TemplatesApp):
         ff2dy.SetLineColor(ROOT.kBlack)
         
         data2dy.Draw()
-        data2dy.GetXaxis().SetTitle("I_{Ch}^{2} (GeV)")
-        data2dy.GetYaxis().SetTitle("Events / (GeV)")
-        data2dy.GetXaxis().SetLabelSize( 1.1*data2dy.GetXaxis().GetLabelSize() )
-        data2dy.GetXaxis().SetTitleSize( 0.75 *data2dy.GetXaxis().GetTitleSize() )
-        data2dy.GetXaxis().SetTitleOffset( 1.02 )
-        data2dy.GetYaxis().SetLabelSize( 1*data2dy.GetXaxis().GetLabelSize() * cfitx.GetWh() / ROOT.gPad.GetWh() )
-        data2dy.GetYaxis().SetTitleSize(1.2*data2dy.GetXaxis().GetTitleSize() * cfitx.GetWh() / ROOT.gPad.GetWh() )
+        data2dy.GetXaxis().SetRangeUser(-0.1,15.)
+        data2dy.GetYaxis().SetRangeUser(1e1,1e5)
+        data2dy.GetXaxis().SetTitle("")
+        data2dy.GetXaxis().SetLabelSize(0.)
+        data2dy.GetYaxis().SetLabelSize( 1.5*data2dy.GetYaxis().GetLabelSize() * cfity.GetWh() / ROOT.gPad.GetWh() )
+        data2dy.GetYaxis().SetTitleSize(1.2*data2dy.GetYaxis().GetTitleSize() * cfity.GetWh() / ROOT.gPad.GetWh() )
         data2dy.GetYaxis().SetTitleOffset(1.0 )
+        data2dy.GetYaxis().SetTitle("Events / (GeV)")
         fit2dy.Draw("same")
         pp2dy.Draw("same")
         pf2dy.Draw("same")
         ff2dy.Draw("same")
         leg.Draw()
         pt.Draw("same")
-        data2dy.GetXaxis().SetRangeUser(-0.1,15.)
-        data2dy.GetYaxis().SetRangeUser(1e1,1e5)
+        residualy=ROOT.TGraphErrors(data2dy.GetNbinsX())
+        print data2dy.GetNbinsX()
+        for bn in range(1,data2dy.GetNbinsX()+1):
+            residualP=(data2dy.GetBinContent(bn)-fit2dy.GetBinContent(bn))/data2dy.GetBinError(bn)
+            mass=data2dy.GetXaxis().GetBinCenter(bn) 
+            residualy.SetPoint(bn-1,mass,residualP)
+            residualy.SetPointError(bn-1,(mass-data2dy.GetBinLowEdge(bn)),1.)
+        cfity.cd(2)
+        style_utils.apply(residualy,ratio_expectedStyle)
+        residualy.Draw("AP")        
+  #      residualy.GetYaxis().SetTitleSize( data2dy.GetYaxis().GetTitleSize() * 7.0/3.0 )
+  #      residualy.GetYaxis().SetLabelSize( data2dy.GetYaxis().GetLabelSize() *  7.0/3.0 )
+        residualy.GetYaxis().SetTitleSize( data2dy.GetYaxis().GetTitleSize() *5.5/3.0 )
+        residualy.GetYaxis().SetTitleOffset(data2dy.GetYaxis().GetTitleOffset() *3.5/7.0)
+        residualy.GetYaxis().SetLabelSize( data2dy.GetYaxis().GetLabelSize() *  7.0/3.0 )
+        residualy.GetXaxis().SetTitleOffset(residualy.GetXaxis().GetTitleOffset() *  7.8/7.0 )
+        #residualy.GetXaxis().SetTitleOffset(data2dy.GetXaxis().GetTitleOffset() *  5.5/7.0 )
+        #residualy.GetXaxis().SetLabelSize(data2dy.GetXaxis().GetLabelSize() *  7.0/3.0 )
+        #residualy.GetXaxis().SetTitleSize( data2dy.GetXaxis().GetTitleSize() * 7.0/3.0 )
+        residualy.GetXaxis().SetTitleSize( data2dy.GetYaxis().GetTitleSize() * 7.0/3.0 )
+        residualy.GetXaxis().SetLabelSize( residualy.GetYaxis().GetLabelSize()  )
+        residualy.GetYaxis().SetNdivisions(505)
+        residualy.GetYaxis().SetTitle("(Data-Fit)/#sigma_{stat}")
+        residualy.GetXaxis().SetTitle("I_{Ch}(#gamma^{2}) (GeV)")
+        #residualy.GetXaxis().SetRangeUser(-5,15.)
+        residualy.GetXaxis().SetLimits(-5,15.)
+        residualy.GetYaxis().SetRangeUser(-5.,2.)
+        cfity.cd(1)
+        margin =  ROOT.gPad.GetBottomMargin()+ROOT.gPad.GetTopMargin()
+   #     ROOT.gPad.SetTopMargin(0.1*margin)
+        ROOT.gPad.SetBottomMargin(0.1*margin)
+
+        cfity.cd(2)
+        margin = ROOT.gPad.GetBottomMargin()+ROOT.gPad.GetTopMargin()
+        ROOT.gPad.SetBottomMargin(1.8*margin)
+        ROOT.gPad.SetTopMargin(0.25*margin)
+                
+            
+            
+        ROOT.gStyle.SetOptStat(0)
+        self.keep( [cfitx,c1,cfity] )
+        self.format(cfitx,self.options.postproc)
+        self.format(cfity,self.options.postproc)
+        self.autosave(True)
+            
+
+
+    ## ------------------------------------------------------------------------------------------------------------
+    def build3dTemplates(self,options,args):
+        fout = self.openOut(options)
         self.format(cfitx,self.options.postproc)
         self.format(cfity,self.options.postproc)
         self.keep( [c1,cfitx,cfity] )
@@ -1318,7 +1444,7 @@ class TemplatesFitApp(TemplatesApp):
             rooaddpdf.plotOn(frame,RooFit.Components(roopdfs[2].GetName()),RooFit.LineStyle(ROOT.kDashed),RooFit.LineColor(ROOT.kBlack),RooFit.Name("ff"))
         frame.Draw()
         frame.GetXaxis().SetLabelSize( 1.1*frame.GetXaxis().GetLabelSize() )
-        frame.GetXaxis().SetTitle("(I_{Ch}^{1},I_{Ch}^{2}) bin")
+        frame.GetXaxis().SetTitle("(I_{Ch}(#gamma^{1}),I_{Ch}(#gamma^{2})) bin")
         frame.GetYaxis().SetTitle("Events / bin")
         frame.GetXaxis().SetTitleSize( 0.75 *frame.GetXaxis().GetTitleSize() )
         frame.GetXaxis().SetTitleOffset( 1.02 )
@@ -1326,8 +1452,8 @@ class TemplatesFitApp(TemplatesApp):
         frame.GetYaxis().SetTitleSize(1.2*frame.GetXaxis().GetTitleSize() * cFit.GetWh() / ROOT.gPad.GetWh() )
         frame.GetYaxis().SetTitleOffset(1.0 )
         
-        leg.AddEntry("data","data","pl")
-        leg.AddEntry("fit","fit","l")
+        leg.AddEntry("data","Data","pl")
+        leg.AddEntry("fit","Fit","l")
         leg.AddEntry("pp","#gamma #gamma ","l")
         leg.AddEntry("pf","#gamma j ","l")
         if len(components)>2:
