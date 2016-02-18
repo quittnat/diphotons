@@ -92,6 +92,12 @@ class TemplatesFitApp(TemplatesApp):
                         make_option("--no-mctruth",dest="no_mctruth",action="store_true",default=False,
                                     help="if you only run on data",
                                     ),
+                        make_option("--blind",dest="blind",action="store_true",default=False,
+                                    help="blind",
+                                    ),
+                        make_option("--full-error",dest="full_error",action="store_true",default=False,
+                                    help="if purity plotted with sys+stat error",
+                                    ),
                         
                         
                         make_option("--extra-shape-unc",dest="extra_shape_unc",action="store",type="float",
@@ -239,12 +245,16 @@ class TemplatesFitApp(TemplatesApp):
                         massrange=[mass_split[2],mass_split[1]]
                     elif options.fixed_massbins and cat=="EBEB":
                         #diphomass=[700.,800.]
+                        if not options.blind:
                         #diphomass=[200.0,216.187076923,230.0,253.415384615,281.651965812,295.277948718,332.332307692,408.787692308,500.0,600.,800.,12999.0]
-                        diphomass=[230.0,253.415384615,281.651965812,295.277948718,332.332307692,408.787692308,500.0,600.,800.,12999.0]
+                            diphomass=[230.0,253.415384615,281.651965812,295.277948718,332.332307692,408.787692308,500.0,600.,800.,12999.0]
+                        else:diphomass=[230.0,253.415384615,281.651965812,295.277948718,332.332307692,408.787692308,500.0,12999.0]
                         massrange=[0,len(diphomass)-1]
                     elif options.fixed_massbins and cat=="EBEE":
                         ##diphomass=[299.446153846,320.0,355.459828644,443.85640967,500.0, 600.,800.,12999.0153846]
-                        diphomass=[320.0,355.459828644,443.85640967,500.0, 600.,800.,12999.0153846]
+                        if not options.blind:
+                            diphomass=[320.0,355.459828644,443.85640967,500.0, 600.,800.,12999.0153846]
+                        else:diphomass=[320.0,355.459828644,443.85640967,500.0,12999.0153846]
                         massrange=[0,len(diphomass)-1]
                     if not options.no_mctruth:
                         truth_pp= "mctruth_%s_%s_%s" % (compname,fitname,cat)
@@ -252,7 +262,11 @@ class TemplatesFitApp(TemplatesApp):
                             tp_mcpu = ROOT.TNtuple("tree_truth_fraction_all_%s_%s_%s" % (compname,fitname,cat),"tree_truth_fraction_%s_%s_%s" % (compname,fitname,cat),"number_pu:frac_pu:massbin:masserror" )
                             ntp_mcpu = ROOT.TNtuple("tree_truth_fraction_signalregion_%s_%s_%s" % (compname,fitname,cat),"tree_truth_fraction_signalrange_%s_%s_%s" % (compname,fitname,cat),"number_pu:frac_pu:massbin:masserror" )
                             self.store_[ntp_mcpu.GetName()] =ntp_mcpu
-                            self.store_[tp_mcpu.GetName()] =tp_mcpu
+                    else:
+                        if d2:
+                            tp_mcpu = ROOT.TNtuple("tree_truth_fraction_all_%s_%s_%s" % (compname,fitname,cat),"tree_truth_fraction_%s_%s_%s" % (compname,fitname,cat),"number_pu:frac_pu:massbin:masserror" )
+
+                    self.store_[tp_mcpu.GetName()] =tp_mcpu
 
                  
                     for mb in range(massrange[0],massrange[1]):
@@ -289,6 +303,8 @@ class TemplatesFitApp(TemplatesApp):
                                 else: frac_pu_sigrange=0.
                                 tp_mcpu.Fill(number_pu,frac_pu,massbin, masserror)
                                 ntp_mcpu.Fill(number_pu_sigrange,frac_pu_sigrange,massbin, masserror)
+                            else:
+                                tp_mcpu.Fill(0,0,massbin, masserror)
                         elif not d2:
                             templates_massc=templates[:]
 ###----------------------- loop over 2 legs
@@ -1477,6 +1493,9 @@ class TemplatesFitApp(TemplatesApp):
     ## ------------------------------------------------------------------------------------------------------------
     ## ------------------------------------------------------------------------------------------------------------
     def plotPurity(self,options,args):
+        fout = self.openOut(options)
+        fout.Print()
+        fout.cd()
         
         comp=3
         treetruthname=options.plotPurity["treetruth"]
@@ -1493,8 +1512,9 @@ class TemplatesFitApp(TemplatesApp):
                     if options.pu_sigregion:
                         tree_template=self.treeData("fitresult_fraction_sigRegion_unrolled_%s_%s_%s"%(opt,dim, cat))
                         tree_templateRat=self.treeData("fitresult_fraction_RatsigRegion_unrolled_%s_%s_%s"%(opt,dim, cat))
-                        tree_mctruth=self.treeData("fitresult_fraction_sigRegion_mc_unrolled_mctruth_%s_%s"%( dim, cat))
-                        tree_mctruthInt=self.treeData("fitresult_fraction_RatsigRegion_mc_unrolled_mctruth_%s_%s"%( dim, cat))
+                        if not options.no_mctruth:
+                            tree_mctruth=self.treeData("fitresult_fraction_sigRegion_mc_unrolled_mctruth_%s_%s"%( dim, cat))
+                            tree_mctruthInt=self.treeData("fitresult_fraction_RatsigRegion_mc_unrolled_mctruth_%s_%s"%( dim, cat))
                     else:
                         tree_template=self.treeData("fitresult_fraction_unrolled_%s_%s_%s"%(opt,dim, cat))
                         tree_mctruth=self.treeData("fitresult_fraction_mc_unrolled_mctruth_%s_%s"%( dim, cat))
@@ -1509,8 +1529,8 @@ class TemplatesFitApp(TemplatesApp):
                 else:
                     if options.pu_sigregion:
                         tree_templatemc=self.treeData("fitresult_fraction_sigRegion_mc_unrolled_%s_%s_%s"%(opt,dim, cat))
-                        tree_mctruth=self.treeData("fitresult_fraction_sigRegion_mc_unrolled_mctruth_%s_%s"%( dim, cat))
                         tree_templatemcInt=self.treeData("fitresult_fraction_RatsigRegion_mc_unrolled_%s_%s_%s"%(opt,dim, cat))
+                        tree_mctruth=self.treeData("fitresult_fraction_sigRegion_mc_unrolled_mctruth_%s_%s"%( dim, cat))
                         tree_mctruthInt=self.treeData("fitresult_fraction_RatsigRegion_mc_unrolled_mctruth_%s_%s"%( dim, cat))
                     
                     else:
@@ -1536,32 +1556,41 @@ class TemplatesFitApp(TemplatesApp):
            #         print "no truth ff component"
            #     g_truthpp=ROOT.TGraphErrors(tree_truthpp.GetEntries())
           #      g_truthpf=ROOT.TGraphErrors(tree_truthpf.GetEntries())
-                g_mctruthpp=ROOT.TGraphAsymmErrors(tree_mctruth.GetEntries())
-                g_mctruthpf=ROOT.TGraphErrors(tree_mctruth.GetEntries())
-                g_mctruthff=ROOT.TGraphErrors(tree_mctruth.GetEntries())
+                if not options.no_mctruth:
+                    g_mctruthpp=ROOT.TGraphAsymmErrors(tree_mctruth.GetEntries())
+                    g_mctruthpf=ROOT.TGraphErrors(tree_mctruth.GetEntries())
+                    g_mctruthff=ROOT.TGraphErrors(tree_mctruth.GetEntries())
                 if not data:
                     g_pullpp=ROOT.TGraphErrors(nentries)
                     h_pullpp=ROOT.TH1F("h_pullpp_%s" % cat,"h_pullpp_%s"% cat,10*tree_mctruth.GetEntries(),-2.,2.)
             #        if ((tree_truthpp.GetEntries()!=nentries)):
             #            print "number of entries in trees dont agree"
-                #todo as option
-                tot_err=True
+                if options.full_error:tot_err=True
+                else: tot_err=False
                 #todo last JK correctly
                 if data and tot_err:
-                    if cat=="EBEB": 
-                        JK=[0.00969710708263638 ,0.00745549032581063, 0.00746436270731503, 0.00687231555828861, 0.010172747399738  , 0.0154827562059132 , 0.0130907454386619, 0.0252044794540751,  0.0505652363533445 , 0.0259307676481065,  0.0384838948670937]
+                    if options.blind:
+                        if cat=="EBEB": 
+                            JK=[0.00969710708263638 ,0.00745549032581063, 0.00746436270731503, 0.00687231555828861, 0.010172747399738  , 0.0154827562059132 , 0.0130907454386619, 0.0252044794540751,  (0.0505652363533445+0.0259307676481065+0.0384838948670937)/3]
+                        else:
+                            JK=[0.00969710708263638, 0.00745549032581063, 0.00746436270731503, 0.00687231555828861 ,0.010172747399738  , 0.0154827562059132 , 0.0130907454386619, 0.0252044794540751,  (0.0505652363533445+0.0259307676481065+0.0384838948670937)/3] 
                     else:
-                        JK=[0.00969710708263638, 0.00745549032581063, 0.00746436270731503, 0.00687231555828861 ,0.010172747399738  , 0.0154827562059132 , 0.0130907454386619, 0.0252044794540751,  0.0505652363533445,  0.0259307676481065,  0.0384838948670937] 
+                        if cat=="EBEB": 
+                            JK=[0.00969710708263638 ,0.00745549032581063, 0.00746436270731503, 0.00687231555828861, 0.010172747399738  , 0.0154827562059132 , 0.0130907454386619, 0.0252044794540751,  0.0505652363533445 , 0.0259307676481065,  0.0384838948670937]
+                        else:
+                            JK=[0.00969710708263638, 0.00745549032581063, 0.00746436270731503, 0.00687231555828861 ,0.010172747399738  , 0.0154827562059132 , 0.0130907454386619, 0.0252044794540751,  0.0505652363533445,  0.0259307676481065,  0.0384838948670937] 
                 for mb in range(0,nentries):
-                    tree_mctruth.GetEntry(mb)
+                    if not options.no_mctruth:
+                        tree_mctruth.GetEntry(mb)
                     if data:
                         tree_template.GetEntry(mb)
-                        if mb==(nentries-1) and cat=="EBEE":
-                            massbin=(800+1600)/2.
-                            masserror=(800)/2.
-                        elif mb==(nentries-1) and cat=="EBEB":
-                            massbin=(800+1600)/2.
-                            masserror=(1600-800)/2.
+                        if mb==(nentries-1):
+                            if options.blind:
+                                massbin=(500+1600)/2.
+                                masserror=(1600-500)/2.
+                            else:
+                                massbin=(800+1600)/2.
+                                masserror=(800)/2.
                         else:
                             massbin=tree_template.massbin
                             masserror=tree_template.masserror
@@ -1598,7 +1627,7 @@ class TemplatesFitApp(TemplatesApp):
                                 pp_err=sqrt(pp_sys+stat_pp*stat_pp)
                                 pf_err=sqrt(pf_sys+stat_pf*stat_pf)
                                 ff_err=sqrt(ff_sys+stat_ff*stat_ff)
-                          #  print "mb",mb,"pp_p", pp_p, "pp_err",stat_pp ,"pp_sys", sqrt(pp_sys)
+                            print "mb",mb,"pp_p", pp_p, "pp_err",stat_pp ,"pp_sys", sqrt(pp_sys)
                           #  print "pf_p",pf_p, "pf_err",stat_pf,"pf_sys", sqrt(pf_sys)
                           #  print "ff_p",ff_p, "ff_err",stat_ff,"ff_sys", sqrt(ff_sys)
                            # print "mb",mb
@@ -1647,12 +1676,13 @@ class TemplatesFitApp(TemplatesApp):
                             g_templateppmc.SetPointError(mb,masserror,masserror,tree_templatemc.error_pp,new_error)
                         else:
                             g_templateppmc.SetPointError(mb,masserror,masserror,tree_templatemc.error_pp,tree_templatemc.error_pp)
-                    g_mctruthpp.SetPoint(mb,massbin,tree_mctruth.purity_pp)
-                    if tree_mctruth.purity_pp+tree_mctruth.error_pp>1:
-                         new_error=1-tree_mctruth.purity_pp
-                         g_mctruthpp.SetPointError(mb,masserror,masserror,tree_mctruth.error_pp,new_error)
-                    else:
-                         g_mctruthpp.SetPointError(mb,masserror,masserror,tree_mctruth.error_pp,tree_mctruth.error_pp)
+                    if not options.no_mctruth:
+                        g_mctruthpp.SetPoint(mb,massbin,tree_mctruth.purity_pp)
+                        if tree_mctruth.purity_pp+tree_mctruth.error_pp>1:
+                            new_error=1-tree_mctruth.purity_pp
+                            g_mctruthpp.SetPointError(mb,masserror,masserror,tree_mctruth.error_pp,new_error)
+                        else:
+                            g_mctruthpp.SetPointError(mb,masserror,masserror,tree_mctruth.error_pp,tree_mctruth.error_pp)
                  #   tree_truthpp.GetEntry(mb)
                  #   tree_truthpf.GetEntry(mb)
                  #   if tree_truthff!=None:
@@ -1663,21 +1693,21 @@ class TemplatesFitApp(TemplatesApp):
                  #   g_truthff.SetPoint(mb,massbin,tree_truthff.frac_pu)
                  #   g_truthpf.SetPointError(mb,masserror,0.)
                  #   g_truthff.SetPointError(mb,masserror,0.)
-                    tree_mctruth.GetEntry(mb)
-                    if data:
+                        tree_mctruth.GetEntry(mb)
+                        if data:
                   #      g_ratiopp.SetPoint(mb,massbin,(pp_p-tree_truthpp.frac_pu)/pp_err)
-                        g_ratiopp.SetPoint(mb,massbin,(pp_p-tree_mctruth.purity_pp)/pp_err)
-                        g_ratiopp.SetPointError(mb,0.,pp_err)
-                    if not data:
-                        if opt=="template_mix":
-                            pullpp=(tree_templatemc.purity_pp-tree_mctruth.purity_pp)/tree_templatemc.error_pp
-                        else:print "dont know what to compare to truth"
-                        g_pullpp.SetPoint(mb,massbin,pullpp)
-                        h_pullpp.Fill(pullpp)
-                    g_mctruthpf.SetPoint(mb,massbin,tree_mctruth.purity_pf)
-                    g_mctruthff.SetPoint(mb,massbin,tree_mctruth.purity_ff)
-                    g_mctruthpf.SetPointError(mb,masserror,tree_mctruth.error_pf)
-                    g_mctruthff.SetPointError(mb,masserror,tree_mctruth.error_ff)
+                            g_ratiopp.SetPoint(mb,massbin,(pp_p-tree_mctruth.purity_pp)/pp_err)
+                            g_ratiopp.SetPointError(mb,0.,pp_err)
+                        if not data:
+                            if opt=="template_mix":
+                                pullpp=(tree_templatemc.purity_pp-tree_mctruth.purity_pp)/tree_templatemc.error_pp
+                            else:print "dont know what to compare to truth"
+                            g_pullpp.SetPoint(mb,massbin,pullpp)
+                            h_pullpp.Fill(pullpp)
+                        g_mctruthpf.SetPoint(mb,massbin,tree_mctruth.purity_pf)
+                        g_mctruthff.SetPoint(mb,massbin,tree_mctruth.purity_ff)
+                        g_mctruthpf.SetPointError(mb,masserror,tree_mctruth.error_pf)
+                        g_mctruthff.SetPointError(mb,masserror,tree_mctruth.error_ff)
                 if not data:
                     if options.pu_sigregion:  self.plotClosure(cat,pu_val,opt,"sigRegionMC",g_templateppmc,g_templatepfmc,g_templateffmc,g_pullpp,g_mctruthpp,g_mctruthpf,g_mctruthff)
                     else: self.plotClosure(cat,pu_val,opt,"fullRegionMC",g_templateppmc,g_templatepfmc,g_templateffmc,g_pullpp,g_mctruthpp,g_mctruthpf,g_mctruthff)
@@ -1686,12 +1716,15 @@ class TemplatesFitApp(TemplatesApp):
                 else:
                     if options.pu_sigregion:
                         self.plotPurityMassbins(cat,pu_val,opt,"sigRegionData",g_templatepp,g_templatepf,g_templateff,g_syspp,g_syspf,g_sysff)
-                        self.plotPurityMassbins(cat,pu_val,opt,"sigRegionData+MC",g_templatepp,g_templatepf,g_templateff,g_mctruthpp=g_mctruthpp,g_mctruthpf=g_mctruthpf,g_mctruthff=g_mctruthff,g_ratiopp=g_ratiopp)
-                        self.plotPurityMassbins(cat,pu_val,opt,"sigRegionData+MC+sys",g_templatepp,g_templatepf,g_templateff,g_syspp,g_syspf,g_sysff,g_mctruthpp,g_mctruthpf,g_mctruthff,g_ratiopp)
+                        if not options.no_mctruth:
+                            self.plotPurityMassbins(cat,pu_val,opt,"sigRegionData_MC",g_templatepp,g_templatepf,g_templateff,g_mctruthpp=g_mctruthpp,g_mctruthpf=g_mctruthpf,g_mctruthff=g_mctruthff,g_ratiopp=g_ratiopp)
+                            self.plotPurityMassbins(cat,pu_val,opt,"sigRegionData_MC_sys",g_templatepp,g_templatepf,g_templateff,g_syspp,g_syspf,g_sysff,g_mctruthpp,g_mctruthpf,g_mctruthff,g_ratiopp)
                     else: 
-                        self.plotPurityMassbins(cat,pu_val,opt,"data+sys",g_templatepp,g_templatepf,g_templateff,g_syspp,g_syspf,g_sysff)
-                        self.plotPurityMassbins(cat,pu_val,opt,"data+MC",g_templatepp,g_templatepf,g_templateff,g_mctruthpp=g_mctruthpp,g_mctruthpf=g_mctruthpf,g_mctruthff=g_mctruthff,g_ratiopp=g_ratiopp)
-                        self.plotPurityMassbins(cat,pu_val,opt,"data+MC+sys",g_templatepp,g_templatepf,g_templateff,g_syspp,g_syspf,g_sysff,g_mctruthpp,g_mctruthpf,g_mctruthff,g_ratiopp)
+                        self.plotPurityMassbins(cat,pu_val,opt,"data_sys",g_templatepp,g_templatepf,g_templateff,g_syspp,g_syspf,g_sysff)
+                        if not options.no_mctruth:
+                            self.plotPurityMassbins(cat,pu_val,opt,"data_MC",g_templatepp,g_templatepf,g_templateff,g_mctruthpp=g_mctruthpp,g_mctruthpf=g_mctruthpf,g_mctruthff=g_mctruthff,g_ratiopp=g_ratiopp)
+                            self.plotPurityMassbins(cat,pu_val,opt,"data_MC_sys",g_templatepp,g_templatepf,g_templateff,g_syspp,g_syspf,g_sysff,g_mctruthpp,g_mctruthpf,g_mctruthff,g_ratiopp)
+        self.saveWs(options,fout)
             ## ------------------------------------------------------------------------------------------------------------
     def pullFunction(self,g_pull,h_pull,cat,comp,opt,pu_val):
         leg = ROOT.TLegend(0.5,0.8,0.9,0.9)
@@ -1925,16 +1958,15 @@ class TemplatesFitApp(TemplatesApp):
                 g_ratiopp.GetXaxis().SetMoreLogLabels()
                 g_ratiopp.Draw("AP")
                 self.keep( [g_ratiopp] )
+        self.workspace_.rooImport(g_templatepp,"g_pp%s" %cat)
+        self.workspace_.rooImport(g_templatepf,"g_pf%s" %cat)
+        self.workspace_.rooImport(g_templateff,"g_ff%s" %cat)
         self.format(cpu,self.options.postproc)
         self.keep( [cpu,g_templatepp,g_templatepf,g_templateff] )
         self.autosave(True)
 
     ## ------------------------------------------------------------------------------------------------------------
     
-    def Jackknife(self,options,args):
-        fout = self.openOut(options)
-        fout.Print()
-        fout.cd()
     
     def Jackknife(self,options,args):
         fout = self.openOut(options)
