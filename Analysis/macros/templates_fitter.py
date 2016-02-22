@@ -1133,6 +1133,7 @@ class TemplatesFitApp(TemplatesApp):
                             errSig_pp=fpuSig_pp.getPropagatedError(fit_studies)
                             if err_pp !=0:ratSig_pp=errSig_pp/err_pp
                             else:ratSig_pp=0.
+                            print "------------!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!-----------------"
                             print pu_pp, fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal(),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal(), puSig_pp
                             if len(components)==2:
                                 puSig_pf=1-puSig_pp
