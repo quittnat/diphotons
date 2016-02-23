@@ -291,6 +291,7 @@ class TemplatesFitApp(TemplatesApp):
                                 temp_massc=self.masscutTemplates(temp_m,cut,cut_s)
                                 if temp_massc.sumEntries() ==0:
                                     print "!!!!!!!!!!!! attention dataset ", temp_massc, " has no entries !!!!!!!!!!!!!!!!!"
+                                ##
                                 else:templates_massc.append(temp_massc)
 ###---------------get truth information per massbin and in signal range
                             if not options.no_mctruth:
@@ -326,11 +327,11 @@ class TemplatesFitApp(TemplatesApp):
                                     computeShapeWithUnc(tempHisto,options.extra_shape_unc)
                                 for bin in range(1,len(template_binning) ):
                                     tempHisto.SetBinContent(bin,tempHisto.GetBinContent(bin)/(tempHisto.GetBinWidth(bin)))
-                                    tempHCisto.SetBinError(bin,tempHisto.GetBinError(bin)/(tempHisto.GetBinWidth(bin)))
+                                    tempHisto.SetBinError(bin,tempHisto.GetBinError(bin)/(tempHisto.GetBinWidth(bin)))
                                 histls.append(tempHisto)
-                      #      if not prepfit: 
-                           # print "plot 1d histos"
-                           #MQ self.plotHistos(histls,tit,template_binning,False,logx=False,logy=True,numEntries=numEntries_s,ID=id)
+                      #     if not prepfit: 
+                            print "plot 1d histos"
+                            self.plotHistos(histls,tit,template_binning,False,logx=False,logy=True,numEntries=numEntries_s,ID=id)
                         
 
                         ## roll out for combine tool per category
@@ -394,7 +395,9 @@ class TemplatesFitApp(TemplatesApp):
             pad_it+=1
             temp2d=ROOT.TH2F("d2%s" % (tempur.GetName()),"d2%s" % (tempur.GetName()),len(template_binning)-1,template_binning,len(template_binning)-1,template_binning)
             tempur.fillHistogram(temp2d,ROOT.RooArgList(isoargs))
-           # print "integral 2d  histo", temp2d.Integral()
+            print "adding temp2d - should be a new one" 
+            temp2d.Print("v")
+            print "integral 2d  histo", temp2d.Integral()
             temp2dx=temp2d.ProjectionX("%s_X" %tempur.GetName())
             if plot:
                 if "truth" in temp2dx.GetName():
@@ -411,8 +414,7 @@ class TemplatesFitApp(TemplatesApp):
                 histlsX.append(temp2dx)
                 temp2dy.SetTitle("%s_Y" %tempur.GetName())
                 histlsY.append(temp2dy)
-            if len(templatelist) >1 and plot:
-                ## temp2d.Scale(1./temp2d.Integral())
+            if  plot:
                 if "truth" in temp2d.GetName():
                     computeShapeWithUnc(temp2d)
                 else:
@@ -437,6 +439,7 @@ class TemplatesFitApp(TemplatesApp):
                 binCont= temp2d.GetBinContent(bin1,bin2)
                 binErr=temp2d.GetBinError(bin1,bin2)
                 area=(temp2d.GetXaxis().GetBinWidth(bin1))*(temp2d.GetYaxis().GetBinWidth(bin2))
+                print "binCont", binCont
                 if not prepfit:
                     sum+=1
                     temp2d.SetBinContent(bin1,bin2,binCont/area)
@@ -476,13 +479,16 @@ class TemplatesFitApp(TemplatesApp):
                             print "ui, the bin content is zero"
                             fail=fail+1
                 roodatahist_1dunroll=ROOT.RooDataHist("unrolled_%s" % (tempur.GetName()),"unrolled_%s_zerobins%u" %(tempur.GetName(),fail),unrollvar, temp1dunroll)
+                print "unrolled roodata hist:"
                 roodatahist_1dunroll.Print()
+                roodatahist_1dunroll.Print("v")
                 self.workspace_.rooImport(roodatahist_1dunroll,ROOT.RooFit.RecycleConflictNodes())
+        print "histlistunroll ", histlistunroll
         if len(histlistunroll) >1 and plot:
             title="histo_%s_%s_%s" %(comp,cat,mcut_s)
        #     self.plotHistos(histlsX,"%s_X" %title,template_binning,False,logx=True,logy=True)
         #    self.plotHistos(histlsY,"%s_Y" %title,template_binning,False,logx=True,logy=True)
-       #MQ     self.plotHistos(histlistunroll,"%s_unrolled" % (title),tempunroll_binning,False,False,True)
+            self.plotHistos(histlistunroll,"%s_unrolled" % (title),tempunroll_binning,False,False,True)
             self.keep( [c1] )
             self.format(c1,self.options.postproc)
             self.autosave(True)
@@ -1051,9 +1057,7 @@ class TemplatesFitApp(TemplatesApp):
                          
                             self.keep([rooHistPdf])
                             pdf_set.add(rooHistPdf)
-                            rooHistPdf.Print("v")
-                            print "rooHistPdf integral in full region ",rooHistPdf.createIntegral(ROOT.RooArgSet(observable)).getVal()
-                            print "rooHistPdf integral in sig region ",rooHistPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()
+                           # rooHistPdf.Print("v")
                             i=i+1
 
                         pdf_collections.append(pdf_set)
@@ -1130,28 +1134,16 @@ class TemplatesFitApp(TemplatesApp):
                         ##elif not (jkpp or jkpf):
                       ##          self.plotFit(observable,fitUnrolledPdf,ArgListPdf,data_massc,components,cat,log=False,i=k)
                         if options.pu_sigregion:
-
-
-
-                 #           ppsigregion=fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()/fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable)).getVal()
-                  #          fullsigregion=fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()/fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable)).getVal()
                             ppsigregion=fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()
                             fullsigregion=fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()
                             
-                            #fpuSig_pp= ROOT.RooFormulaVar("fpuSig_pp","fpuSig_pp","(@0*(@1/@2))/(@3/@4)",ROOT.RooArgList(fpp,fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable)),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable))))
-                            fpuSig_pp= ROOT.RooFormulaVar("fpuSig_pp","fpuSig_pp","(@0)/(@2)",ROOT.RooArgList(fpp,fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion")))
-                            
-                            
-                            puSig_pp= pu_pp*(ppsigregion)/fullsigregion 
-                            print "true sig reigon purity", puSig_pp 
-                            
-                            #puSig_pp=fpuSig_pp.getVal()
+                            fpuSig_pp= ROOT.RooFormulaVar("fpuSig_pp","fpuSig_pp","(@0)/(@1)",ROOT.RooArgList(fpp,fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion")))
+                            print "manually computed purity in signal region: " ,"pu_pp ",pu_pp," ppsigregion "ppsigregion, " fullsigregion ",fullsigregion,"purity ", pu_pp*(ppsigregion)/fullsigregion 
+                            puSig_pp=fpuSig_pp.getVal()
+                            print "sig region purity", puSig_pp 
                             errSig_pp=fpuSig_pp.getPropagatedError(fit_studies)
                             if err_pp !=0:ratSig_pp=errSig_pp/err_pp
                             else:ratSig_pp=0.
-                            print "------------!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!-----------------"
-                        #    print pu_pp, puSig_pp,fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()/fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable)).getVal()
-                         #   print fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()/fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable)).getVal()
                             if len(components)==2:
                                 puSig_pf=1-puSig_pp
                                 errSig_pf=errSig_pp
@@ -1162,15 +1154,14 @@ class TemplatesFitApp(TemplatesApp):
                                 ratSig_ff=0.
 
                             if len(components)>2:
-                            #    fpuSig_pf= ROOT.RooFormulaVar("fpuSig_pf","fpuSig_pf","(@0*(@1/@2))/(@3/@4)",ROOT.RooArgList(fpu_pf,fitUnrolledPdf.pdfList()[1].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.pdfList()[1].createIntegral(ROOT.RooArgSet(observable)),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable))))
                                 fpuSig_pf= ROOT.RooFormulaVar("fpuSig_pf","fpuSig_pf","(@0*@1)/@2",ROOT.RooArgList(fpu_pf,fitUnrolledPdf.pdfList()[1].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion")))
                                 pfsigregion=fitUnrolledPdf.pdfList()[1].createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()/fitUnrolledPdf.pdfList()[1].createIntegral(ROOT.RooArgSet(observable)).getVal()
                                 fullsigregion=fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()/fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable)).getVal()
                                 print "pfsigregion", pfsigregion, "fullsigregion",fullsigregion
                                 puSig_pf=fpuSig_pf.getVal()
+                                print "pf fraction in sigregion ", puSig_pf
                                 errSig_pf=fpuSig_pf.getPropagatedError(fit_studies)
                                 ratSig_pf=errSig_pf/err_pf
-                            #    fpuSig_ff= ROOT.RooFormulaVar("fpuSig_ff","fpuSig_ff","@0*((@1/@2))/(@3/@4)",ROOT.RooArgList(fpu_ff,fitUnrolledPdf.pdfList()[2].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.pdfList()[2].createIntegral(ROOT.RooArgSet(observable)),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable))))
                                 fpuSig_ff= ROOT.RooFormulaVar("fpuSig_ff","fpuSig_ff","(@0*@1)/@2",ROOT.RooArgList(fpu_ff,fitUnrolledPdf.pdfList()[2].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion")))
                                 ffsigregion=fitUnrolledPdf.pdfList()[2].createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()/fitUnrolledPdf.pdfList()[2].createIntegral(ROOT.RooArgSet(observable)).getVal()
                                 fullsigregion=fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()/fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable)).getVal()
