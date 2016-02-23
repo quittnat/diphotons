@@ -170,7 +170,6 @@ class TemplatesFitApp(TemplatesApp):
             print "Comparison %s" % name
             prepfit=comparison["prepfit"] 
             ReDo=comparison.get("redo",True)
-            doDataMc=comparison.get("doDataMc",True)
             weight_cut=comparison["weight_cut"] 
             fitname=comparison["fit"]
             if fitname=="2D" : d2=True
@@ -224,7 +223,7 @@ class TemplatesFitApp(TemplatesApp):
                         templates.append(temp)
 ###------------------- split in massbins
                     masserror = array.array('d',[])
-                    
+                     
                     if cat=="EEEB": catd="EBEE"#TODO implement in json file
                     else: catd=cat
                     setargs.add(massargs)
@@ -261,12 +260,13 @@ class TemplatesFitApp(TemplatesApp):
                         if d2:
                             tp_mcpu = ROOT.TNtuple("tree_truth_fraction_all_%s_%s_%s" % (compname,fitname,cat),"tree_truth_fraction_%s_%s_%s" % (compname,fitname,cat),"number_pu:frac_pu:massbin:masserror" )
                             ntp_mcpu = ROOT.TNtuple("tree_truth_fraction_signalregion_%s_%s_%s" % (compname,fitname,cat),"tree_truth_fraction_signalrange_%s_%s_%s" % (compname,fitname,cat),"number_pu:frac_pu:massbin:masserror" )
-                            self.store_[ntp_mcpu.GetName()] =ntp_mcpu
                     else:
                         if d2:
                             tp_mcpu = ROOT.TNtuple("tree_truth_fraction_all_%s_%s_%s" % (compname,fitname,cat),"tree_truth_fraction_%s_%s_%s" % (compname,fitname,cat),"number_pu:frac_pu:massbin:masserror" )
+                            ntp_mcpu = ROOT.TNtuple("tree_truth_fraction_signalregion_%s_%s_%s" % (compname,fitname,cat),"tree_truth_fraction_signalrange_%s_%s_%s" % (compname,fitname,cat),"number_pu:frac_pu:massbin:masserror" )
 
                     self.store_[tp_mcpu.GetName()] =tp_mcpu
+                    self.store_[ntp_mcpu.GetName()] =ntp_mcpu
 
                  
                     for mb in range(massrange[0],massrange[1]):
@@ -305,6 +305,7 @@ class TemplatesFitApp(TemplatesApp):
                                 ntp_mcpu.Fill(number_pu_sigrange,frac_pu_sigrange,massbin, masserror)
                             else:
                                 tp_mcpu.Fill(0,0,massbin, masserror)
+                                ntp_mcpu.Fill(0,0,massbin, masserror)
                         elif not d2:
                             templates_massc=templates[:]
 ###----------------------- loop over 2 legs
@@ -325,11 +326,11 @@ class TemplatesFitApp(TemplatesApp):
                                     computeShapeWithUnc(tempHisto,options.extra_shape_unc)
                                 for bin in range(1,len(template_binning) ):
                                     tempHisto.SetBinContent(bin,tempHisto.GetBinContent(bin)/(tempHisto.GetBinWidth(bin)))
-                                    tempHisto.SetBinError(bin,tempHisto.GetBinError(bin)/(tempHisto.GetBinWidth(bin)))
+                                    tempHCisto.SetBinError(bin,tempHisto.GetBinError(bin)/(tempHisto.GetBinWidth(bin)))
                                 histls.append(tempHisto)
                       #      if not prepfit: 
                            # print "plot 1d histos"
-                            self.plotHistos(histls,tit,template_binning,False,True,logx=False,logy=True,numEntries=numEntries_s,ID=id)
+                           #MQ self.plotHistos(histls,tit,template_binning,False,logx=False,logy=True,numEntries=numEntries_s,ID=id)
                         
 
                         ## roll out for combine tool per category
@@ -479,9 +480,9 @@ class TemplatesFitApp(TemplatesApp):
                 self.workspace_.rooImport(roodatahist_1dunroll,ROOT.RooFit.RecycleConflictNodes())
         if len(histlistunroll) >1 and plot:
             title="histo_%s_%s_%s" %(comp,cat,mcut_s)
-       #     self.plotHistos(histlsX,"%s_X" %title,template_binning,False,True,logx=True,logy=True)
-        #    self.plotHistos(histlsY,"%s_Y" %title,template_binning,False,True,logx=True,logy=True)
-            self.plotHistos(histlistunroll,"%s_unrolled" % (title),tempunroll_binning,False,True,False,True)
+       #     self.plotHistos(histlsX,"%s_X" %title,template_binning,False,logx=True,logy=True)
+        #    self.plotHistos(histlsY,"%s_Y" %title,template_binning,False,logx=True,logy=True)
+       #MQ     self.plotHistos(histlistunroll,"%s_unrolled" % (title),tempunroll_binning,False,False,True)
             self.keep( [c1] )
             self.format(c1,self.options.postproc)
             self.autosave(True)
@@ -720,7 +721,7 @@ class TemplatesFitApp(TemplatesApp):
 
     ## ------------------------------------------------------------------------------------------------------------
 
-    def plotHistos(self,histlist,title,template_bins,dim1,doDataMc,logx=False,logy=False,numEntries=None,ID=99.):
+    def plotHistos(self,histlist,title,template_bins,dim1,logx=False,logy=False,numEntries=None,ID=99.):
         b=ROOT.TLatex()
         b.SetNDC()
         b.SetTextSize(0.035)
@@ -946,7 +947,6 @@ class TemplatesFitApp(TemplatesApp):
             setargs.add(mass)
             hist_Eta=[]
             categories = options.fit_categories
-            #categories = ["EBEE"]
             mass_split= [int(x) for x in options.fit_massbins]
             jkpf=nomFit.get("jackknife_pf",False)
             jkpp=nomFit.get("jackknife_pp",False)
@@ -1046,14 +1046,14 @@ class TemplatesFitApp(TemplatesApp):
                             
                             print "%s%s%s_%s_%s_mb_%s"%(tempname_new,dset,comp, dim_new,cat,cut_s)
                             histo = self.rooData("%s%s%s_%s_%s_mb_%s"%(tempname_new,dset,comp, dim_new,cat,cut_s))
+                            histo.Print("v")
                             rooHistPdf=ROOT.RooHistPdf("pdf_%s"% histo.GetName(),"pdf_%s"% histo.GetTitle(),ROOT.RooArgSet(obsls),histo)
                          
                             self.keep([rooHistPdf])
-                            if extended_fit:
-                                rooExtPdf=ROOT.RooExtendPdf("extpdf_%s"% histo.GetName(),"extpdf_%s"% histo.GetTitle(),rooHistPdf,pu_estimates_roopdf[i],"sigRegion")
-                                pdf_set.add(rooExtPdf)
-                            else:
-                                pdf_set.add(rooHistPdf)
+                            pdf_set.add(rooHistPdf)
+                            rooHistPdf.Print("v")
+                            print "rooHistPdf integral in full region ",rooHistPdf.createIntegral(ROOT.RooArgSet(observable)).getVal()
+                            print "rooHistPdf integral in sig region ",rooHistPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()
                             i=i+1
 
                         pdf_collections.append(pdf_set)
@@ -1084,6 +1084,7 @@ class TemplatesFitApp(TemplatesApp):
                                 self.keep([rooHistPdf])
                                 pdf_set.add(rooHistPdf)
                             pdf_collections.append(pdf_set)
+                            print "collection in i",pdf_collections.Print("v")
                     for k in range(num):
                         ArgListPdf=None
                         jpp.setVal(0.6)
@@ -1091,7 +1092,8 @@ class TemplatesFitApp(TemplatesApp):
                         ArgListPdf=pdf_collections[k]
                         ArgListPdf.Print()
                         fitUnrolledPdf=ROOT.RooAddPdf("fitPdfs_%s%s%s_%s_mb_%s" % (tempname,dset,cat,dim,cut_s),"fitPdfs_%s_%s_%s_mb_%s" % (tempname,cat,dim,cut_s),ArgListPdf,pu_estimates,True )
-                        
+                        print "addPdf integral in full region ",fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable)).getVal()
+                        print "addPdf integral in sig region ",fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()
               #save roofitresult in outputfile
                         data_massc.Print()
                         print data_massc.sumEntries()
@@ -1128,13 +1130,28 @@ class TemplatesFitApp(TemplatesApp):
                         ##elif not (jkpp or jkpf):
                       ##          self.plotFit(observable,fitUnrolledPdf,ArgListPdf,data_massc,components,cat,log=False,i=k)
                         if options.pu_sigregion:
-                            fpuSig_pp= ROOT.RooFormulaVar("fpuSig_pp","fpuSig_pp","(@0*@1)/@2",ROOT.RooArgList(fpp,fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion")))
-                            puSig_pp=fpuSig_pp.getVal()
+
+
+
+                 #           ppsigregion=fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()/fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable)).getVal()
+                  #          fullsigregion=fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()/fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable)).getVal()
+                            ppsigregion=fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()
+                            fullsigregion=fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()
+                            
+                            #fpuSig_pp= ROOT.RooFormulaVar("fpuSig_pp","fpuSig_pp","(@0*(@1/@2))/(@3/@4)",ROOT.RooArgList(fpp,fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable)),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable))))
+                            fpuSig_pp= ROOT.RooFormulaVar("fpuSig_pp","fpuSig_pp","(@0)/(@2)",ROOT.RooArgList(fpp,fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion")))
+                            
+                            
+                            puSig_pp= pu_pp*(ppsigregion)/fullsigregion 
+                            print "true sig reigon purity", puSig_pp 
+                            
+                            #puSig_pp=fpuSig_pp.getVal()
                             errSig_pp=fpuSig_pp.getPropagatedError(fit_studies)
                             if err_pp !=0:ratSig_pp=errSig_pp/err_pp
                             else:ratSig_pp=0.
                             print "------------!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!-----------------"
-                            print pu_pp, fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal(),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal(), puSig_pp
+                        #    print pu_pp, puSig_pp,fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()/fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable)).getVal()
+                         #   print fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()/fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable)).getVal()
                             if len(components)==2:
                                 puSig_pf=1-puSig_pp
                                 errSig_pf=errSig_pp
@@ -1145,11 +1162,19 @@ class TemplatesFitApp(TemplatesApp):
                                 ratSig_ff=0.
 
                             if len(components)>2:
+                            #    fpuSig_pf= ROOT.RooFormulaVar("fpuSig_pf","fpuSig_pf","(@0*(@1/@2))/(@3/@4)",ROOT.RooArgList(fpu_pf,fitUnrolledPdf.pdfList()[1].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.pdfList()[1].createIntegral(ROOT.RooArgSet(observable)),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable))))
                                 fpuSig_pf= ROOT.RooFormulaVar("fpuSig_pf","fpuSig_pf","(@0*@1)/@2",ROOT.RooArgList(fpu_pf,fitUnrolledPdf.pdfList()[1].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion")))
+                                pfsigregion=fitUnrolledPdf.pdfList()[1].createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()/fitUnrolledPdf.pdfList()[1].createIntegral(ROOT.RooArgSet(observable)).getVal()
+                                fullsigregion=fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()/fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable)).getVal()
+                                print "pfsigregion", pfsigregion, "fullsigregion",fullsigregion
                                 puSig_pf=fpuSig_pf.getVal()
                                 errSig_pf=fpuSig_pf.getPropagatedError(fit_studies)
                                 ratSig_pf=errSig_pf/err_pf
+                            #    fpuSig_ff= ROOT.RooFormulaVar("fpuSig_ff","fpuSig_ff","@0*((@1/@2))/(@3/@4)",ROOT.RooArgList(fpu_ff,fitUnrolledPdf.pdfList()[2].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.pdfList()[2].createIntegral(ROOT.RooArgSet(observable)),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable))))
                                 fpuSig_ff= ROOT.RooFormulaVar("fpuSig_ff","fpuSig_ff","(@0*@1)/@2",ROOT.RooArgList(fpu_ff,fitUnrolledPdf.pdfList()[2].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion")))
+                                ffsigregion=fitUnrolledPdf.pdfList()[2].createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()/fitUnrolledPdf.pdfList()[2].createIntegral(ROOT.RooArgSet(observable)).getVal()
+                                fullsigregion=fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()/fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable)).getVal()
+                                print "ffsigregion", ffsigregion, "fullsigregion",fullsigregion
                                 puSig_ff=fpuSig_ff.getVal()
                                 errSig_ff=fpuSig_ff.getPropagatedError(fit_studies)
                                 ratSig_ff=errSig_ff/err_ff
