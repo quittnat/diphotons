@@ -1234,7 +1234,7 @@ class TemplatesFitApp(TemplatesApp):
         
         cfitx=ROOT.TCanvas("cfitxproj_%s" % cat,"projection of the fit") 
         cfitx.Divide(1,2)
-        cfitx.cd(1)
+            cfitx.cd(1)
         ROOT.gPad.SetPad(0., 0.3, 1., 1.0)
         ROOT.gPad.SetLogy()
         cfitx.cd(2)
