@@ -3,13 +3,13 @@
 	using namespace RooFit;
 	TFile *_file0 = TFile::Open("compared_templates_7415v2_v5_data_ecorr_pas_fullmass.root");
 	cout << __LINE__ << endl;
- TFile *_file1 = TFile::Open("compared_moriond16v1_sync_v2_data_fullmass.root");
+ TFile *_file1 = TFile::Open("compared_moriond16v1_sync_v4_data_fullmass.root");
 	cout << __LINE__ << endl;
  	_file0->cd();	
-//	RooDataHist* dppEBEB_old= (RooDataHist*)(wtemplates->data("unrolled_template_pp_2D_EBEB_mb_230_12999"));
-//    RooDataHist* dppEBEE_old= (RooDataHist*)(wtemplates->data("unrolled_template_pp_2D_EBEE_mb_320_12999"));
-	RooDataHist* dppEBEB_old= (RooDataHist*)(wtemplates->data("unrolled_template_mix_ff_2D_EBEB_mb_230_12999"));
-    RooDataHist* dppEBEE_old= (RooDataHist*)(wtemplates->data("unrolled_template_mix_ff_2D_EBEE_mb_320_12999"));
+	RooDataHist* dppEBEB_old= (RooDataHist*)(wtemplates->data("unrolled_template_pp_2D_EBEB_mb_230_12999"));
+    RooDataHist* dppEBEE_old= (RooDataHist*)(wtemplates->data("unrolled_template_pp_2D_EBEE_mb_320_12999"));
+//	RooDataHist* dppEBEB_old= (RooDataHist*)(wtemplates->data("unrolled_template_mix_pf_2D_EBEB_mb_230_12999"));
+ //   RooDataHist* dppEBEE_old= (RooDataHist*)(wtemplates->data("unrolled_template_mix_pf_2D_EBEE_mb_320_12999"));
 	cout << __LINE__ << endl;
 	RooRealVar* templateNdim2d_unroll= wtemplates->var("templateNdim2d_unroll");
     TH1D*  ppEBEB_old=new TH1D("ppEBEB_old","ppEBEB_old",9,0,9);
@@ -19,10 +19,10 @@
     TH1D*  ppEBEE_old=new TH1D("ppEBEE_old","ppEBEE_old",9,0,9);
     dppEBEE_old->fillHistogram(ppEBEE_old,RooArgList(*templateNdim2d_unroll));
  	_file1->cd();	
-//	RooDataHist* dppEBEB_new= (RooDataHist*)(wtemplates->data("unrolled_template_pp_2D_EBEB_mb_230_12999"));
-//	RooDataHist* dppEBEE_new= (RooDataHist*)(wtemplates->data("unrolled_template_pp_2D_EBEE_mb_320_12999"));
-	RooDataHist* dppEBEB_new= (RooDataHist*)(wtemplates->data("unrolled_template_mix_ff_2D_EBEB_mb_230_12999"));
-	RooDataHist* dppEBEE_new= (RooDataHist*)(wtemplates->data("unrolled_template_mix_ff_2D_EBEE_mb_320_12999"));
+	RooDataHist* dppEBEB_new= (RooDataHist*)(wtemplates->data("unrolled_template_pp_2D_EBEB_mb_230_12999"));
+	RooDataHist* dppEBEE_new= (RooDataHist*)(wtemplates->data("unrolled_template_pp_2D_EBEE_mb_320_12999"));
+//	RooDataHist* dppEBEB_new= (RooDataHist*)(wtemplates->data("unrolled_template_mix_pf_2D_EBEB_mb_230_12999"));
+//	RooDataHist* dppEBEE_new= (RooDataHist*)(wtemplates->data("unrolled_template_mix_pf_2D_EBEE_mb_320_12999"));
     TH1D*  ppEBEB_new=new TH1D("ppEBEB_new","ppEBEB_new",9,0,9);
     dppEBEB_new->fillHistogram(ppEBEB_new,RooArgList(*templateNdim2d_unroll));	
     TH1D*  ppEBEE_new=new TH1D("ppEBEE_new","ppEBEE_new",9,0,9);
@@ -30,7 +30,7 @@
     gStyle->SetOptStat(0);
 
 
-    TCanvas * canvEBEB = new TCanvas("ffEBEB","ffEBEB");
+    TCanvas * canvEBEB = new TCanvas("ppEBEB","ppEBEB");
     canvEBEB->Divide(1,2);
     canvEBEB->cd(1);
     gPad->SetPad(0., 0.3, 1., 1.0);
@@ -50,12 +50,12 @@
     ppEBEB_new->Draw("p");
     ppEBEB_old->Draw("E2 same");
     ppEBEB_new->SetTitle("1d projection of charged PF isolation in EBEB");
-//    leg->AddEntry(ppEBEB_new,"#gamma #gamma CMSSW 7_6 rereco","lp")  ;
-//    leg->AddEntry(ppEBEB_old,"#gamma #gamma CMSSW 7_4 prompt","f") ;
-   // leg->AddEntry(ppEBEB_new,"#gamma f CMSSW 7_6 rereco","lp")  ;
-   // leg->AddEntry(ppEBEB_old,"#gamma f CMSSW 7_4 prompt","f") ;
-    leg->AddEntry(ppEBEB_new,"f f CMSSW 7_6 rereco","lp")  ;
-    leg->AddEntry(ppEBEB_old,"f f CMSSW 7_4 prompt","f") ;
+    leg->AddEntry(ppEBEB_new,"#gamma #gamma CMSSW 7_6 rereco","lp")  ;
+    leg->AddEntry(ppEBEB_old,"#gamma #gamma CMSSW 7_4 prompt","f") ;
+//    leg->AddEntry(ppEBEB_new,"#gamma f CMSSW 7_6 rereco","lp")  ;
+ //   leg->AddEntry(ppEBEB_old,"#gamma f CMSSW 7_4 prompt","f") ;
+   // leg->AddEntry(ppEBEB_new,"f f CMSSW 7_6 rereco","lp")  ;
+  //  leg->AddEntry(ppEBEB_old,"f f CMSSW 7_4 prompt","f") ;
     leg->Draw();
     canvEBEB->cd(2);
     TH1D* denominator=(TH1D*)ppEBEB_old->Clone("denominator");
@@ -82,9 +82,9 @@
     gPad->SetBottomMargin(1.8*margin2);
     gPad->SetTopMargin(0.25*margin2);
                 
-	canvEBEB->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/bkg_decomposition_moriond16v1_sync_v2_data/%s.png", canvEBEB->GetName()));
+	canvEBEB->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/bkg_decomposition_moriond16v1_sync_v4_data/%s.png", canvEBEB->GetName()));
 	//////////////////////////////////////
-	TCanvas * canvEBEE = new TCanvas("ffEBEE","ffEBEE");
+	TCanvas * canvEBEE = new TCanvas("ppEBEE","ppEBEE");
     canvEBEE->Divide(1,2);
     canvEBEE->cd(1);
     gPad->SetPad(0., 0.3, 1., 1.0);
@@ -128,7 +128,7 @@
     double margin4 = gPad->GetBottomMargin()+gPad->GetTopMargin();
     gPad->SetBottomMargin(1.8*margin4);
     gPad->SetTopMargin(0.25*margin4);
-	canvEBEE->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/bkg_decomposition_moriond16v1_sync_v2_data/%s.png", canvEBEE->GetName()));
+	canvEBEE->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/bkg_decomposition_moriond16v1_sync_v4_data/%s.png", canvEBEE->GetName()));
 }
 
 	    

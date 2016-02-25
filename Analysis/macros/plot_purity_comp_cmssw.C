@@ -1,9 +1,9 @@
 {
 	using namespace RooFit;
-//	TFile *_file0 = TFile::Open("purity_sigregion_7415v2_v5_data_ecorr_pas.root");
-//	TFile *_file1 = TFile::Open("purity_sigregion_moriond16v1_sync_v2_data.root");
-	TFile *_file0 = TFile::Open("purity_7415v2_v5_data_ecorr_pas.root");
-	TFile *_file1 = TFile::Open("purity_moriond16v1_sync_v2_data.root");
+	TFile *_file0 = TFile::Open("purity_sigregion_7415v2_v5_data_ecorr_pas.root");
+	TFile *_file1 = TFile::Open("purity_sigregion_moriond16v1_sync_v4_data.root");
+//	TFile *_file0 = TFile::Open("purity_7415v2_v5_data_ecorr_pas.root");
+//	TFile *_file1 = TFile::Open("purity_moriond16v1_sync_v4_data.root");
 
 
  _file0->cd();	
@@ -29,8 +29,8 @@
     leg->AddEntry(ppEBEB_old,"#gamma #gamma data CMSSW 7_4 prompt ","f") ;
 	leg->Draw();
 
-		canvEBEB->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/bkg_decomposition_moriond16v1_sync_v2_data/%s.png", canvEBEB->GetName()));
-	//canvEBEB->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/bkg_decomposition_moriond16v1_sync_v2_data/%ssigregion.png", canvEBEB->GetName()));
+//		canvEBEB->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/bkg_decomposition_moriond16v1_sync_v4_data/%s.png", canvEBEB->GetName()));
+	canvEBEB->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/bkg_decomposition_moriond16v1_sync_v4_data/%ssigregion.png", canvEBEB->GetName()));
 	
 	
 	TCanvas * canvEBEE = new TCanvas("purity_ppEBEE","purity_ppEBEE");
@@ -50,8 +50,8 @@
 
 
 
-	canvEBEE->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/bkg_decomposition_moriond16v1_sync_v2_data/%s.png", canvEBEE->GetName()));
-//	canvEBEE->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/bkg_decomposition_moriond16v1_sync_v2_data/%ssigregion.png", canvEBEE->GetName()));
+//	canvEBEE->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/bkg_decomposition_moriond16v1_sync_v4_data/%s.png", canvEBEE->GetName()));
+	canvEBEE->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/bkg_decomposition_moriond16v1_sync_v4_data/%ssigregion.png", canvEBEE->GetName()));
 }
 
 	    
