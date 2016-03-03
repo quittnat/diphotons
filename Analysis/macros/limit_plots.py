@@ -53,6 +53,8 @@ class LimitPlot(PlotApp):
                             default=False),
                 make_option("--do-pvalues",action="store_true", dest="do_pvalues", 
                             default=False),
+                make_option("--compute-upcrossings",action="store_true", dest="compute_upcrossings", 
+                            default=False),
                 make_option("--do-comparison",action="store_true", dest="do_comparison", 
                             default=False),
                 make_option("--compare-expected",action="store_true", dest="compare_expected", 
@@ -82,6 +84,8 @@ class LimitPlot(PlotApp):
                 make_option("-x","--x-sections",action="callback", dest="x_sections", type="string", callback=optpars_utils.Load(),
                             default={}),                
                 make_option("--fixed-x-section",action="store", dest="fixed_x_section", type="float", 
+                            default=None), 
+                make_option("--nToys",action="store", dest="nToys",type="int", 
                             default=None), 
                 make_option("--fixed-x-section-ratio",action="store", dest="fixed_x_section_ratio", type="string", 
                             default=None), 
@@ -150,7 +154,10 @@ class LimitPlot(PlotApp):
                 print coup, tfile
                 self.plotLimit(options,coup,tfile)
             if options.do_pvalues:
-                self.plotPval(options,coup,tfile)
+                observed = ROOT.theBand( tfile, 1, 0, ROOT.Observed, 0.95 )
+                self.plotPval(options,coup,tfile,observed)
+            if options.compute_upcrossings:
+                self.computeUpcrossings(options,coup,tfile)
                 
         self.autosave()
 
@@ -293,19 +300,30 @@ class LimitPlot(PlotApp):
 
         map( lambda x: x.Draw("same"), lines+labels )
         self.keep(lines+labels)
-        
-    def plotPval(self,options,coup,tfile):
-        observed = ROOT.theBand( tfile, 1, 0, ROOT.Observed, 0.95 )
+
+    def computeUpcrossings(self,options, coup,tfile):
+        tree = tfile.Get("limit")
+        print "#toys", options.nToys, "#masspoints" ,tree.GetEntries()/options.nToys
+        for itoy in range(1,options.nToys+1):
+            observed = ROOT.theBand( tfile, 1, 0, ROOT.ToyObserved, 0.95,itoy )
+            self.plotPval(options,coup,tfile,observed,itoy)
+
+
+        #maybe extra plotting not necessary when I know how ROOT.Observed works
+
+    def plotPval(self,options,coup,tfile,observed,itoy=0):
+   #     observed = ROOT.theBand( tfile, 1, 0, ROOT.Observed, 0.95 )
         basicStyle = [["SetMarkerSize",0.6],["SetLineWidth",3],
                        ["SetTitle",";m_{G} (GeV);p_{0}"]]
         commonStyle = ["Sort"]+basicStyle
         observedStyle = commonStyle+[["SetMarkerStyle",ROOT.kFullCircle],["colors",ROOT.kBlue]]
-        
-        style_utils.apply(observed,[["SetName","observed_%s"%coup]]+observedStyle)
+        if(itoy==0):style_utils.apply(observed,[["SetName","observed_%s"%coup]]+observedStyle)
+        else:       style_utils.apply(observed,[["SetName","observed_%s_%s"%(coup,itoy)]]+observedStyle)
       
         
         xmin,xmax = options.x_range
-        canv  = ROOT.TCanvas("pvalues_k%s"%coup,"pvalues_k%s"%coup)
+        if(itoy==0):canv  = ROOT.TCanvas("pvalues_k%s"%coup,"pvalues_k%s"%coup)
+        else:       canv  = ROOT.TCanvas("pvalues_k%s_toy%s"%(coup,itoy),"pvalues_k%s_toy%s"%(coup,itoy))
         canv.SetLogy()
         canv.SetLogx()
         ## legend = ROOT.TLegend(0.5,0.6,0.8,0.75)
