@@ -1,11 +1,13 @@
 #!/bin/bash
 
 # set -x
-
+pwd
 folder=$1 && shift
+echo "folder"
+echo $folder
+echo "coupl"
 coupl=$1 && shift
-
-# echo $coupl
+echo $coupl
 
 cd $folder
 
@@ -41,7 +43,7 @@ shift
 
 libs="-L libdiphotonsUtils"
 rootversion=$(root-config --version| tr '.' ' ')
-[[ $rootversion -gt 5 ]] && libs="-L libdiphotonsRooUtils"
+##[[ $rootversion -gt 5 ]] && libs="-L libdiphotonsRooUtils"
 
 for coup in $(echo $coupl | tr ',' ' '); do
     cards=datacard*_grav_${coup}_*.txt
