@@ -303,7 +303,7 @@ class LimitPlot(PlotApp):
 
     def computeUpcrossings(self,options, coup,tfile):
         tree = tfile.Get("limit")
-        print "#toys", options.nToys, "#masspoints" ,tree.GetEntries()/options.nToys
+        print " #toys ", options.nToys, " #masspoints " ,tree.GetEntries()/options.nToys
         for itoy in range(1,options.nToys+1):
             observed = ROOT.theBand( tfile, 1, 0, ROOT.ToyObserved, 0.95,itoy )
             self.plotPval(options,coup,tfile,observed,itoy)
