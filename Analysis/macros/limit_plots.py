@@ -4,6 +4,7 @@ from diphotons.Utils.pyrapp import *
 from optparse import OptionParser, make_option
 from copy import deepcopy as copy
 import os, sys, glob, json
+from templates_maker import TemplatesApp
 
 from auto_plotter import getObjects
 
@@ -123,10 +124,8 @@ class LimitPlot(PlotApp):
 
         print options.couplings
         if options.compute_lee:
-            if len(options.couplings) > 0 and options.nJobs == 0:
-                flist = [glob.glob("%s/higgsCombine%s_k%s.%s.%s.root" % (options.input_dir, options.label,coup, options.method,options.nJobs) ) for coup in options.couplings ]
-            elif len(options.couplings) > 0 and options.nJobs > 0:
-                flist = [ "%s/higgsCombine%s_k%s.%s.%s.root" % (options.input_dir, options.label, coup, options.method,options.nJobs) for coup in options.couplings ]
+            for job in range(0,options.nJobs):
+                flist = [ "%s/higgsCombine%s_k%s.%s.%d.root" % (options.input_dir, options.label,coup, options.method,job)  for coup in options.couplings ]
         else:
             if len(options.couplings) == 0:
                 flist = glob.glob("%s/higgsCombine%s_k*.%s.root" % (options.input_dir, options.label, options.method) )
@@ -137,6 +136,8 @@ class LimitPlot(PlotApp):
         tflist = {}
         for fname in flist:
             bname = os.path.basename(fname)
+            job = bname.split(".",1)
+            print "job",job
             coup = bname.split("_",1)
             print coup
             coup = coup[1].split(".")
@@ -164,18 +165,17 @@ class LimitPlot(PlotApp):
             if options.do_pvalues:
                 observed = ROOT.theBand( tfile, 1, 0, ROOT.Observed, 0.95 )
                 self.plotPval(options,coup,tfile,observed)
+        for job,tfile in tflist.iteritems():
             if options.compute_lee:
                 if ((tree.GetEntries())/(3*(options.nToys) )!=428):
                     print "tree has not expected number of entries (428) ", (tree.GetEntries()/(3*(options.nToys) ))
-                else: self.getPvalToys(options,coup,tfile)
-                print "tfile" ,tfile
+                    continue
+                else: self.getPvalToys(options,coup,job,tfile)
                 
         self.autosave()
         if options.compute_lee:
-            if len(options.couplings) > 0 and options.nJobs ==0:
-                graphs = self.open("%s/graphs_%s.%s.root" % (options.input_dir,"_".join(options.couplings),options.method, options.nJobs),"recreate")
-            else:
-                graphs = self.open("%s/graphs_%s_%s.%s.root" % (options.input_dir,"_".join(options.couplings),options.method, options.nJobs),"recreate")
+            for job in range(0,options.nJobs):
+                graphs = self.open("%s/graphs_%s_%s.%d.root" % (options.input_dir,"_".join(options.couplings),options.method, job),"recreate")
         else:
             if len(options.couplings) == 0:
                 graphs = self.open("%s/graphs_%s.root" % (options.input_dir,options.method),"recreate")
@@ -318,10 +318,11 @@ class LimitPlot(PlotApp):
         map( lambda x: x.Draw("same"), lines+labels )
         self.keep(lines+labels)
 
-    def getPvalToys(self,options, coup,tfile):
+    def getPvalToys(self,options, coup,job,tfile):
         tree = tfile.Get("limit")
-        print "jobs ", options.nJobs , " #toys ", options.nToys, "couplings", coup, " #masspoints " ,tree.GetEntries()/options.nToys
+        print "jobs ", job , " #toys ", options.nToys, "couplings", coup, " #masspoints " ,tree.GetEntries()/options.nToys
         tp = ROOT.TNtuple("tree_pval_k%s_t%s_j%s" % (coup,options.nToys, options.nJobs),"tree_pval_k%s_t%s_j%s" % (coup,options.nToys, options.nJobs),"toy:pval" )
+        self.store_[tp] =tp
         for itoy in range(1,options.nToys+1):
             observed = ROOT.theBand( tfile, 1, 0, ROOT.ToyObserved, 0.95,itoy )
             maxpval=ROOT.TMath.MinElement(observed.GetN(),observed.GetY())
@@ -331,21 +332,25 @@ class LimitPlot(PlotApp):
         tp.SaveAs("%s/tree_pval_k%s_t%s_j%s.root" % (options.input_dir,coup,options.nToys, options.nJobs))
 
     def computeLEE(self,options, coup,tfile):
-        print "TODO"
-        nJobs=100
+        nJobs=options.nJobs
         canv = ROOT.TCanvas("cqtoy","cqtoy")
         histo=ROOT.TH1D("qtoy","qtoy",100,0.5, 1e-7)
-        for ijob in range(0,nJobs):
-            tree=self.TreeData("%s/tree_pval_k%s_t%s_j%i.root" % (options.input_dir,coup,options.nToys, ijob))
+        for job in range(0,nJobs):
+            fname= "%s/tree_pval_k%s_t%s_j%s.root" % (options.input_dir,coup,options.nToys, job)
+            tfin = self.open(fname)
+            if not tfin: 
+                print ("unable to open %s" % fname)
+                continue
+            tree = tfin.Get("%s/tree_pval_k%s_t%s_j%i.root" % (options.input_dir,coup,options.nToys, job))
             for toy in range(0,tree.GetEntries()):
                 tree.GetEntry(toy)
                 histo.Fill(tree.pval)
 
 
-        canv.cd()
+        canv .cd()
         canv.SetLogx()
         histo.Draw("HIST")
-        self.keep( [canv,hist] )
+        self.keep( [canv,histo] )
 
 
 
