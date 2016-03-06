@@ -87,6 +87,8 @@ class LimitPlot(PlotApp):
                             default=None), 
                 make_option("--nToys",action="store", dest="nToys",type="int", 
                             default=None), 
+                make_option("--nJobs",action="store", dest="nJobs",type="int", 
+                            default=0), 
                 make_option("--fixed-x-section-ratio",action="store", dest="fixed_x_section_ratio", type="string", 
                             default=None), 
                 make_option("--use-fb",dest="use_fb", action="store_true", 
@@ -120,10 +122,18 @@ class LimitPlot(PlotApp):
             return
 
         print options.couplings
-        if len(options.couplings) == 0:
-            flist = glob.glob("%s/higgsCombine%s_k*.%s.root" % (options.input_dir, options.label, options.method) )
+        if options.compute_upcrossings:
+            if len(options.couplings) == 0 and options.nJobs > 0:
+                flist = glob.glob("%s/higgsCombine%s_k*.%s.%s.root" % (options.input_dir, options.label, options.method,options.nJobs) )
+            elif len(options.couplings) > 0 and options.nJobs > 0:
+                flist = [ "%s/higgsCombine%s_k%s.%s.%s.root" % (options.input_dir, options.label, coup, options.method,options.nJobs) for coup in options.couplings ]
+            elif len(options.couplings) ==0 and options.nJobs == 0:
+                flist =glob.glob("%s/higgsCombine%s_k*.%s.*.root" % (options.input_dir, options.label,  options.method) )
         else:
-            flist = [ "%s/higgsCombine%s_k%s.%s.root" % (options.input_dir, options.label, coup, options.method) for coup in options.couplings ]
+            if len(options.couplings) == 0:
+                flist = glob.glob("%s/higgsCombine%s_k*.%s.root" % (options.input_dir, options.label, options.method) )
+            else:
+                flist = [ "%s/higgsCombine%s_k%s.%s.root" % (options.input_dir, options.label, coup, options.method) for coup in options.couplings ]
         print options.input_dir, flist
             
         tflist = {}
@@ -303,16 +313,21 @@ class LimitPlot(PlotApp):
 
     def computeUpcrossings(self,options, coup,tfile):
         tree = tfile.Get("limit")
-        print " #toys ", options.nToys, " #masspoints " ,tree.GetEntries()/options.nToys
+        print "jobs ", options.nJobs , " #toys ", options.nToys, "couplings", coup, " #masspoints " ,tree.GetEntries()/options.nToys
+        if options.nJobs !=0:
+            tp = ROOT.TNtuple("tree_pval_k%s_t%s_j%s" % (coup,options.nToys, options.nJobs),"tree_pval_k%s_t%s_j%s" % (coup,options.nToys, options.nJobs),"toy:pval" )
+        else:
+            print "TODO"
         for itoy in range(1,options.nToys+1):
             observed = ROOT.theBand( tfile, 1, 0, ROOT.ToyObserved, 0.95,itoy )
+            maxpval=ROOT.TMath.MinElement(observed.GetN(),observed.GetY())
+            tp.Fill(itoy,maxpval)
+           # print "itoy ", itoy , "max ", maxpval
             self.plotPval(options,coup,tfile,observed,itoy)
+        tp.SaveAs("%s/tree_pval_k%s_t%s_j%s.root" % (options.input_dir,coup,options.nToys, options.nJobs))
 
-
-        #maybe extra plotting not necessary when I know how ROOT.Observed works
 
     def plotPval(self,options,coup,tfile,observed,itoy=0):
-   #     observed = ROOT.theBand( tfile, 1, 0, ROOT.Observed, 0.95 )
         basicStyle = [["SetMarkerSize",0.6],["SetLineWidth",3],
                        ["SetTitle",";m_{G} (GeV);p_{0}"]]
         commonStyle = ["Sort"]+basicStyle
@@ -361,7 +376,6 @@ class LimitPlot(PlotApp):
         legend.Draw()
         
         self.graphs.extend([observed])
-        
         self.keep( [canv,observed] )
         self.format(canv,options.postproc)
 
