@@ -55,6 +55,8 @@ class LimitPlot(PlotApp):
                             default=False),
                 make_option("--compute-LEE",action="store_true", dest="compute_lee", 
                             default=False),
+                make_option("--trial-factor",action="store_true", dest="trial_factor", 
+                            default=False),
                 make_option("--plot-LEE",action="store_true", dest="plot_lee", 
                             default=False),
                 make_option("--output-dir",action="store", dest="output_dir", 
@@ -127,7 +129,7 @@ class LimitPlot(PlotApp):
             return
 
         print options.couplings
-        if options.compute_lee or options.plot_lee:
+        if options.compute_lee or options.plot_lee or options.trial_factor:
             flist = [ "%s/higgsCombine%s_k%s.%s.%d.root" % (options.input_dir, options.label, options.couplings[0],options.method,job)  for job in range(0,options.nJobs+1) ]
         else:
             if len(options.couplings) == 0:
@@ -142,9 +144,8 @@ class LimitPlot(PlotApp):
             bname = os.path.basename(fname)
             job = bname.replace(".root","").rsplit(".",1)[-1]
             dname =options.input_dir
-            if options.compute_lee or options.plot_lee:
+            if options.compute_lee or options.plot_lee or options.trial_factor:
                 spin = dname.replace("combined","").split("_",-1)[1].replace("spin","")
-                print "spin", spin
             else:
                 print "[WARNING] assume spin0 for labels"
                 spin=0
@@ -162,16 +163,18 @@ class LimitPlot(PlotApp):
             tree = tfin.Get("limit")
             if not tree: 
                 print ("unable to find limit tree in %s" % fname)
-                if options.compute_lee or options.plot_lee:
+                if options.compute_lee or options.plot_lee or options.trial_factor:
                     continue
                 else:
                     sys.exit(-1)
         
             if options.compute_lee:
-                if (coup=="all"):holynr=128600
+                if (coup=="all" and (spin=="0" or spin=="2")):holynr=(1286)*options.nToys
+                elif (coup=="all" and (spin=="all")):holynr=(1286)*2*options.nToys
+                elif ((coup=="001" or  coup=="01" or coup =="02") and (spin=="0" or spin=="2")):holynr=(428)*options.nToys
                 else: holynr=1e15
                 if tree.GetEntries() < holynr:
-                    print "job ", job, " tree has not expected number of entries (428) ", (tree.GetEntries()/(3*(options.nToys) ))
+                    print "[WARNING ] job ", job, ": tree has not expected number of entries "
                     continue
                 else: tflist_job[job] = tfin
             else:
@@ -190,18 +193,18 @@ class LimitPlot(PlotApp):
             if options.compute_lee: self.getPvalToys(options,coup,spin, job,tfile)
                
         self.autosave()
-        
-        if options.compute_lee or options.plot_lee:
-            for job in range(0,options.nJobs+1):
-                graphs = self.open("%s/graphs_%s_%s_%s.%s.root" % (options.input_dir,"_".join(options.couplings),spin,job,options.method),"recreate")
-        else:
-            if len(options.couplings) == 0:
-                graphs = self.open("%s/graphs_%s.root" % (options.input_dir,options.method),"recreate") #makes one file with everyting
+        if not options.plot_lee:
+            if options.compute_lee:
+                for job in range(0,options.nJobs+1):
+                    graphs = self.open("%s/graphs_%s_%s_%s.%s.root" % (options.input_dir,"_".join(options.couplings),spin,job,options.method),"recreate")
             else:
-                graphs = self.open("%s/graphs_%s_%s.root" % (options.input_dir,"_".join(options.couplings),spin,options.method),"recreate")
-        graphs.cd()
-        for gr in self.graphs: gr.Write()
-        graphs.Close()
+                if len(options.couplings) == 0:
+                    graphs = self.open("%s/graphs_%s.root" % (options.input_dir,options.method),"recreate") #makes one file with everyting
+                else:
+                    graphs = self.open("%s/graphs_%s_%s.root" % (options.input_dir,"_".join(options.couplings),spin,options.method),"recreate")
+            graphs.cd()
+            for gr in self.graphs: gr.Write()
+            graphs.Close()
         if (options.compute_lee or options.plot_lee) : self.computeLEE(options,coup,spin)
         
     def plotLimit(self,options,coup,tfile):
@@ -350,7 +353,7 @@ class LimitPlot(PlotApp):
 
     def computeLEE(self,options, coup,spin):
         canv = ROOT.TCanvas("cqtoy","cqtoy")
-        histo=ROOT.TH1D("qtoy","qtoy",100,0.,6.)
+        histo=ROOT.TH1D("qtoy","qtoy",100,1.,5.)
         for ijob in range(0,options.nJobs):
             fname= "%s/tree_pval_k%s_s%s_t%s_j%s.root" % (options.input_dir,coup,spin,options.nToys, ijob)
             tfin = self.open(fname)
@@ -360,14 +363,13 @@ class LimitPlot(PlotApp):
             #tree = tfin.Get("tree_pval_k%s_s%s_t%s_j100" % (coup,spin,options.nToys))
             tree = tfin.Get("tree_pval_k%s_s%s_t%s_j%s" % (coup,spin,options.nToys,ijob))
             toyStyle = [["SetFillStyle",3004],["SetLineColor",ROOT.kRed]]
-            style_utils.apply(histo,[["SetTitle",";global significance ;Entries (Toys)"],["SetName","Tot significance toys"]]+toyStyle)
-            #style_utils.apply(histo,[["SetTitle",";global significance ;Entries (Toys)"],["SetName","Tot sign toys k%s s%" %(coup,spin)]]+toyStyle)
+            style_utils.apply(histo,[["SetTitle",";Global Significance ;Entries (Toys)"],["SetName","tot significance k%s s%s" %(coup,spin)]]+toyStyle)
             for toy in range(0,tree.GetEntries()):
                 tree.GetEntry(toy)
                 significance=ROOT.ROOT.Math.normal_quantile_c(tree.pval, 1.0)
                 histo.Fill(significance)
 
-        canv .cd()
+        canv.cd()
         histo.Draw("HIST E2")
         ROOT.gStyle.SetOptStat(111111)
         if spin=="0":obs=2.856 #p=0.0021451 @ 756 GeV
@@ -380,14 +382,15 @@ class LimitPlot(PlotApp):
         integral=histo.Integral(histo.GetXaxis().FindBin(obs),histo.GetXaxis().FindBin(histo.GetMaximumBin()))/histo.Integral()
         b=ROOT.TLatex()
         b.SetNDC()
-        b.SetTextSize(0.06)
+        b.SetTextSize(0.04)
         b.SetTextColor(ROOT.kBlack)
-        b.DrawLatex(0.7,0.5,"frac: %f" % integral)
+        b.DrawLatex(0.6,0.5,"pval: %f" % integral)
+        b.DrawLatex(0.6,0.3,"global significance: %f" % ROOT.ROOT.Math.normal_quantile_c(integral,1.0))
 
         self.keep( [canv,histo] )
-        canv.SaveAs("%s/LEES_k%s_%s.root" % (options.output_dir,coup,spin))
-        canv.SaveAs("%s/LEE_k%s_%s.png" % (options.output_dir,coup,spin))
-        canv.SaveAs("%s/LEE_k%s_%s.pdf" % (options.output_dir,coup,spin))
+        canv.SaveAs("%s/LEES_k%s_s%s.root" % (options.output_dir,coup,spin))
+        canv.SaveAs("%s/LEE_k%s_s%s.png" % (options.output_dir,coup,spin))
+        canv.SaveAs("%s/LEE_k%s_s%s.pdf" % (options.output_dir,coup,spin))
 
 
 
