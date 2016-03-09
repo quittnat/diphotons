@@ -118,6 +118,7 @@ class LimitPlot(PlotApp):
 
         # ROOT.gSystem.AddIncludePath( "$ROOTSYS/include" )
         ROOT.gROOT.LoadMacro( "$CMSSW_BASE/src/HiggsAnalysis/CombinedLimit/test/plotting/bandUtils.cxx+" )
+        ROOT.gROOT.LoadMacro( "$CMSSW_BASE/src/diphotons/Utils/interface/FunctionHelpers.h  " )
         
         self.loadXsections(options.x_sections)
 
@@ -193,7 +194,7 @@ class LimitPlot(PlotApp):
             if options.compute_lee: self.getPvalToys(options,coup,spin, job,tfile)
                
         self.autosave()
-        if not options.plot_lee:
+        if not (options.plot_lee or options.trial_factor):
             if options.compute_lee:
                 for job in range(0,options.nJobs+1):
                     graphs = self.open("%s/graphs_%s_%s_%s.%s.root" % (options.input_dir,"_".join(options.couplings),spin,job,options.method),"recreate")
@@ -205,7 +206,7 @@ class LimitPlot(PlotApp):
             graphs.cd()
             for gr in self.graphs: gr.Write()
             graphs.Close()
-        if (options.compute_lee or options.plot_lee) : self.computeLEE(options,coup,spin)
+        if (options.compute_lee or options.plot_lee or options.trial_factor) : self.plotLEE(options,coup,spin)
         
     def plotLimit(self,options,coup,tfile):
         ## TGraphAsymmErrors *theBand(TFile *file, int doSyst, int whichChannel, BandType type, double width=0.68) {
@@ -351,9 +352,13 @@ class LimitPlot(PlotApp):
             self.plotPval(options,coup,spin,tfile,observed,itoy,ijob)
         tp.SaveAs("%s/tree_pval_k%s_s%s_t%s_j%s.root" % (options.input_dir,coup,spin,options.nToys, ijob))
 
-    def computeLEE(self,options, coup,spin):
+    def plotLEE(self,options, coup,spin):
         canv = ROOT.TCanvas("cqtoy","cqtoy")
-        histo=ROOT.TH1D("qtoy","qtoy",100,1.,5.)
+        histo=ROOT.TH1D("qtoy","qtoy",300,1.,5.)
+       # histo_pval=ROOT.TH1D("qtoy_pval","qtoy_pval",200,1e-4,0.5)
+        pmin=1e-6
+        pmax=0.08
+        histo_pval=ROOT.TH1D("qtoy_pval","qtoy_pval",200,pmin,pmax)
         for ijob in range(0,options.nJobs):
             fname= "%s/tree_pval_k%s_s%s_t%s_j%s.root" % (options.input_dir,coup,spin,options.nToys, ijob)
             tfin = self.open(fname)
@@ -368,33 +373,89 @@ class LimitPlot(PlotApp):
                 tree.GetEntry(toy)
                 significance=ROOT.ROOT.Math.normal_quantile_c(tree.pval, 1.0)
                 histo.Fill(significance)
-
+                if options.trial_factor:
+                    histo_pval.Fill(tree.pval)
+        self.keep(histo_pval)
+        if spin=="0":
+            obsZ=2.856 
+            obsP=0.0021451# @ 756 GeV
+        elif (spin=="2" or spin== "all"):
+            obsZ=2.93149
+            obsP=0.00168668# @ 758 GeV
+        else: print "no oberved "
+        print "significance 2.9: pval: ", histo.Integral(histo.GetXaxis().FindBin(2.9),histo.GetXaxis().FindBin(histo.GetMaximumBin()))/histo.Integral()
+        integral=histo.Integral(histo.GetXaxis().FindBin(obsZ),histo.GetXaxis().FindBin(histo.GetMaximumBin()))/histo.Integral()
+        if options.trial_factor:
+            cdf=self.cdf(histo_pval,histo.GetNbinsX(),pmin,pmax) 
+            self.keep(cdf)
+        
         canv.cd()
+        histo.Rebin(5)
         histo.Draw("HIST E2")
         ROOT.gStyle.SetOptStat(111111)
-        if spin=="0":obs=2.856 #p=0.0021451 @ 756 GeV
-        elif (spin=="2" or spin== "all"):obs=2.93149#p=0.00168668 @ 758 GeV
-        else: print "no oberved "
-        lineObs=ROOT.TLine(obs,0.,obs,histo.GetMaximum())
+        ROOT.gStyle.SetOptFit(111111)
+        lineObs=ROOT.TLine(obsZ,0.,obsZ,histo.GetMaximum())
         lineObs.SetLineColor(ROOT.kBlack)
         lineObs.SetLineWidth(3)
         lineObs.Draw()
-        integral=histo.Integral(histo.GetXaxis().FindBin(obs),histo.GetXaxis().FindBin(histo.GetMaximumBin()))/histo.Integral()
         b=ROOT.TLatex()
         b.SetNDC()
         b.SetTextSize(0.04)
         b.SetTextColor(ROOT.kBlack)
-        b.DrawLatex(0.6,0.5,"pval: %f" % integral)
-        b.DrawLatex(0.6,0.3,"global significance: %f" % ROOT.ROOT.Math.normal_quantile_c(integral,1.0))
+        b.DrawLatex(0.6,0.5,"global pval: %f" % integral)
+        b.DrawLatex(0.6,0.4,"global Z: %f" % ROOT.ROOT.Math.normal_quantile_c(integral,1.0))
+        b.DrawLatex(0.6,0.3,"rough trial factor: %f" %( integral/obsP))
 
-        self.keep( [canv,histo] )
-        canv.SaveAs("%s/LEES_k%s_s%s.root" % (options.output_dir,coup,spin))
+        canv.SaveAs("%s/LEE_k%s_s%s.root" % (options.output_dir,coup,spin))
         canv.SaveAs("%s/LEE_k%s_s%s.png" % (options.output_dir,coup,spin))
         canv.SaveAs("%s/LEE_k%s_s%s.pdf" % (options.output_dir,coup,spin))
+        self.keep( [canv,histo] )
+
+        if options.trial_factor:
+            ccdf = ROOT.TCanvas("ccdf","ccdf")
+            ccdf.cd()
+            
+            pminfit=1e-5
+            pmaxfit=0.006
+            vsfit =ROOT.TF1("vsfit","[0]*x+[1]",pmin,pmax)
+            vsfit.SetParameters(60, 0)
+            cdf.Fit(vsfit,"R","",pminfit,pmaxfit)
+            ROOT.gStyle.SetOptStat(0)
+            cdf.GetXaxis().SetRangeUser(pminfit,pmaxfit)
+            cdf.Draw("HIST")
+            c=ROOT.TLatex()
+            c.SetNDC()
+            c.SetTextSize(0.04)
+            c.SetTextColor(ROOT.kBlack)
+            c.DrawLatex(0.3,0.3,"fit range pmin:%f ( z= %f)" % (pminfit,ROOT.ROOT.Math.normal_quantile_c(pminfit,1.0)))
+            c.DrawLatex(0.3,0.2,"pmax:%f ( z= %f)" % (pmaxfit,ROOT.ROOT.Math.normal_quantile_c(pmaxfit,1.0)))
+
+            vsfit.Draw("SAME")
+       #     self.keep( [ccdf,cdf] )
+            ccdf.SaveAs("%s/cdf_pval_k%s_s%s.root" % (options.output_dir,coup,spin))
+            ccdf.SaveAs("%s/cdf_pval_k%s_s%s.png" % (options.output_dir,coup,spin))
+            ccdf.SaveAs("%s/cdf_pval_k%s_s%s.pdf" % (options.output_dir,coup,spin))
+            cpval = ROOT.TCanvas("cpval","cpval")
+            cpval.cd()
+            cpval.SetLogx()
+            ROOT.gStyle.SetOptStat(11111111)
+            histo_pval.Draw("HIST")
+            cpval.SaveAs("%s/cpval_k%s_s%s.root" % (options.output_dir,coup,spin))
+            cpval.SaveAs("%s/cpval_k%s_s%s.png" % (options.output_dir,coup,spin))
+            cpval.SaveAs("%s/cpval_k%s_s%s.pdf" % (options.output_dir,coup,spin))
 
 
-
-
+    def cdf(self,histo,bins,min,max):
+        cdf=ROOT.TH1D("cdf","cdf",bins,min,max)
+        total = 0
+        for i in range(0,bins):
+            total =int(total + histo.GetBinContent(i))
+            for k in range(0,total):
+                cdf.AddBinContent(i)
+        norme = 1/histo.Integral()
+        print norme
+        cdf.Scale(norme)
+        return cdf
 
     def plotPval(self,options,coup,spin,tfile,observed,itoy=0,ijob=0):
         basicStyle = [["SetMarkerSize",0.6],["SetLineWidth",3],
