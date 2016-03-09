@@ -4,16 +4,16 @@ set -x
 ##fudge=4.5
 fudge=1.4
 
-version=v11
-##output=full_analysis_spring15_7415v2_sync_v11_0_730
+version=v6
+##output=full_analysis_moriond16v1_sync_v4_0_730
 ##cut='(mass < 730.)'
-##output=full_analysis_spring15_7415v2_sync_v11_500_730
+##output=full_analysis_moriond16v1_sync_v4_500_730
 ##cut='(mass > 500 && mass < 730.)'
-output=full_analysis_spring15_7415v2_sync_v11_730_790
+output=full_analysis_moriond16v1_sync_v4_730_790
 cut='(mass > 730 && mass < 790)'
 ptmax1=2000.
 ptmax2=2000.
-##output=full_analysis_spring15_7415v2_sync_v11_790_Inf
+##output=full_analysis_moriond16v1_sync_v4_790_Inf
 ##cut='(mass > 790.)'
 mkdir $output
 
@@ -23,7 +23,7 @@ mkdir $output
 ./auto_plotter.py --selection cic,cicGenIso,cicNonGenIso \
     --process GGJets\*EB\* \
     --process GJets\*EB\* \
-    --file  /afs/cern.ch/user/m/musella/public/workspace/exo/full_analysis_spring15_7415v2_sync_v11/output.root --move cicGenIso:cic,cicNonGenIso:cic \
+    --file  /afs/cern.ch/user/m/musella/public/workspace/exo/full_analysis_moriond16v1_sync_v4/output.root --move cicGenIso:cic,cicNonGenIso:cic \
 	--prescale GGJets\*EB\*:10 \
 	--cut "$cut" \
     --histograms "mht30Mass>>mht30Mass(300,0.,3000.)" \
@@ -42,7 +42,7 @@ mkdir $output
 
   ##data merge in Data
 ./auto_plotter.py --selection cic \
-   --file  /afs/cern.ch/user/m/musella/public/workspace/exo/full_analysis_spring15_7415v2_sync_v11_data/output.root \
+   --file  /afs/cern.ch/user/m/musella/public/workspace/exo/full_analysis_moriond16v1_sync_v4_data/output.root \
    --process Data\*EB\* \
 	--cut "$cut"\
    --histograms "mht30Mass>>mht30Mass(300,0.,3000.)" \
@@ -59,3 +59,4 @@ mkdir $output
 
 hadd -f $output/output.root $output/output_data_EBEB.root $output/output_mc_EBEB.root  
 ./basic_plots.py --load basic_plots.json -O /afs/cern.ch/user/m/mquittna/www/diphoton/$output/ --input-dir $output  --fudge $fudge --lumi 2.44 
+	canvEBEE->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/bkg_decomposition_moriond16v1_sync_v4_data/%s.png", canvEBEE->GetName()));
