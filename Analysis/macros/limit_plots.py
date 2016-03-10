@@ -54,11 +54,11 @@ class LimitPlot(PlotApp):
                 make_option("--do-pvalues",action="store_true", dest="do_pvalues", 
                             default=False),
                 make_option("--compute-LEE",action="store_true", dest="compute_lee", 
-                            default=False),
+                            default=False,help="for the computation of lee, creates trees etc from scratch"),
                 make_option("--trial-factor",action="store_true", dest="trial_factor", 
-                            default=False),
+                            default=False,help="fits trial factor on distribution of maximum pvalues"),
                 make_option("--plot-LEE",action="store_true", dest="plot_lee", 
-                            default=False),
+                            default=False,help="plots the maximum signficance if trees already exist"),
                 make_option("--output-dir",action="store", dest="output_dir", 
                             default="./"),
                 make_option("--do-comparison",action="store_true", dest="do_comparison", 
@@ -118,7 +118,6 @@ class LimitPlot(PlotApp):
 
         # ROOT.gSystem.AddIncludePath( "$ROOTSYS/include" )
         ROOT.gROOT.LoadMacro( "$CMSSW_BASE/src/HiggsAnalysis/CombinedLimit/test/plotting/bandUtils.cxx+" )
-        ROOT.gROOT.LoadMacro( "$CMSSW_BASE/src/diphotons/Utils/interface/FunctionHelpers.h  " )
         
         self.loadXsections(options.x_sections)
 
@@ -393,18 +392,17 @@ class LimitPlot(PlotApp):
         histo.Rebin(5)
         histo.Draw("HIST E2")
         ROOT.gStyle.SetOptStat(111111)
-        ROOT.gStyle.SetOptFit(111111)
         lineObs=ROOT.TLine(obsZ,0.,obsZ,histo.GetMaximum())
         lineObs.SetLineColor(ROOT.kBlack)
         lineObs.SetLineWidth(3)
         lineObs.Draw()
         b=ROOT.TLatex()
         b.SetNDC()
-        b.SetTextSize(0.04)
+        b.SetTextSize(0.035)
         b.SetTextColor(ROOT.kBlack)
-        b.DrawLatex(0.6,0.5,"global pval: %f" % integral)
-        b.DrawLatex(0.6,0.4,"global Z: %f" % ROOT.ROOT.Math.normal_quantile_c(integral,1.0))
-        b.DrawLatex(0.6,0.3,"rough trial factor: %f" %( integral/obsP))
+        b.DrawLatex(0.65,0.5,"global pval: %.2e" % integral)
+        b.DrawLatex(0.65,0.4,"global Z: %4.2f" % ROOT.ROOT.Math.normal_quantile_c(integral,1.0))
+        b.DrawLatex(0.65,0.3,"rough trial factor: %d " %( integral/obsP))
 
         canv.SaveAs("%s/LEE_k%s_s%s.root" % (options.output_dir,coup,spin))
         canv.SaveAs("%s/LEE_k%s_s%s.png" % (options.output_dir,coup,spin))
@@ -414,21 +412,23 @@ class LimitPlot(PlotApp):
         if options.trial_factor:
             ccdf = ROOT.TCanvas("ccdf","ccdf")
             ccdf.cd()
-            
+            ROOT.gStyle.SetOptStat(0)
             pminfit=1e-5
             pmaxfit=0.006
             vsfit =ROOT.TF1("vsfit","[0]*x+[1]",pmin,pmax)
             vsfit.SetParameters(60, 0)
             cdf.Fit(vsfit,"R","",pminfit,pmaxfit)
-            ROOT.gStyle.SetOptStat(0)
             cdf.GetXaxis().SetRangeUser(pminfit,pmaxfit)
+            cdf.GetXaxis().SetTitle("Global p-value")
+            cdf.GetYaxis().SetTitle("CDF")
             cdf.Draw("HIST")
             c=ROOT.TLatex()
             c.SetNDC()
             c.SetTextSize(0.04)
             c.SetTextColor(ROOT.kBlack)
-            c.DrawLatex(0.3,0.3,"fit range pmin:%f ( z= %f)" % (pminfit,ROOT.ROOT.Math.normal_quantile_c(pminfit,1.0)))
-            c.DrawLatex(0.3,0.2,"pmax:%f ( z= %f)" % (pmaxfit,ROOT.ROOT.Math.normal_quantile_c(pmaxfit,1.0)))
+            c.DrawLatex(0.45,0.4,"fit range pmin: %.2e ( z= %4.2f )" % (pminfit,ROOT.ROOT.Math.normal_quantile_c(pminfit,1.0)))
+            c.DrawLatex(0.55,0.3,"pmax: %.2e ( z= %4.2f )" % (pmaxfit,ROOT.ROOT.Math.normal_quantile_c(pmaxfit,1.0)))
+            c.DrawLatex(0.55,0.2,"trial factor: %d" % (vsfit.GetParameter(0)))
 
             vsfit.Draw("SAME")
        #     self.keep( [ccdf,cdf] )
@@ -440,6 +440,8 @@ class LimitPlot(PlotApp):
             cpval.SetLogx()
             ROOT.gStyle.SetOptStat(11111111)
             histo_pval.Draw("HIST")
+            histo_pval.GetXaxis().SetTitle("Global p-value")
+            histo_pval.GetYaxis().SetTitle("Entries (Toys)")
             cpval.SaveAs("%s/cpval_k%s_s%s.root" % (options.output_dir,coup,spin))
             cpval.SaveAs("%s/cpval_k%s_s%s.png" % (options.output_dir,coup,spin))
             cpval.SaveAs("%s/cpval_k%s_s%s.pdf" % (options.output_dir,coup,spin))
