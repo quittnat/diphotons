@@ -152,7 +152,7 @@
     "_categories": ["EBHighR9","EBLowR9","EEHighR9","EELowR9"], 
     "categories" : [],
 
-    "_groups": {
+    "groups": {
         "EB"       : ["EBHighR9","EBLowR9"],
         "EE"       : ["EEHighR9","EELowR9"],
         "EBHighR9" : ["EBHighR9"],
@@ -160,7 +160,7 @@
 	"EEHighR9" : ["EEHighR9"],
 	"EELowR9"  : ["EELowR9"]
 	}, 
-    "groups": {
+    "_groups": {
         "EB"       : ["EBHighR9","EBLowR9"]
 	}, 
     "_groups": {
@@ -259,6 +259,11 @@
 	      ["subleadPhi"		,[["Rebin",2],["ytitle","Events / %(binw)s"],["xtitle","#Phi_{#gamma 2}"],["overflow",[null]]]
 					,null,null],
 	      ["Phi"		,[["Rebin",2],["ytitle","Events / %(binw)s"],["xtitle","#Phi_{#gamma 1/2}"],["overflow",[null]]]
+					,null,null],
+	      ["cosThetaStar"			,[["xtitle","cos(#Theta*)"],["Rebin",3],
+					  ["xrange",[0.0,1.0]],["overflow",[null]],
+					  "density",["ytitle","Events / %(binw)s GeV"]
+					]
 					,null,null],
 
 	      ["diffdeltaEta"			,[["xtitle","Difference #Delta #eta between photons and jets,  p_{T} > 30 GeV"],["overflow",[null]],
@@ -390,23 +395,16 @@
     "_selections" : [
         ["cic","cic",["Pt","Eta","Phi"]]
 		    ],
-    "selections" : [
+    "_selections" : [
         ["cic","cic",["mass"]]
 		    ],
 
     "selections" : [
-        ["cic","cic",["nvtx","leadPt","subleadPt","leadEta","subleadEta","leadPhi","subleadPhi","mht30Mass","mht60Mass","nJets60","nJets30"]]
-		    ],
-    "_selections" : [
-        ["cic","cic",["leadPt","subleadPt","leadEta","subleadEta","leadPhi","subleadPhi","mht30Mass","mht60Mass","nJets60","nJets30"]]
+        ["cic","cic",["nvtx","leadPt","subleadPt","leadEta","subleadEta","leadPhi","cosThetaStar","subleadPhi","mht30Mass","mht60Mass","nJets60","nJets30"]]
 		    ],
     "_selections" : [
         ["cic","cic",["zeppenfeld","jet2Eta","jet1Pt","jet1Phi","jet1Eta","jet2Pt","jet2Phi","diffrap","mht30Mass","mht60Mass","deltaEta","dijet30CleanMass","dijet60CleanMass","mht60CleanMass","mht30CleanMass"]]
-		    ],
-    "_selections" : [
-        ["cic","cic",["diffrap"]
 		    ]
-		    ],
 
 
 

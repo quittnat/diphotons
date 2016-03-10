@@ -282,6 +282,11 @@
 					  "density",["ytitle","Events / %(binw)s GeV"]
 					]
 					,null,null],
+	      ["cosThetaStar"			,[["xtitle","cos(#Theta*)"],["Rebin",3],
+					  ["xrange",[0.0,1.0]],["overflow",[null]],
+					  "density",["ytitle","Events / %(binw)s GeV"]
+					]
+					,null,null],
 
 	      ["pt"			,[["xtitle","p_T_{#gamma #gamma} (GeV)"],["overflow",[null]],
 	      				["rebin",[[0,5,10,20,30,50,75,100,150,200]]],"density",["ytitle","Events / %(binw)s GeV"]
