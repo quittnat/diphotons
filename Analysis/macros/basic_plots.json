@@ -4,14 +4,14 @@
 
     "_sig" : null,
 
-    "_data" : [
+    "data" : [
 	      ["Data","Data",
 	      [["SetBinErrorOption",1],["colors","kBlack"],["SetLineWidth",2],["SetFillStyle",0],["Scale",1],["legopt","pe"],["SetMarkerStyle","kFullCircle"],["SetFillColor","kWhite"]],
 	      { "Data_13TeV:__infile__/%(sel)s" : [] }
 	      ]
 	      
     ],
-    "data" : [
+    "_data" : [
 	      ["Data","Data",
 	      [["SetBinErrorOption",1],["colors","kBlack"],["SetLineWidth",2],["SetFillStyle",0],["Scale",1],["legopt","pe"],["SetMarkerStyle","kFullCircle"],["SetFillColor","kWhite"]],
 	      { "DoubleEG_13TeV:__infile__/%(sel)s" : [] }
@@ -152,7 +152,7 @@
     "_categories": ["EBHighR9","EBLowR9","EEHighR9","EELowR9"], 
     "categories" : [],
 
-    "groups": {
+    "_groups": {
         "EB"       : ["EBHighR9","EBLowR9"],
         "EE"       : ["EEHighR9","EELowR9"],
         "EBHighR9" : ["EBHighR9"],
@@ -160,15 +160,16 @@
 	"EEHighR9" : ["EEHighR9"],
 	"EELowR9"  : ["EELowR9"]
 	}, 
-    "_groups": {
-        "EB"       : ["EBHighR9","EBLowR9"]
+    "groups": {
+        "EB"       : ["EBHighR9","EBLowR9"],
+        "EE"       : ["EEHighR9","EELowR9"]
 	}, 
     "_groups": {
         "EE"       : ["EEHighR9","EELowR9"]
 	}, 
 
 
-	"_plots":[
+	"plots":[
 
 
 	      ["dijet30CleanMass"			,[["Rebin",1],["xrange",[30.0,450.0]],["xtitle","m_{jj} (GeV), p_{T} > 30 GeV"],["overflow",[null]],
@@ -301,7 +302,7 @@
 	      
 
 					],
-    "plots": [
+    "_plots": [
 	      ["mass"			,[["xtitle","m_{#gamma #gamma} (GeV)"],
 					  ["xrange",[230.0,1600.0]],["rebin",[[230,253,282,295,332,409,500,600,800,1600]]],
 					  ["density",20],["ytitle","Events / (%(binw)s GeV)"]
@@ -404,9 +405,7 @@
 		    ],
     "_selections" : [
         ["cic","cic",["zeppenfeld","jet2Eta","jet1Pt","jet1Phi","jet1Eta","jet2Pt","jet2Phi","diffrap","mht30Mass","mht60Mass","deltaEta","dijet30CleanMass","dijet60CleanMass","mht60CleanMass","mht30CleanMass"]]
-		    ]
-
-
+		    ],
 
     "_selections" : [
         ["cic",""],
