@@ -110,4 +110,4 @@ mkdir $output
 
 
 hadd -f $output/output.root $output/output_data30_1_EBEB.root $output/output_mc30_1_EBEB.root  $output/output_data30_EBEB.root $output/output_mc30_EBEB.root  $output/output_data60_EBEB.root $output/output_mc60_EBEB.root 
-./basic_plots.py --load basic_plots.json -O /afs/cern.ch/user/m/mquittna/www/diphoton/$output/ --input-dir $output --fudge $fudge --lumi 2.7 
+./basic_plots.py --load basic_plots.json -O /afs/cern.ch/user/m/mquittna/www/diphoton/$output/ --input-dir $output --fudge $fudge --lumi 2.69 

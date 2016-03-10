@@ -1,8 +1,9 @@
 {
-    "drawopts" : ["Draw,DrawRatio[0.7]","e","hist","hist nostack"],
+    "_drawopts" : ["Draw,DrawRatio[0.7]","e","hist","hist nostack"],
+    "drawopts" : ["Draw","e","hist","hist nostack"],
     "legpos"  : [0.580,0.65,0.930,0.91],
 
-    "_sig" : null,
+    "sig" : null,
 
     "_data" : [
 	      ["Data","Data",
@@ -11,13 +12,39 @@
 	      ]
 	      
     ],
+    "_sig" : [
+	      ["rsg_02_4000","G #rightarrow #gamma #gamma (k/M_{PL}=0.2 M_{G}=4TeV)",
+	      [["colors","kAzure"],["SetLineWidth",2],["Scale",1],["SetFillStyle",0],["legopt","f nostack"],["SetFillColor","kWhite"]],
+	      { "RSGravToGG_kMpl_02_M_4000_TuneCUEP8M1_13TeV_pythia8_13TeV:__infile__/%(sel)s" : [] }
+	      ],
+	      
+	      ["rsg_01_2000","G #rightarrow #gamma #gamma (k/M_{PL}=0.1 M_{G}=2TeV)",
+	      [["colors","kOrange"],["SetLineWidth",2],["Scale",1],["SetFillStyle",0],["legopt","f nostack"],["SetFillColor","kWhite"]],
+	      {  "RSGravToGG_kMpl_01_M_2000_TuneCUEP8M1_13TeV_pythia8_13TeV:__infile__/%(sel)s" : [] }
+	      ]
+
+	    ],
+
     "data" : [
 	      ["Data","Data",
-	      [["SetBinErrorOption",1],["colors","kBlack"],["SetLineWidth",2],["SetFillStyle",0],["Scale",1],["legopt","pe"],["SetMarkerStyle","kFullCircle"],["SetFillColor","kWhite"]],
+	      [["SetBinErrorOption",1],["colors","kBlack"],["SetLineWidth",2],["SetFillStyle",0],["Scale",1],["legopt","pe nostack"],["SetMarkerStyle","kFullCircle"],["SetFillColor","kWhite"]],
 	      { "DoubleEG_13TeV:__infile__/%(sel)s" : [] }
 	      ]
+	     
+], 
+
+    "bkg" : [
+	      ["gjet","#gamma j",
+	      [["colors","myColorA1"],["SetLineWidth",2],["Scale",1],["SetFillStyle",1001],["legopt","f"],["SetFillColor","myColorA3tr"],["Scale",1.0]],
+	      { "GJets_HT_40ToInf_13TeV:__infile__/%(sel)s" : [] }
+	      ],
+
+	      ["ggjet_iso","#gamma #gamma",
+	      [["colors","myColorB1"],["SetLineWidth",2],["SetFillStyle",1001],["Scale",1],["legopt","f"],["SetFillColor","myColorB3tr"],["Scale",1.0]],
+	      { "GGJets_M_60To13000_13TeV:__infile__/%(sel)s" : [] }
+	      ]
 	      
-    ],
+	     ],
 
     "_bkg" : [
       	      ["jetjet","j j",
@@ -36,40 +63,6 @@
 	      ]
 	      
 	     ],
-	"_bkg":[
-	      ["gjet","#gamma j",
-	      [["colors","myColorA1"],["SetLineWidth",2],["Scale",1],["SetFillStyle",1001],["legopt","f"],["SetFillColor","myColorA3tr"]],
-	      { "GJets_HT_100toInf_13TeV:__infile__/%(sel)s" : [] }
-	      ],
-
-
-	      ["ggjet_iso","#gamma #gamma",
-	      [["colors","myColorB1"],["SetLineWidth",2],["SetFillStyle",1001],["Scale",1],["legopt","f"],["SetFillColor","myColorB3tr"]],
-	      { "GGJets_M_200To13000_sherpa_13TeV:__infile__/%(sel)s" : [] }
-	      ]
-
-],
-	"bkg":[
-	      ["gjet","#gamma j",
-	      [["colors","myColorA1"],["SetLineWidth",2],["Scale",1],["SetFillStyle",1001],["legopt","f"],["SetFillColor","myColorA3tr"]],
-	      { "GJets_HT_40ToInf_13TeV:__infile__/%(sel)s" : [] }
-	      ],
-
-
-	      ["ggjet_iso","#gamma #gamma",
-	      [["colors","myColorB1"],["SetLineWidth",2],["SetFillStyle",1001],["Scale",1],["legopt","f"],["SetFillColor","myColorB3tr"]],
-	      { "GGJets_M_60To13000_13TeV:__infile__/%(sel)s" : [] }
-	      ]
-
-],
-	"_bkg":[
-
-	      ["ggjet_iso","#gamma #gamma",
-	      [["colors","myColorB1"],["SetLineWidth",2],["SetFillStyle",1001],["Scale",1],["legopt","f"],["SetFillColor","myColorB3tr"]],
-	      { "GGJets_M_200To13000_sherpa_13TeV:__infile__/%(sel)s" : [] }
-	      ]
-
-],
 
     "_bkg" : [
 	      ["ggjet_nonIso","non iso #gamma #gamma",
@@ -160,135 +153,23 @@
 	"EEHighR9" : ["EEHighR9"],
 	"EELowR9"  : ["EELowR9"]
 	}, 
+
     "groups": {
-        "EB"       : ["EBHighR9","EBLowR9"]
-	}, 
-    "_groups": {
+        "EB"       : ["EBHighR9","EBLowR9"],
         "EE"       : ["EEHighR9","EELowR9"]
 	}, 
 
-
-	"_plots":[
-
-
-	      ["dijet30CleanMass"			,[["Rebin",1],["xrange",[30.0,450.0]],["xtitle","m_{jj} (GeV), p_{T} > 30 GeV"],["overflow",[null]],
-					  ["ytitle","Events / %(binw)s GeV"]
-					]
-					,null,null],
-	      ["Pt"			,[["Rebin",2],["ytitle","Events / %(binw)s GeV"],["xtitle","p_{T}(#gamma1/2) (GeV)"],["xrange",[100.0,1000.0]],["overflow",[null]]]
-					,null,null],
-	      ["Eta"		,[["Rebin",2],["ytitle","Events / %(binw)s"],["xtitle","#eta_(#gamma 1/2)"],["xrange",[-2.5,2.5]]]
-					,null,null],
-
-	      ["subleadPt"		,[["Rebin",2],["ytitle","Events / %(binw)s GeV"],["xtitle","p_{T}(#gamma 2) (GeV)"],["xrange",[100.0,1000.0]],["overflow",[null]]]
-					,null,null],
-	      ["dijet60CleanMass"			,[["Rebin",1],["xrange",[30.0,3450.0]],["xtitle","m_{jj} (GeV),  p_{T} > 60 GeV"],["overflow",[null]],
-					  ["ytitle","Events / %(binw)s GeV"]
-					]
-					,null,null],
-	      ["mht30Mass"			,[["Rebin",1],["xrange",[500.0,2000.0]],["xtitle","m_{HT} (GeV), p_{T} > 30 GeV"],["overflow",[null]],
-					  ["ytitle","Events / %(binw)s GeV"]
-					]
-					,null,null],
-	      ["mht60Mass"			,[["Rebin",1],["xrange",[500.0,2000.0]],["xtitle","m_{HT} (GeV),  p_{T} > 60 GeV"],["overflow",[null]],
-					  ["ytitle","Events / %(binw)s GeV"]
-					]
-					,null,null],
-	      ["mht30CleanMass"			,[["Rebin",1], ["xrange",[30.0,500.0]],["xtitle"," m_{HT} (GeV), p_{T} > 30 GeV"],["overflow",[null]],
-					  ["ytitle","Events / %(binw)s GeV"]
-					]
-					,null,null],
-	      ["mht60CleanMass"			,[["Rebin",1],["xrange",[30.0,300.0]],["xtitle"," m_{HT} (GeV),  p_{T} > 60 GeV"],["overflow",[null]],
-					  ["ytitle","Events / %(binw)s GeV"]
-					]
-					,null,null],
-	      ["nJets30"			,[["xtitle","number of jets, p_{T} > 30 GeV"],["overflow",[null]],
-					 ["ytitle","Events /bin "]
-					]
-					,null,null],
-	      ["nJets60"			,[["xtitle","number of jets,  p_{T} > 60 GeV"],["overflow",[null]],
-					 ["ytitle","Events / bin"]
-					]
-					,null,null],
-	      ["deltaEta"			,[["Rebin",1],["xrange",[0.0,4.0]],["xtitle","#Delta #eta_{j,j},  p_{T} > 30 GeV"],["overflow",[null]],
-					  ["ytitle","Events / %(binw)s "]
-					]
-					,null,null],
-	      ["zeppenfeld"			,[["Rebin",1],["xrange",[-3.0,3.0]],["xtitle","y_{#gamma #gamma} - (#eta_{j1}+#eta_{j2}/2),(Zeppenfeld)  p_{T} > 30 GeV"],["overflow",[null]],
-					  ["ytitle","Events / %(binw)s"]
-					]
-					,null,null],
-	      ["jet1Pt"			,[["Rebin",1],["xrange",[30.0,400.0]],["xtitle","p_{T,j1},  p_{T} > 30 GeV"],["overflow",[null]],
-					  ["ytitle","Events / %(binw)s GeV"]
-					]
-					,null,null],
-	      ["jet2Pt"			,[["Rebin",1],["xrange",[30.0,100.0]],["xtitle","p_{T,j2},  p_{T} > 30 GeV"],["overflow",[null]],
-					  ["ytitle","Events / %(binw)s GeV"]
-					]
-					,null,null],
-	      ["jet1Eta"			,[["Rebin",1],["xtitle","#eta_{j1},  p_{T} > 30 GeV"],["overflow",[null]],
-					  ["ytitle","Events / %(binw)s"]
-					]
-					,null,null],
-	      ["jet2Eta"			,[["Rebin",1],["xtitle","#eta_{j2},  p_{T} > 30 GeV"],["overflow",[null]],
-					  ["ytitle","Events / %(binw)s"]
-					]
-					,null,null],
-	      ["jet1Phi"			,[["Rebin",1],["xtitle","#phi_{j1},  p_{T} > 30 GeV"],["overflow",[null]],
-					  ["ytitle","Events / %(binw)s"]
-					]
-					,null,null],
-	      ["jet2Phi"			,[["Rebin",1],["xtitle","#phi_{j2},  p_{T} > 30 GeV"],["overflow",[null]],
-					  ["ytitle","Events / %(binw)s"]
-					]
-					,null,null],
-	      ["leadEta"		,[["Rebin",2],["ytitle","Events / %(binw)s"],["xtitle","#eta_{#gamma 1}"],["xrange",[-2.6,2.6]]]
-					,null,null],
-	      ["subleadEta"		,[["Rebin",2],["ytitle","Events / %(binw)s"],["xtitle","#eta_{#gamma 2}"],["xrange",[-2.6,2.6]]]
-					,null,null],
-
-
-	      ["leadPt"			,[["Rebin",1],["xrange",[75.0,700.0]],["ytitle","Events / %(binw)s GeV"],["xtitle","p_{T,#gamma 1} (GeV)"],["overflow",[null]]]
-					,null,null],
-
-	      ["subleadPt"		,[["Rebin",1],["xrange",[75.0,700.0]],["ytitle","Events / %(binw)s GeV"],["xtitle","p_{T,#gamma 2} (GeV)"],["overflow",[null]]]
-					,null,null],
-	      ["leadPhi"			,[["Rebin",2],["ytitle","Events / %(binw)s"],["xtitle","#Phi_{#gamma 1}"],["overflow",[null]]]
-					,null,null],
-
-	      ["subleadPhi"		,[["Rebin",2],["ytitle","Events / %(binw)s"],["xtitle","#Phi_{#gamma 2}"],["overflow",[null]]]
-					,null,null],
-	      ["Phi"		,[["Rebin",2],["ytitle","Events / %(binw)s"],["xtitle","#Phi_{#gamma 1/2}"],["overflow",[null]]]
-					,null,null],
-
-	      ["diffdeltaEta"			,[["xtitle","Difference #Delta #eta between photons and jets,  p_{T} > 30 GeV"],["overflow",[null]],
-					["ytitle","Events / %(binw)s"]
-					]
-					,null,null]
-
-
-],
-
-
-
-	"_plots" : [	
+	"_xplots" : [	
 	      ["leadR9"			,[["Rebin",5],["ytitle","Events / bin"],["xtitle","r_{9} (#gamma 1)"]	      				
 	      				]
 					,null,null],
 	      ["subleadR9"		,[["Rebin",5],["ytitle","Events / bin"],["xtitle","r_{9} (#gamma 2)"]	      				
 	      				]
 					,null,null],
-	      ["mass"			,[["xtitle","m_{#gamma #gamma} (GeV)"],
-					  ["xrange",[230.0,1600.0]],["rebin",[[230,253,282,295,332,409,500,600,800,1600]]],
-					  "density",["ytitle","Events / %(binw)s GeV"]
-					]
-					,null,null],
 
 
 	      ["mass"			,[["xtitle","m_{#gamma #gamma} (GeV)"],
 					  ["xrange",[100.0,1050.0]],["overflow",[null]],["rebin",[[100,150,180,200,250,300,400,500,1050]]],
-					  ["xrange",[320.0,1600.0]],["rebin",[[320,355,444,500,600,800,1600]]],
-					  ["xrange",[230.0,1600.0]],["rebin",[[230,253,282,295,332,409,500,600,800,1600]]],
 					  "density",["ytitle","Events / %(binw)s GeV"]
 					]
 					,null,null]
@@ -296,10 +177,24 @@
 	      
 
 					],
-    "plots": [
+    "_plots": [
+	      ["mass"			,[["xtitle","m_{#gamma #gamma} (GeV)"],["Rebin",4],
+	      			  	  ["xrange",[250.0,1500]],["overflow",[null]],
+					  ["ytitle","Events / %(binw)s GeV"]
+				]					
+				,null,null],
 	      ["mass"			,[["xtitle","m_{#gamma #gamma} (GeV)"],
-					  ["xrange",[230.0,1600.0]],["rebin",[[230,253,282,295,332,409,500,600,800,1600]]],
-					  ["density",20],["ytitle","Events / (%(binw)s GeV)"]
+					  ["xrange",[100.0,1000]],["rebin",[[250,300,400,500,600,700,800,900,1000]]],
+					  ["ytitle","Events / %(binw)s GeV"]
+					]
+					,null,null]
+
+	],
+
+    "_plots": [
+	      ["mass"			,[["xtitle","m_{#gamma #gamma} (GeV)"],
+					  ["xrange",[100.0,1050]],["rebin",[[230,250,280,320,380,450,500,1050]]],
+					  "density",["ytitle","Events / %(binw)s GeV"]
 					]
 					,null,null],
 
@@ -325,7 +220,11 @@
 	      ["subleadEta"		,[["Rebin",2],["ytitle","Events / %(binw)s"],["xtitle","#eta_(#gamma 2)"],["xrange",[-2.6,2.6]]]
 					,null,null],
 
+
 	      ["leadPt"			,[["Rebin",2],["ytitle","Events / %(binw)s GeV"],["xtitle","p_{T}(#gamma 1) (GeV)"],["xrange",[100.0,1000.0]],["overflow",[null]]]
+					,null,null],
+
+	      ["subleadPt"		,[["Rebin",2],["ytitle","Events / %(binw)s GeV"],["xtitle","p_{T}(#gamma 2) (GeV)"],["xrange",[100.0,1000.0]],["overflow",[null]]]
 					,null,null],
 
 	      ["leadChIso"		,[["xtitle","#gamma_{1} charged isolation (GeV)"],["xrange",[0,16]],
@@ -370,12 +269,95 @@
 					,null,null,["sig"]],
 
 	      ["subleadPixSeed"	,[["ytitle","Events"],["xtitle","#gamma_{2} has pixel seed"]]
-					,null,null,["sig"]],
+					,null,null,["sig"]]
 					
-	      ["phoRndConeChIso"	,[["xtitle","random cone charged isolation (GeV)"],["xrange",[0,16]],
+				
+
+	      ],
+
+
+    "plots": [
+	      ["mass"			,[["xtitle","m_{#gamma #gamma} (GeV)"],
+					  ["xrange",[100.0,1050]],["overflow",[null]],["rebin",[[230,270,310,360,400,500,700,1050]]],
+					  "density",["ytitle","Events / %(binw)s GeV"]
+					]
+					,null,null],
+
+	      ["pt"			,[["xtitle","p_T_{#gamma #gamma} (GeV)"],["overflow",[null]],
+	      				["rebin",[[0,5,10,20,30,50,75,100,150,200]]],"density",["ytitle","Events / %(binw)s GeV"]
+	      				]
+					,null,null],
+
+	      ["nvtx"			,[["Rebin",2],["ytitle","Events / bin"],["xtitle","N_{vtx}"],["overflow",[null]]	      				
+	      				]
+					,null,null],
+
+
+	      ["rho"			,[["ytitle","Events / %(binw)s GeV"],["xtitle","#rho_{PU} (GeV)"],["overflow",[null]]	      				
+	      				]
+					,null,null],
+
+	      ["rapidity"		,[["Rebin",5],["ytitle","Events / %(binw)s"],["xtitle","y_{#gamma #gamma} (GeV)"],["xrange",[-3,3]],["overflow",[null]]]
+					,null,null],
+					
+	      ["leadEta"		,[["Rebin",2],["ytitle","Events / %(binw)s"],["xtitle","#eta_(#gamma 1)"],["xrange",[-2.6,2.6]]]
+					,null,null],
+	      ["subleadEta"		,[["Rebin",2],["ytitle","Events / %(binw)s"],["xtitle","#eta_(#gamma 2)"],["xrange",[-2.6,2.6]]]
+					,null,null],
+
+
+	      ["leadPt"			,[["Rebin",2],["ytitle","Events / %(binw)s GeV"],["xtitle","p_{T}(#gamma 1) (GeV)"],["xrange",[100.0,1000.0]],["overflow",[null]]]
+					,null,null],
+
+	      ["subleadPt"		,[["Rebin",2],["ytitle","Events / %(binw)s GeV"],["xtitle","p_{T}(#gamma 2) (GeV)"],["xrange",[100.0,1000.0]],["overflow",[null]]]
+					,null,null],
+
+ 	      ["leadChgNum"		,[["xtitle","Number of charged tracks #gamma_{1}"],["xrange",[0,6]],
+	      				["overflow",[null]],["ytitle","Events"]
+	      				]
+					,null,null,["sig"]],
+
+	      ["subleadChgNum"		,[["xtitle","Number of charged tracks #gamma_{2}"],["xrange",[0,6]],
+	      				["overflow",[null]],["ytitle","Events"]
+	      				]
+					,null,null,["sig"]],
+
+
+	      ["leadPhoIso"		,[["xtitle","#gamma_{1} photon isolation (GeV)"],["xrange",[0,16]],
+	       				["overflow",[null]],["rebin",[[0,0.25,0.5,1,1.5,5,15,16]]],"density",["ytitle","Events / %(binw)s GeV"]
+	      				]
+					,null,null,["sig"]],
+
+	      ["subleadPhoIso"		,[["xtitle","#gamma_{2} photon isolation (GeV)"],["xrange",[0,16]],
 	      				["overflow",[null]],["rebin",[[0,0.25,0.5,1,1.5,5,15,16]]],"density",["ytitle","Events / %(binw)s GeV"]
 	      				]
+
+					,null,null,["sig"]],
+	      ["leadHoE"		,[["xtitle","#gamma_{1} H/E"],
+					  ["ytitle","Events / %(binw)s"],["overflow",[null]]]
+					,null,null,["sig"]],
+	    ["subleadHoE"		,[["ytitle","Events / %(binw)s GeV"],["xtitle","#gamma_{2} H/E"],["overflow",[null]]]
+					,null,null,["sig"]],
+
+	      ["leadSigmaIeIe"		,[["Rebin",3],["ytitle","Events / %(binw)s"],["xtitle","#gamma_{1} #sigma_{i#eta i#eta}"],["overflow",[null]]]
+					,null,null,["sig"]],
+
+	      ["subleadSigmaIeIe"	,[["Rebin",3],["ytitle","Events / %(binw)s"],["xtitle","#gamma_{2} #sigma_{i#eta i#eta}"],["overflow",[null]]]
+					,null,null,["sig"]],
+	      			    
+
+	      ["leadSigmaIpIp"		,[["Rebin",3],["ytitle","Events / %(binw)s"],["xtitle","#gamma_{1} #sigma_{i#phi i#phi}"],["overflow",[null]]]
+					,null,null,["sig"]],
+
+	      ["subleadSigmaIpIp"	,[["Rebin",3],["ytitle","Events / %(binw)s"],["xtitle","#gamma_{2} #sigma_{i#phi i#phi}"],["overflow",[null]]]
+					,null,null,["sig"]],
+	      			    
+	      ["leadTrkMissingHits"	,[["ytitle","Events"],["xtitle","#gamma_{1} electron track missing hits"]]
+					,null,null,["sig"]],
+
+	      ["subleadTrkMissingHits"	,[["ytitle","Events"],["xtitle","#gamma_{2} electron track missing hits"]]
 					,null,null,["sig"]]
+					
 				
 
 	      ],
@@ -387,28 +369,17 @@
     "_selections" : [
         ["cicNoSigmaIetaIeta","noSiEiE",["mass","leadSigmaIeIe","subleadSigmaIeIe"]]
     ],
-    "_selections" : [
-        ["cic","cic",["Pt","Eta","Phi"]]
-		    ],
     "selections" : [
-        ["cic","cic",["mass"]]
-		    ],
+        ["cic",""]
+    ],
 
-    "selections" : [
-        ["cic","cic",["nvtx","leadPt","subleadPt","leadEta","subleadEta","leadPhi","subleadPhi","mht30Mass","mht60Mass","nJets60","nJets30"]]
-		    ],
     "_selections" : [
-        ["cic","cic",["leadPt","subleadPt","leadEta","subleadEta","leadPhi","subleadPhi","mht30Mass","mht60Mass","nJets60","nJets30"]]
-		    ],
-    "_selections" : [
-        ["cic","cic",["zeppenfeld","jet2Eta","jet1Pt","jet1Phi","jet1Eta","jet2Pt","jet2Phi","diffrap","mht30Mass","mht60Mass","deltaEta","dijet30CleanMass","dijet60CleanMass","mht60CleanMass","mht30CleanMass"]]
-		    ],
-    "_selections" : [
-        ["cic","cic",["diffrap"]
-		    ]
-		    ],
-
-
+        ["cic",""],
+	["cicNoSieie","noSigmaIeIe",["mass","leadSigmaIeIe","subleadSigmaIeIe","leadSigmaIpIp","subleadSigmaIpIp"]],
+	["cicNoSipip","noSigmaIpIp",["mass","leadSigmaIeIe","subleadSigmaIeIe","leadSigmaIpIp","subleadSigmaIpIp"]],
+	["cicNoPhoIso","noPhoIso",["mass","leadPhoIso","subleadPhoIso"]],
+	["cicNoTrkIso","noTrkiso",["mass","leadChgNum","subleadChgNum"]]
+    ],
 
     "_selections" : [
         ["cic",""],
@@ -430,7 +401,7 @@
     ],
 	      
     "styles": { 
-	"*mass*" : [["logy",1e-2]],
+	"*mass*" : [["logy",1e-1]],
 	"*Iso*"  : [["logy",1e-2]],
 	"*Pt*"  : [["logy",1e-1]],
 	"*pt*"  : [["logy",1e-2]],
@@ -442,19 +413,19 @@
      	"*SigmaIeIe_EB*_ratio" : [ ["xrange",[3e-3,1.5e-2]] ],	 
      	"*SigmaIeIe_EE*_ratio" : [ ["xrange",[1.8e-2,3e-2]] ]
 	},	 
+    "postproc" : {
+    },
 
     "template": "histograms/%(sample)s_%(cat)s%(name)s",
 
     "rootstyle_extra" : [
     		  "TGaxis::SetMaxDigits(3);",
 		  "TH1::SetDefaultSumw2(1);",
-		  "lumiTextSize = 0.5; lumiTextOffset = 0.4; cmsTextSize = 0.6; relExtraDY = -1.8; relExtraDX = -1.2 ; "
+		  "lumiTextSize = 0.5; lumiTextOffset = 0.4; cmsTextSize = 0.6; relExtraDY = 0.;"
     ],
 
     "postproc" : {
-    	       "*" : [["addCmsLumi",[4,1,"Preliminary"]]],
-    	       "*EB" : [["addCat",["EBEB"]]],
-    	       "*EE" : [["addCat",["EBEE"]]]
+    	       "*" : [["addCmsLumi",[4,1,"Preliminary"]]]
 	       }	
     
 }

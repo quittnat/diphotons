@@ -58,5 +58,5 @@ mkdir $output
    --output $output/output_data_EBEB.root 
 
 hadd -f $output/output.root $output/output_data_EBEB.root $output/output_mc_EBEB.root  
-./basic_plots.py --load basic_plots.json -O /afs/cern.ch/user/m/mquittna/www/diphoton/$output/ --input-dir $output  --fudge $fudge --lumi 2.44 
+./basic_plots.py --load basic_plots.json -O /afs/cern.ch/user/m/mquittna/www/diphoton/$output/ --input-dir $output  --fudge $fudge --lumi 2.69 
 	canvEBEE->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/bkg_decomposition_moriond16v1_sync_v4_data/%s.png", canvEBEE->GetName()));
