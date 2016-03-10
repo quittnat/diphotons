@@ -10,7 +10,7 @@
     "subleadPt>>subleadPt(100,0.,2000.)" ,
     "subleadEta>>subleadEta(50,-2.5,2.5)" ,
     "subleadPhi>>subleadPhi(64,-3.2,3.2)" ,
-   "2*subLeadEnergy*sqrt((leadEnergy*leadEnergy)-(leadPt*leadPt))-leadEnergy*sqrt(subLeadEnergy*subLeadEnergy-subleadPt*subleadPt))/(mass*sqrt(mass*mass+pt*pt)>>cosThetaStar(100,-1.0,1.0)" ,
+   "2*subLeadEnergy*sqrt((leadEnergy*leadEnergy)-(leadPt*leadPt))-leadEnergy*sqrt(subLeadEnergy*subLeadEnergy-subleadPt*subleadPt))/(mass*sqrt(mass*mass+pt*pt))>>cosThetaStar(100,-1.0,1.0)" ,
                         "mass>>mass(1500,0,15000)",
                                      "pt>>pt(200,0,200)",
                                      "rapidity>>rapidity(200,-5,5)",

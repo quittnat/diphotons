@@ -19,7 +19,7 @@ for cut in "${cuts[@]}" ;do
 	fi
 	mkdir $output
 	
-	./auto_plotter.py --load auto_plotter_histos.json \
+	./auto_plotter.py --load auto_plotter_histos_0T.json \
 		--selection cic,cicGenIso,cicNonGenIso \
     	--process GGJets\*\* \
     	--process GJets\*\* \
@@ -30,7 +30,7 @@ for cut in "${cuts[@]}" ;do
     	--output $output/output_mc.root 
 
  ## merge in Data
-	./auto_plotter.py --load auto_plotter_histos.json \
+	./auto_plotter.py --load auto_plotter_histos_0T.json \
 		--selection cic \
 		--file  /afs/cern.ch/user/m/musella/public/workspace/exo/full_analysis_moriond16v1_0T_sync_v6_data/output.root \
   		--process DoubleEG\*\* \
