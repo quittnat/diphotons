@@ -260,8 +260,8 @@
 					,null,null],
 	      ["Phi"		,[["Rebin",2],["ytitle","Events / %(binw)s"],["xtitle","#Phi_{#gamma 1/2}"],["overflow",[null]]]
 					,null,null],
-	      ["cosThetaStar"			,[["xtitle","cos(#Theta*)"],["Rebin",3],
-					  ["xrange",[0.0,1.0]],["overflow",[null]],
+	      ["cosThetaStar"			,[["xtitle","cos(#Theta*)"],["Rebin",2],
+					  ["xrange",[-1.0,1.0]],["overflow",[null]],
 					  "density",["ytitle","Events / %(binw)s GeV"]
 					]
 					,null,null],
