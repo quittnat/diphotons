@@ -1,6 +1,6 @@
 {
 "histograms":[ 
-   "2*(subLeadEnergy*sqrt((leadEnergy*leadEnergy)-(leadPt*leadPt))-leadEnergy*sqrt(subLeadEnergy*subLeadEnergy-subleadPt*subleadPt))/(mass*sqrt(mass*mass+pt*pt))>>cosThetaStar(100,-1.0,1.0)" ,
+   "2*abs((subLeadEnergy*sqrt((leadEnergy*leadEnergy)-(leadPt*leadPt))-leadEnergy*sqrt(subLeadEnergy*subLeadEnergy-subleadPt*subleadPt))/(mass*sqrt(mass*mass+pt*pt)))>>cosThetaStar(100,0.0,1.0)" ,
     "leadChgNum>>leadChgNum(6,0,6)" ,
     "subleadChgNum>>subleadChgNum(6,0,6)" ,
     "leadSigmaIpIp>>leadSigmaIpIp(100,0,0.032)" ,
