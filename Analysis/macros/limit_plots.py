@@ -59,6 +59,8 @@ class LimitPlot(PlotApp):
                             default=False,help="fits trial factor on distribution of maximum pvalues"),
                 make_option("--plot-LEE",action="store_true", dest="plot_lee", 
                             default=False,help="plots the maximum signficance if trees already exist"),
+                make_option("--plot-locpval",action="store_true", dest="plot_locpval", 
+                            default=False,help="plots the local p value "),
                 make_option("--output-dir",action="store", dest="output_dir", 
                             default="./"),
                 make_option("--do-comparison",action="store_true", dest="do_comparison", 
@@ -136,6 +138,8 @@ class LimitPlot(PlotApp):
                 flist = glob.glob("%s/higgsCombine%s_k*.%s.root" % (options.input_dir, options.label, options.method) )
             else:
                 flist = [ "%s/higgsCombine%s_k%s.%s.root" % (options.input_dir, options.label, coup, options.method) for coup in options.couplings ]
+        if options.plot_locpval:
+            flist =["%s/higgsCombine_%s.%s.root" % (options.input_dir, options.label,options.method)]
         if not options.compute_lee: print options.input_dir, flist
             
         tflist = {}
@@ -147,14 +151,15 @@ class LimitPlot(PlotApp):
             if options.compute_lee or options.plot_lee or options.trial_factor:
                 spin = dname.replace("combined","").split("_",-1)[1].replace("spin","")
             else:
-                print "[WARNING] assume spin0 for labels"
-                spin=0
+                print "[WARNING] assume spin2 for labels "
+                spin=2
             coup = bname.split("_",1)
-           # print coup
             coup = coup[1].split(".")
-           # print coup
             coup = coup[0].replace("k","")
-           # print coup
+            
+            if options.plot_locpval:
+                sname = bname.rsplit("GeV",1)[1].split(".ProfileLikelihood",1)[0]
+                print sname
             ## coup = bname.split("_",1)[1].split(".")[0].replace("k","")
             tfin = self.open(fname)
             if not tfin: 
@@ -169,9 +174,12 @@ class LimitPlot(PlotApp):
                     sys.exit(-1)
         
             if options.compute_lee:
-                if (coup=="all" and (spin=="0" or spin=="2")):holynr=(1286)*options.nToys
-                elif (coup=="all" and (spin=="all")):holynr=(1286)*2*options.nToys
-                elif ((coup=="001" or  coup=="01" or coup =="02") and (spin=="0" or spin=="2")):holynr=(428)*options.nToys
+               # if (coup=="all" and (spin=="0" or spin=="2")):holynr=(1286)*options.nToys
+                #elif (coup=="all" and (spin=="all")):holynr=(1286)*2*options.nToys
+                #elif ((coup=="001" or  coup=="01" or coup =="02") and (spin=="0" or spin=="2")):holynr=(428)*options.nToys
+                if (coup=="all" and (spin=="0" or spin=="2")):holynr=(404*3)*options.nToys
+                elif (coup=="all" and (spin=="all")):holynr=(404*3)*2*options.nToys
+                elif ((coup=="001" or  coup=="01" or coup =="02") and (spin=="0" or spin=="2")):holynr=(404)*options.nToys
                 else: holynr=1e15
                 if tree.GetEntries() < holynr:
                     print "[WARNING ] job ", job, ": tree has not expected number of entries "
@@ -193,7 +201,7 @@ class LimitPlot(PlotApp):
             if options.compute_lee: self.getPvalToys(options,coup,spin, job,tfile)
                
         self.autosave()
-        if not (options.plot_lee or options.trial_factor):
+        if not (options.plot_lee or options.trial_factor or options.plot_locpval):
             if options.compute_lee:
                 for job in range(0,options.nJobs+1):
                     graphs = self.open("%s/graphs_%s_%s_%s.%s.root" % (options.input_dir,"_".join(options.couplings),spin,job,options.method),"recreate")
@@ -201,11 +209,12 @@ class LimitPlot(PlotApp):
                 if len(options.couplings) == 0:
                     graphs = self.open("%s/graphs_%s.root" % (options.input_dir,options.method),"recreate") #makes one file with everyting
                 else:
-                    graphs = self.open("%s/graphs_%s_%s.root" % (options.input_dir,"_".join(options.couplings),spin,options.method),"recreate")
+                    graphs = self.open("%s/graphs_%s_%s.root" % (options.input_dir,"_".join(options.couplings),options.method),"recreate")
             graphs.cd()
             for gr in self.graphs: gr.Write()
             graphs.Close()
         if (options.compute_lee or options.plot_lee or options.trial_factor) : self.plotLEE(options,coup,spin)
+        if  options.plot_locpval: self.plotLocpval(options,coup,sname)
         
     def plotLimit(self,options,coup,tfile):
         ## TGraphAsymmErrors *theBand(TFile *file, int doSyst, int whichChannel, BandType type, double width=0.68) {
@@ -367,7 +376,7 @@ class LimitPlot(PlotApp):
             #tree = tfin.Get("tree_pval_k%s_s%s_t%s_j100" % (coup,spin,options.nToys))
             tree = tfin.Get("tree_pval_k%s_s%s_t%s_j%s" % (coup,spin,options.nToys,ijob))
             toyStyle = [["SetFillStyle",3004],["SetLineColor",ROOT.kRed]]
-            style_utils.apply(histo,[["SetTitle",";Global Significance ;Entries (Toys)"],["SetName","tot significance k%s s%s" %(coup,spin)]]+toyStyle)
+            style_utils.apply(histo,[["SetTitle",";Max Significance ;Entries (Toys)"],["SetName","max significance k%s s%s" %(coup,spin)]]+toyStyle)
             for toy in range(0,tree.GetEntries()):
                 tree.GetEntry(toy)
                 significance=ROOT.ROOT.Math.normal_quantile_c(tree.pval, 1.0)
@@ -402,7 +411,7 @@ class LimitPlot(PlotApp):
         b.SetTextColor(ROOT.kBlack)
         b.DrawLatex(0.65,0.5,"global pval: %.2e" % integral)
         b.DrawLatex(0.65,0.4,"global Z: %4.2f" % ROOT.ROOT.Math.normal_quantile_c(integral,1.0))
-        b.DrawLatex(0.65,0.3,"rough trial factor: %d " %( integral/obsP))
+        b.DrawLatex(0.65,0.3,"trial factor: %d " %( integral/obsP))
 
         canv.SaveAs("%s/LEE_k%s_s%s.root" % (options.output_dir,coup,spin))
         canv.SaveAs("%s/LEE_k%s_s%s.png" % (options.output_dir,coup,spin))
@@ -419,7 +428,7 @@ class LimitPlot(PlotApp):
             vsfit.SetParameters(60, 0)
             cdf.Fit(vsfit,"R","",pminfit,pmaxfit)
             cdf.GetXaxis().SetRangeUser(pminfit,pmaxfit)
-            cdf.GetXaxis().SetTitle("Global p-value")
+            cdf.GetXaxis().SetTitle("Min p-value")
             cdf.GetYaxis().SetTitle("CDF")
             cdf.Draw("HIST")
             c=ROOT.TLatex()
@@ -440,11 +449,52 @@ class LimitPlot(PlotApp):
             cpval.SetLogx()
             ROOT.gStyle.SetOptStat(11111111)
             histo_pval.Draw("HIST")
-            histo_pval.GetXaxis().SetTitle("Global p-value")
+            histo_pval.GetXaxis().SetTitle("Min p-value")
             histo_pval.GetYaxis().SetTitle("Entries (Toys)")
             cpval.SaveAs("%s/cpval_k%s_s%s.root" % (options.output_dir,coup,spin))
             cpval.SaveAs("%s/cpval_k%s_s%s.png" % (options.output_dir,coup,spin))
             cpval.SaveAs("%s/cpval_k%s_s%s.pdf" % (options.output_dir,coup,spin))
+    
+    def plotLocpval(self,options,coup, sname):
+        canv = ROOT.TCanvas("cqtoy","cqtoy")
+        histo=ROOT.TH1D("qtoy","qtoy",3000,0.,5.)
+        if sname=="_8_13TeV": mname="750"
+        elif sname=="_13TeV": mname="760"
+        fname= "%s/higgsCombine_spin2_k001_%sGeV%s.ProfileLikelihood.root" % (options.input_dir,mname,sname)
+        tfin = self.open(fname) #TODO difine mname and sname for input
+        if not tfin: 
+            print ("unable to open %s" % fname)
+        tree = tfin.Get("limit")
+        toyStyle = [["SetFillStyle",3004],["SetLineColor",ROOT.kRed]]
+        style_utils.apply(histo,[["SetTitle",";Significance ;Entries (Toys)"],["SetName","k%s s2 %s %s" %(coup,mname,sname)]]+toyStyle)
+        for toy in range(0,tree.GetEntries()):
+            tree.GetEntry(toy)
+            significance=ROOT.ROOT.Math.normal_quantile_c(tree.limit, 1.0)
+            histo.Fill(significance)
+        if (sname=="_8_13TeV"):obsZ=3.35548#@750 GeV  p-value of background: 0.000396131  (Significance = 3.35548)
+        elif (sname=="_13TeV"):obsZ=2.92222# @ 760 GeV p-value of background: 0.00173774 (Significance = 2.92222)
+        else: print "no oberved "
+        integral=histo.Integral(histo.GetXaxis().FindBin(obsZ),histo.GetXaxis().FindBin(histo.GetMaximumBin()))/histo.Integral()
+        canv.cd()
+        canv.SetLogy()
+        histo.Rebin(50)
+        histo.Draw("HIST E2")
+        ROOT.gStyle.SetOptStat(111111)
+        lineObs=ROOT.TLine(obsZ,0.,obsZ,histo.GetMaximum())
+        lineObs.SetLineColor(ROOT.kBlack)
+        lineObs.SetLineWidth(3)
+        lineObs.Draw()
+        b=ROOT.TLatex()
+        b.SetNDC()
+        b.SetTextSize(0.035)
+        b.SetTextColor(ROOT.kBlack)
+        b.DrawLatex(0.75,0.5,"pval: %.2e" % integral)
+        b.DrawLatex(0.75,0.4,"Z: %4.2f" % ROOT.ROOT.Math.normal_quantile_c(integral,1.0))
+
+        canv.SaveAs("%s/LocPVal_k%s_spin2_%s_%s.root" % (options.output_dir,coup,mname,sname))
+        canv.SaveAs("%s/LocPVal_k%s_spin2_%s_%s.png" % (options.output_dir,coup,mname,sname))
+        canv.SaveAs("%s/LocPVal_k%s_spin2_%s_%s.pdf" % (options.output_dir,coup,mname,sname))
+        self.keep( [canv,histo] )
 
 
     def cdf(self,histo,bins,min,max):
