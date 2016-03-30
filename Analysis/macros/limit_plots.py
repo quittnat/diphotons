@@ -159,8 +159,8 @@ class LimitPlot(PlotApp):
             
             if options.plot_locpval:
                 sname = bname.rsplit("GeV",1)[1].split(".ProfileLikelihood",1)[0]
-                print sname
-            ## coup = bname.split("_",1)[1].split(".")[0].replace("k","")
+                mname = bname.rsplit("GeV",1)[0].rsplit("_",1)[1]
+                print sname,mname
             tfin = self.open(fname)
             if not tfin: 
                 print ("unable to open %s" % fname)
@@ -214,7 +214,7 @@ class LimitPlot(PlotApp):
             for gr in self.graphs: gr.Write()
             graphs.Close()
         if (options.compute_lee or options.plot_lee or options.trial_factor) : self.plotLEE(options,coup,spin)
-        if  options.plot_locpval: self.plotLocpval(options,coup,sname)
+        if  options.plot_locpval: self.plotLocpval(options,coup,sname,mname)
         
     def plotLimit(self,options,coup,tfile):
         ## TGraphAsymmErrors *theBand(TFile *file, int doSyst, int whichChannel, BandType type, double width=0.68) {
@@ -455,11 +455,9 @@ class LimitPlot(PlotApp):
             cpval.SaveAs("%s/cpval_k%s_s%s.png" % (options.output_dir,coup,spin))
             cpval.SaveAs("%s/cpval_k%s_s%s.pdf" % (options.output_dir,coup,spin))
     
-    def plotLocpval(self,options,coup, sname):
+    def plotLocpval(self,options,coup, sname,mname):
         canv = ROOT.TCanvas("cqtoy","cqtoy")
-        histo=ROOT.TH1D("qtoy","qtoy",3000,0.,5.)
-        if sname=="_8_13TeV": mname="750"
-        elif sname=="_13TeV": mname="760"
+        histo=ROOT.TH1D("qtoy","qtoy",5000,0.,6.)
         fname= "%s/higgsCombine_spin2_k001_%sGeV%s.ProfileLikelihood.root" % (options.input_dir,mname,sname)
         tfin = self.open(fname) #TODO difine mname and sname for input
         if not tfin: 
@@ -469,12 +467,16 @@ class LimitPlot(PlotApp):
         style_utils.apply(histo,[["SetTitle",";Significance ;Entries (Toys)"],["SetName","k%s s2 %s %s" %(coup,mname,sname)]]+toyStyle)
         for toy in range(0,tree.GetEntries()):
             tree.GetEntry(toy)
-            significance=ROOT.ROOT.Math.normal_quantile_c(tree.limit, 1.0)
+           # if tree.limit !=0:
+
+            significance=ROOT.RooStats.PValueToSignificance(tree.limit)
             histo.Fill(significance)
         if (sname=="_8_13TeV"):obsZ=3.35548#@750 GeV  p-value of background: 0.000396131  (Significance = 3.35548)
-        elif (sname=="_13TeV"):obsZ=2.92222# @ 760 GeV p-value of background: 0.00173774 (Significance = 2.92222)
+        elif (sname=="_13TeV" and mname=="760"):obsZ=2.92222# @ 760 GeV p-value of background: 0.00173774 (Significance = 2.92222)
+        elif (sname=="_13TeV" and mname=="600"):obsZ=0.527256# @ 600 GeV  pvalue: 0.29900 Significance = 0.527256
+     ##   elif (sname=="_13TeV"):obsZ=2.93# @ 760 GeV p-value of background: 0.00173774 (Significance = 2.92222)
         else: print "no oberved "
-        integral=histo.Integral(histo.GetXaxis().FindBin(obsZ),histo.GetXaxis().FindBin(histo.GetMaximumBin()))/histo.Integral()
+        integral=histo.Integral(histo.GetXaxis().FindBin(obsZ),-1)/histo.Integral()
         canv.cd()
         canv.SetLogy()
         histo.Rebin(50)
@@ -489,11 +491,11 @@ class LimitPlot(PlotApp):
         b.SetTextSize(0.035)
         b.SetTextColor(ROOT.kBlack)
         b.DrawLatex(0.75,0.5,"pval: %.2e" % integral)
-        b.DrawLatex(0.75,0.4,"Z: %4.2f" % ROOT.ROOT.Math.normal_quantile_c(integral,1.0))
+        b.DrawLatex(0.75,0.4,"Z: %4.2f" % ROOT.RooStats.PValueToSignificance(integral))
 
-        canv.SaveAs("%s/LocPVal_k%s_spin2_%s_%s.root" % (options.output_dir,coup,mname,sname))
-        canv.SaveAs("%s/LocPVal_k%s_spin2_%s_%s.png" % (options.output_dir,coup,mname,sname))
-        canv.SaveAs("%s/LocPVal_k%s_spin2_%s_%s.pdf" % (options.output_dir,coup,mname,sname))
+        canv.SaveAs("%s/LocPVal_k%s_spin2_%s%s.root" % (options.output_dir,coup,mname,sname))
+        canv.SaveAs("%s/LocPVal_k%s_spin2_%s%s.png" % (options.output_dir,coup,mname,sname))
+        canv.SaveAs("%s/LocPVal_k%s_spin2_%s%s.pdf" % (options.output_dir,coup,mname,sname))
         self.keep( [canv,histo] )
 
 
