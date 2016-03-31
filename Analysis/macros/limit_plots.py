@@ -118,7 +118,7 @@ class LimitPlot(PlotApp):
         ROOT.gStyle.SetTitleXOffset(1.15)
         ROOT.gStyle.SetOptStat(111111)
 
-        # ROOT.gSystem.AddIncludePath( "$ROOTSYS/include" )
+        ROOT.gSystem.AddIncludePath( "$ROOTSYS/include" )
         ROOT.gROOT.LoadMacro( "$CMSSW_BASE/src/HiggsAnalysis/CombinedLimit/test/plotting/bandUtils.cxx+" )
         
         self.loadXsections(options.x_sections)
@@ -155,8 +155,8 @@ class LimitPlot(PlotApp):
                 spin=2
             coup = bname.split("_",1)
             coup = coup[1].split(".")
-            coup = coup[0].replace("k","")
-            
+            coup = coup[0].replace("k","").split("_",2)[1]
+            print coup
             if options.plot_locpval:
                 sname = bname.rsplit("GeV",1)[1].split(".ProfileLikelihood",1)[0]
                 mname = bname.rsplit("GeV",1)[0].rsplit("_",1)[1]
@@ -454,33 +454,78 @@ class LimitPlot(PlotApp):
             cpval.SaveAs("%s/cpval_k%s_s%s.root" % (options.output_dir,coup,spin))
             cpval.SaveAs("%s/cpval_k%s_s%s.png" % (options.output_dir,coup,spin))
             cpval.SaveAs("%s/cpval_k%s_s%s.pdf" % (options.output_dir,coup,spin))
-    
+
+
     def plotLocpval(self,options,coup, sname,mname):
         canv = ROOT.TCanvas("cqtoy","cqtoy")
-        histo=ROOT.TH1D("qtoy","qtoy",5000,0.,6.)
+        canv2d = ROOT.TCanvas("cqtoy2d","cqtoy2d")
+        histo=ROOT.TH1D("qtoy","qtoy",500,0.,36.)
+        graph2d=ROOT.TGraph(histo.GetNbinsX())
         fname= "%s/higgsCombine_spin2_k001_%sGeV%s.ProfileLikelihood.root" % (options.input_dir,mname,sname)
         tfin = self.open(fname) #TODO difine mname and sname for input
         if not tfin: 
             print ("unable to open %s" % fname)
         tree = tfin.Get("limit")
         toyStyle = [["SetFillStyle",3004],["SetLineColor",ROOT.kRed]]
-        style_utils.apply(histo,[["SetTitle",";Significance ;Entries (Toys)"],["SetName","k%s s2 %s %s" %(coup,mname,sname)]]+toyStyle)
+       ## style_utils.apply(histo,[["SetTitle",";Significance ;Entries (Toys)"],["SetName","k%s s2 %s %s" %(coup,mname,sname)]]+toyStyle)
+        style_utils.apply(histo,[["SetTitle",";q ;Entries (Toys)"],["SetName","k%s s2 %s %s" %(coup,mname,sname)]]+toyStyle)
+
         for toy in range(0,tree.GetEntries()):
             tree.GetEntry(toy)
-           # if tree.limit !=0:
-
             significance=ROOT.RooStats.PValueToSignificance(tree.limit)
-            histo.Fill(significance)
+            histo.Fill(significance*significance)
         if (sname=="_8_13TeV"):obsZ=3.35548#@750 GeV  p-value of background: 0.000396131  (Significance = 3.35548)
-        elif (sname=="_13TeV" and mname=="760"):obsZ=2.92222# @ 760 GeV p-value of background: 0.00173774 (Significance = 2.92222)
+        elif ((sname=="_13TeV" or sname=="_13TeV_freezeenergyScaleEBEBeig2" or sname=="_13TeV_freezeenergyScaleZeroEBEBeig1eig2" or sname=="_13TeV_freezeenergycorr" or sname =="_13TeV_freezebias" or sname=="_13TeV_freezeenergyScaleEBEB" ) and mname=="760"):obsZ=2.92222# @ 760 GeV p-value of background: 0.00173774 (Significance = 2.92222)
         elif (sname=="_13TeV" and mname=="600"):obsZ=0.527256# @ 600 GeV  pvalue: 0.29900 Significance = 0.527256
-     ##   elif (sname=="_13TeV"):obsZ=2.93# @ 760 GeV p-value of background: 0.00173774 (Significance = 2.92222)
+        elif (sname=="_13TeV" and mname=="520"):obsZ= 1.2542312# p-value of background: 0.104879
         else: print "no oberved "
+        
+        for bin in range(1,histo.GetNbinsX()):
+            if (histo.GetBinContent(bin) >0.):
+                int=histo.Integral(bin,-1)/histo.Integral()
+                if (int <1.and int >0.):
+                    ints=ROOT.RooStats.PValueToSignificance(int)
+                    graph2d.SetPoint(bin-1,ints,pow(histo.GetXaxis().GetBinCenter(bin),0.5))
+        canv2d.cd()
+        canv2d.SetGridx()
+        canv2d.SetLogz()
+        canv2d.SetGridy()
+        graph2d.GetXaxis().SetTitle("Z_{toy}")
+        graph2d.GetYaxis().SetTitle("Z_{asymptotic}")
+      #  graph2d.GetYaxis().SetRangeUser(0.,6.)
+       # graph2d.GetXaxis().SetRangeUser(0.,6.)
+        graph2d.SetMarkerSize(1.3)
+        graph2d.SetMarkerStyle(20)
+        graph2d.Draw("AP")
+        gfit =ROOT.TF1("gfit","[0]*x+[1]",0.01,5)
+        graph2d.Fit(gfit,"R","",0.01,5)
+        gfit.SetLineColor(ROOT.kBlue)
+        gfit.SetLineStyle(2)
+        gfit.Draw("SAME")
+        c1=ROOT.TLatex()
+        c1.SetNDC()
+        c1.SetTextSize(0.04)
+        c1.SetTextColor(ROOT.kBlack)
+        c1.DrawLatex(0.55,0.2,"y offset: %2.2f" % (gfit.GetParameter(1)))
+        c1.DrawLatex(0.55,0.3,"slope: %2.2f" % (gfit.GetParameter(0)))
+        canv2d.SaveAs("%s/LocPVal2D_k%s_spin2_%s%s.root" % (options.output_dir,coup,mname,sname))
+        canv2d.SaveAs("%s/LocPVal2D_k%s_spin2_%s%s.png" % (options.output_dir,coup,mname,sname))
+        canv2d.SaveAs("%s/LocPVal2D_k%s_spin2_%s%s.pdf" % (options.output_dir,coup,mname,sname))
+        
+        
+        obsZ=obsZ*obsZ
         integral=histo.Integral(histo.GetXaxis().FindBin(obsZ),-1)/histo.Integral()
         canv.cd()
         canv.SetLogy()
-        histo.Rebin(50)
+        histo.Rebin(5)
         histo.Draw("HIST E2")
+        chi2 =ROOT.TF1("chi2","[0]*ROOT::Math::chisquared_pdf(x,1)",1.0,25)
+        chi2_full =ROOT.TF1("chi2_full","[0]*1/(sqrt(x*2*3.14))*exp(-0.5*x)",1.0,25)
+        histo.Fit(chi2_full,"R","",1.0,25)
+        chi2_full.SetLineColor(ROOT.kBlue)
+        chi2.Draw("SAME")
+        chi2_full.Draw("SAME")
+
         ROOT.gStyle.SetOptStat(111111)
         lineObs=ROOT.TLine(obsZ,0.,obsZ,histo.GetMaximum())
         lineObs.SetLineColor(ROOT.kBlack)
@@ -496,7 +541,7 @@ class LimitPlot(PlotApp):
         canv.SaveAs("%s/LocPVal_k%s_spin2_%s%s.root" % (options.output_dir,coup,mname,sname))
         canv.SaveAs("%s/LocPVal_k%s_spin2_%s%s.png" % (options.output_dir,coup,mname,sname))
         canv.SaveAs("%s/LocPVal_k%s_spin2_%s%s.pdf" % (options.output_dir,coup,mname,sname))
-        self.keep( [canv,histo] )
+        self.keep( [canv,canv2d,histo,graph2d] )
 
 
     def cdf(self,histo,bins,min,max):

@@ -8,7 +8,7 @@ datacard_file="datacard_combined_spin2_wnuis_unblind_grav_001_760.txt"
 mass="760"
 inname=_spin2_k001_760GeV_13TeV
 ##name=_spin2_k001_760GeV_13TeV_freezeenergycorr
-name=_spin2_k001_760GeV_13TeV_freezeenergybias
+name=_spin2_k001_760GeV_13TeV_freezeenergyScaleEBEBeig1eig2
 ##name=_spin2_k001_750GeV_8_13TeV
 ##mass="750"
 ##datacard_file="datacard_combined_813_spin2_unblind_grav_001_750.txt"
@@ -23,7 +23,7 @@ replaceNames=1
 #start all q with 100 jobs per coupling
 #$ -q all.q
 ntoys=450
-njobs=100
+njobs=20
 #short q only for jobs above 100 150 each
 ###$ -q short.q
 #$-e /dev/null 
@@ -45,8 +45,9 @@ cd $outfolder
 for job in $(seq 0 $njobs);do 
 job_new=$JOB_ID$job
 echo $job_new
-combine -M ProfileLikelihood  -L libdiphotonsUtils  -m $mass -t $ntoys -n $name -s $job_new --pvalue --significance --freezeNuisances nBias_bkg_EBEE0T,nBias_bkg_EBEB0T,nBias_bkg_EBEE,nBias_bkg_EBEB $datacard
+##combine -M ProfileLikelihood  -L libdiphotonsUtils  -m $mass -t $ntoys -n $name -s $job_new --pvalue --significance --freezeNuisances nBias_bkg_EBEE0T,nBias_bkg_EBEB0T,nBias_bkg_EBEE,nBias_bkg_EBEB $datacard
 ##combine -M ProfileLikelihood  -L libdiphotonsUtils  -m $mass -t $ntoys -n $name -s $job_new --pvalue --significance --freezeNuisances energyScaleEBEEeig1,energyScaleEBEEeig2,energyScaleEBEBeig1,energyScaleEBEBeig2,energyScaleZeroT $datacard
+combine -M ProfileLikelihood  -L libdiphotonsUtils  -m $mass -t $ntoys -n $name -s $job_new --pvalue --significance --freezeNuisances energyScaleEBEBeig1,energyScaleEBEBeig2  $datacard
 ##combine -M ProfileLikelihood  -L libdiphotonsUtils  -m $mass -t $ntoys -n $name -s $1 --pvalue --significance $datacard
 gfal-copy file:///$outfolder/higgsCombine$name.ProfileLikelihood.mH$mass.$job_new.root srm://t3se01.psi.ch/pnfs/psi.ch/cms/trivcat/store/user/mquittna/localPVal$name/higgsCombine$name.mH$mass.$job_new.root
 done
