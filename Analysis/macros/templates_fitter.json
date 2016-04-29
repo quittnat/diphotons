@@ -11,11 +11,13 @@
                 "lowerLimitSigRegion2D": "0.",
                 "prepfit": true, 
                 "template_binning" : [ 0.0,0.1,5.0,15.0],
-                "_template_binning" : [ 0.0,0.05,2.0,5.0,10.0,15.0],
-                "_template_binning" : [ 0.0,5.0,15.0],
                 "upperLimitSigRegion2D": "4.", 
                 "upperLimitSigRegion1D": "5.", 
-		"mass_binning" :"mass[13000,200.0,13000.0]"
+		"mass_binning" :"mass[13000,200.0,13000.0]",
+		"diphomassEBEB_binning" :[230.0,253.415384615,281.651965812,295.277948718,332.332307692,408.787692308,500.0,600.0,800.0,12999.0],
+		"diphomassEBEBblind_binning" :[230.0,253.415384615,281.651965812,295.277948718,332.332307692,408.787692308,500.0,12999.0],
+                "diphomassEBEE_binning":[320.0,355.459828644,443.85640967,500.0, 600.0,800.0,12999.0153846],
+                "diphomassEBEEblind_binning":[320.0,355.459828644,443.85640967,500.0,12999.0153846]
 		}
 	},
 "jackknife":{ 
@@ -32,7 +34,7 @@
                 "categories" :["EB","EE"]
     },
    "nominalFit":{
-        "_3_components":{
+        "3_components":{
         		"dimensions" :"2D", 
         		"observable": "templateNdim2d_unroll",
                 "components": ["pp","pf","ff"],
@@ -43,7 +45,7 @@
 		"mass_binning" :"mass[13000,0.0,13000.0]",
                 "extended_fit":false
          },
-        "2_components":{
+        "_2_components":{
         		"dimensions" :"2D", 
         		"observable": "templateNdim2d_unroll",
                 "components": ["pp","pf"],
@@ -56,6 +58,15 @@
                 "treetruth":"truth_fraction_all",
                 "_treetruth":"truth_fraction_signalregion",
                 "dimensions" :"2D", 
+                "JK_EBEB_blind":[0.00746436270731503, 0.00687231555828861, 0.010172747399738  , 0.0154827562059132 , 0.0130907454386619, 0.0252044794540751,0.03832663],
+                "JK_EBEB":[0.00746436270731503, 0.00687231555828861, 0.010172747399738  , 0.0154827562059132 , 0.0130907454386619, 0.0252044794540751,  0.0505652363533445 , 0.0259307676481065,  0.0384838948670937],
+                "JK_EBEE_blind":[0.01966708222964,0.0240054080131722,  0.0533973423075067, 0.02135881], 
+                "JK_EBEE" : [0.01966708222964,0.0240054080131722,  0.0533973423075067,  0.0229569417388755  ,0.0314322794138846, 0.00968720650518661],
+                "upperend_lastbin":1600,
+                "lowerend_lastbin":800,
+                "blindingpoint":500,
+                "syserrorEBEB":0.087,
+                "syserrorEBEE":0.144,
                 "categories" :["EBEE","EBEB"]
     },
     "build3d":{

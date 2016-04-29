@@ -33,19 +33,46 @@ There are two options. Either running over the full mass range for comparison pl
 	- `--lumi` puts lumi on plots if lumi.json file loaded
 	- `--fit-mc` if also comparison plots for MC templates needed
     - `--no-mctruth` if not event MCtruth is needed
-	- `fit-massbins`: "x,y,z" translates to x massbins on the whole,y for this execution, starting from bin z. "1,1,o" corresponds to full mass range
+	- `fit-massbins`: "x,y,z" translates to x massbins on the whole,y massbins we want to run over now, starting from bin z. "1,1,0" corresponds to full mass range
 	- `fixed-massbins` looks for an array, given in the `templates_fitter.json`
 
 ### 2d fit with unrolled histograms
-- `./templates_maker.py --load templates_maker_prepare.json  --read-ws fit056_v19_mb5_w5_template.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/compare_temp056_v19_3comp -o fit056_v19_mb5_3comp_all.root --nominal-fit --fit-massbins 5,5,0 --fit-template unrolled_mctruth --fit-categories EBEB`
-- fit-template can be unrolled_mctruth or unrolled_template
-- massbins: overall number of bins, how many bins we want to run over, startbin
-- fit-categories: EBEB or EBEE
+./templates_fitter.py --load templates_fitter.json,lumi.json --read-ws compared_moriond16v1_sync_v5.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/moriond16/bkg_decomposition_moriond16v1_sync_v5/  --purity-sigregion -o fitted_moriond16v1_sync_v5_data.root  --nominal-fit --fixed-massbins  --template-binning="0.0,0.1,5.0,15.0" --fit-template unrolled_template_mix --store-new-only --lumi  2.7 --saveas pdf,convert_png,root |tee output_fit_moriond_v5_verbose.txt
+- options:
+	- fit-template can be "unrolled_mctruth" or "unrolled_template_mix" + optional `--fit-mc`. Please be aware that the QCD statistics are too low to have a 3-components with for mctruth, such that for this option only the 2-component fit works. This can be specified in `templates_fitter.json`
+	- optional: `--saveas pdf,convert_png,root` if problems with png figures
+	- optional: `|tee output_fit_moriond_v5.txt` prints out log file on screen and saves as a txt file
 
-### plots for purity vs massbins and pull function
-- `./templates_maker.py --load templates_maker_prepare.json  --read-ws fit056_v19_mb5_w5_all.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/test -o purity076_test.root --plot-purity --plot-closure mctruth --plot-purityvalue fraction`
-- plot-purityvalue: either fraction or number of events
-- plot-closure: for mctruth or template
+### plots for purity vs massbins in full charged iso range and signal region
+ `./templates_fitter.py --load templates_fitter.json,lumi.json --saveas pdf,convert_png,root --read-ws templates_moriond16v1_sync_v5.root,compared_moriond16v1_sync_v5.root,fitted_moriond16v1_sync_v5_data.root,fitted_moriond16v1_sync_v5_mc.root,fitted_moriond16v1_sync_v5_mctruth.root  -O /afs/cern.ch/user/m/mquittna/www/diphoton/moriond16/bkg_decomposition_moriond16v1_sync_v5/ --plot-purity --plot-closure template_mix --plot-purityvalue fraction  --lumi 2.7 --full-error -o purity_moriond16v1_sync_v5.root --store-new-only |tee output_fullregion_purity_moriond_v5.txt`
+
+- options:
+	- `--plot-closure` :template_mix or template
+	- `--plot-purityvalue`: either fraction or number of events
+	- `--plot-closure`: for mctruth or template
+	- `--full-error`: full error as statistical + jack-knife (see below) +systematic error computed
+	- `--no-mctruth`: not even mctruth wanted, data only
+	- `--fit-mc`: MC plots
+
+
+for the signal region you have for example:
+ `./templates_fitter.py --load templates_fitter_cmsswcomparison.json,lumi.json --saveas pdf,convert_png,root --read-ws templates_7415v2_v5_data_ecorr_pas.root,compared_templates_7415v2_v5_data_ecorr_pas.root,fitted_7415v2_v5_data_ecorr_pas.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/bkg_decomposition_templates_7415v2_v5_data_ecorr_pas/ --plot-purity --plot-closure template_mix --purity-sigregion --plot-purityvalue fraction --no-mctruth --lumi 2.7 --full-error -o purity_sigregion_7415v2_v5_data_ecorr_pas.root --store-new-only |tee output_sigregion_purity_74.txt` 
+- options:
+	- `--purity-sigregion`: to plot the purity in the signal region
+ 
+### getting Jack-knife uncertainty on templates
+You have to enable the different options in the respective json files for each step
+ `./templates_maker.py --input-dir=full_analysis_spring15_7412v2_sync_v3/  -o  templatesdatav3_JK.root --prepare-data --only-subset="2D" --load templates_maker.json,templates_maker_prepare.json`
+ `./templates_maker.py --load templates_maker_prepare.json,templates_maker.json --read-ws templatesdataMCSinglePhov3.root,fb24/templatesdataMCv3.root --mix-templates  --store-new-only -o mixdatav3_JK.root`
+
+ `./templates_fitter.py --load templates_fitter.json  --read-ws mixdataMCv3.root,templatesdatav3_JK.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b_JKpp/  -o JKppv3.root --jackknife --fixed-massbins --template-binning="0.,0.1,5.0,15.0" --store-new-only` 
+
+ `./templates_fitter.py --load templates_fitter.json  --read-ws mixdatav3_JK.root,templatesdataMCv3.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b_JKpf/  -o JKpfv3.root --jackknife --fixed-massbins --template-binning="0.,0.1,5.0,15.0" --store-new-only` 
+
+ `./templates_fitter.py --load templates_fitter.json  --read-ws templatesdatav3_JK.root,mixdataMCv3.root,fitv3_fixedmb_9b.root,fittedv3_fixedmb_9b_3comp_data.root,JKppv3.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b_JKpp/  -o fittedJKppv3.root --nominal-fit --fixed-massbins  --template-binning="0.0,0.1,5.0,15.0" --fit-template unrolled_template_mix --store-new-only`
+
+#./templates_fitter.py --load templates_fitter.json  --read-ws templatesdataMCv3.root,mixdatav3_JK.root,fitv3_fixedmb_9b.root,fittedv3_fixedmb_9b_3comp_data.root,JKpfv3.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/template_studies_v3/fixedmb_9b_JKpf/  -o fittedJKpfv3.root --nominal-fit --fixed-massbins  --template-binning="0.0,0.1,5.0,15.0" --fit-template unrolled_template_mix --store-new-only
+
 
 ## Compare data with MC for irreducible background
  - `./auto_mass_plot.sh`

@@ -243,17 +243,12 @@ class TemplatesFitApp(TemplatesApp):
                             diphomass=[320.0,12999.]
                         massrange=[mass_split[2],mass_split[1]]
                     elif options.fixed_massbins and cat=="EBEB":
-                        #diphomass=[700.,800.]
-                        if not options.blind:
-                        #diphomass=[200.0,216.187076923,230.0,253.415384615,281.651965812,295.277948718,332.332307692,408.787692308,500.0,600.,800.,12999.0]
-                            diphomass=[230.0,253.415384615,281.651965812,295.277948718,332.332307692,408.787692308,500.0,600.,800.,12999.0]
-                        else:diphomass=[230.0,253.415384615,281.651965812,295.277948718,332.332307692,408.787692308,500.0,12999.0]
+                        if not options.blind: diphomass = array.array('d',comparison.get("diphomassEBEB_binning"))
+                        else:diphomass = array.array('d',comparison.get("diphomassEBEBblind_binning"))
                         massrange=[0,len(diphomass)-1]
                     elif options.fixed_massbins and cat=="EBEE":
-                        ##diphomass=[299.446153846,320.0,355.459828644,443.85640967,500.0, 600.,800.,12999.0153846]
-                        if not options.blind:
-                            diphomass=[320.0,355.459828644,443.85640967,500.0, 600.,800.,12999.0153846]
-                        else:diphomass=[320.0,355.459828644,443.85640967,500.0,12999.0153846]
+                        if not options.blind: diphomass = array.array('d',comparison.get("diphomassEBEE_binning"))
+                        else:diphomass = array.array('d',comparison.get("diphomassEBEEblind_binning"))
                         massrange=[0,len(diphomass)-1]
                     if not options.no_mctruth:
                         truth_pp= "mctruth_%s_%s_%s" % (compname,fitname,cat)
@@ -1097,9 +1092,13 @@ class TemplatesFitApp(TemplatesApp):
               #save roofitresult in outputfile
                         data_massc.Print()
                         print data_massc.sumEntries()
-                        fit_studies = fitUnrolledPdf.fitTo(data_massc, RooFit.NumCPU(8),RooFit.Strategy(2),RooFit.Extended(extended_fit),RooFit.SumW2Error(False),RooFit.Save(True))
+                        ##fit_studies = fitUnrolledPdf.fitTo(data_massc, RooFit.NumCPU(8),RooFit.Strategy(2),RooFit.Extended(extended_fit),RooFit.SumW2Error(False),RooFit.Save(True),RooFit.Minos(False),RooFit.PrintLevel(3))
+                        fit_studies = fitUnrolledPdf.fitTo(data_massc, RooFit.NumCPU(8),RooFit.Strategy(2),RooFit.Extended(extended_fit),RooFit.SumW2Error(False),RooFit.Save(True),RooFit.Minos(True),RooFit.PrintLevel(1))
                         pu_pp=fpp.getParameter("jpp").getVal()
-                        err_pp=fpp.getParameter("jpp").getError()
+                        #TODO in json dont hardcode
+                        limit_minos=0.97
+                        if (pu_pp < limit_minos):err_pp=fpp.getParameter("jpp").getError()
+                        else: err_pp=abs(jpp.getAsymErrorLo())
                         print "pu_pp",pu_pp, "err_pp",err_pp
                         name=fitUnrolledPdf.GetName()
                         self.workspace_.rooImport(fitUnrolledPdf)
@@ -1107,10 +1106,12 @@ class TemplatesFitApp(TemplatesApp):
                         if len(components)>2: 
                             fpu_pf= ROOT.RooFormulaVar("fpu_pf","fpu_pf","(1-@0)*@1",ROOT.RooArgList(fpp.getParameter("jpp"),fpf.getParameter("jpf")))
                             pu_pf=fpu_pf.getVal()
-                            err_pf=fpu_pf.getPropagatedError(fit_studies)
+                            if (pu_pp < limit_minos): err_pf=fpu_pf.getPropagatedError(fit_studies)
+                            else: err_pf=0.
                             fpu_ff=ROOT.RooFormulaVar("fpu_ff","fpu_ff","(1-@0)*(1-@1)",ROOT.RooArgList(fpp.getParameter("jpp"),fpf.getParameter("jpf")))
                             pu_ff=fpu_ff.getVal()
-                            err_ff=fpu_ff.getPropagatedError(fit_studies)
+                            if (pu_pp < limit_minos): err_ff=fpu_ff.getPropagatedError(fit_studies)
+                            else: err_ff=0.
                             covariance_studies=fit_studies.covarianceMatrix()
                             correlation_studies=fit_studies.correlationMatrix()
                             self.workspace_.rooImport(covariance_studies, "covariance_studies_%i"%k)
@@ -1134,16 +1135,23 @@ class TemplatesFitApp(TemplatesApp):
                             fullsigregion=fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()
                             
                             fpuSig_pp= ROOT.RooFormulaVar("fpuSig_pp","fpuSig_pp","(@0*@1)/(@2)",ROOT.RooArgList(fpp,fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion")))
-                            print "manually computed purity in signal region:  pu_pp ",pu_pp," ppsigregion ",ppsigregion, " fullsigregion ",fullsigregion,"purity ", pu_pp*(ppsigregion)/fullsigregion 
+                            print "manually computed purity in signal region:  pu_pp ",pu_pp," ppsigregion ",ppsigregion, " fullsigregion ",fullsigregion,"purity ", (pu_pp*ppsigregion)/fullsigregion 
                             puSig_pp=fpuSig_pp.getVal()
                             print "sig region purity", puSig_pp 
-                            errSig_pp=fpuSig_pp.getPropagatedError(fit_studies)
-                            if err_pp !=0:ratSig_pp=errSig_pp/err_pp
-                            else:ratSig_pp=0.
+                            print
+                            print
+                            if (pu_pp < limit_minos):
+                                errSig_pp=fpuSig_pp.getPropagatedError(fit_studies)
+                                ratSig_pp=errSig_pp/err_pp
+                            else:
+                                ratSig_pp=1.
+                                errSig_pp=err_pp
+                            print "ratio", ratSig_pp, "errSig_pp", errSig_pp, "err_pp", err_pp
                             if len(components)==2:
                                 puSig_pf=1-puSig_pp
                                 errSig_pf=errSig_pp
-                                if err_pf !=0: ratSig_pf=errSig_pf/err_pf
+                                if err_pf !=0: 
+                                    ratSig_pf=errSig_pf/err_pf
                                 else: ratSig_pf=0.
                                 puSig_ff=0.
                                 errSig_ff=0.
@@ -1153,18 +1161,25 @@ class TemplatesFitApp(TemplatesApp):
                                 fpuSig_pf= ROOT.RooFormulaVar("fpuSig_pf","fpuSig_pf","(@0*@1)/@2",ROOT.RooArgList(fpu_pf,fitUnrolledPdf.pdfList()[1].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion")))
                                 pfsigregion=fitUnrolledPdf.pdfList()[1].createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()/fitUnrolledPdf.pdfList()[1].createIntegral(ROOT.RooArgSet(observable)).getVal()
                                 fullsigregion=fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()/fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable)).getVal()
-                                print "pfsigregion", pfsigregion, "fullsigregion",fullsigregion
                                 puSig_pf=fpuSig_pf.getVal()
                                 print "pf fraction in sigregion ", puSig_pf
-                                errSig_pf=fpuSig_pf.getPropagatedError(fit_studies)
-                                ratSig_pf=errSig_pf/err_pf
+                                if (pu_pp < limit_minos):
+                                    errSig_pf=fpuSig_pf.getPropagatedError(fit_studies)
+                                    ratSig_pf=errSig_pf/err_pf
+                                else:
+                                    errSig_pf=0.
+                                    ratSig_pf=0.
+
                                 fpuSig_ff= ROOT.RooFormulaVar("fpuSig_ff","fpuSig_ff","(@0*@1)/@2",ROOT.RooArgList(fpu_ff,fitUnrolledPdf.pdfList()[2].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion")))
                                 ffsigregion=fitUnrolledPdf.pdfList()[2].createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()/fitUnrolledPdf.pdfList()[2].createIntegral(ROOT.RooArgSet(observable)).getVal()
                                 fullsigregion=fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()/fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable)).getVal()
-                                print "ffsigregion", ffsigregion, "fullsigregion",fullsigregion
                                 puSig_ff=fpuSig_ff.getVal()
-                                errSig_ff=fpuSig_ff.getPropagatedError(fit_studies)
-                                ratSig_ff=errSig_ff/err_ff
+                                if (pu_pp < limit_minos):
+                                    errSig_ff=fpuSig_ff.getPropagatedError(fit_studies)
+                                    ratSig_ff=errSig_ff/err_ff
+                                else:
+                                    errSig_ff=0.
+                                    ratSig_ff=0.
                             tpSig.Fill(puSig_pp,errSig_pp,puSig_pf,errSig_pf,puSig_ff,errSig_ff,tree_mass.massbin,tree_mass.masserror)
                             tpRatSig.Fill(ratSig_pp,ratSig_pf,ratSig_ff,tree_mass.massbin,tree_mass.masserror)
     #ML fit to weighted dataset: SumW2Error takes statistics of dataset into account, scales with number of events in datasetif ON good for MC comparison, takes limited statistics of MC dataset into account
@@ -1553,6 +1568,7 @@ class TemplatesFitApp(TemplatesApp):
                     g_templatepfmc=ROOT.TGraphErrors(tree_templatemc.GetEntries())
                     g_templateffmc=ROOT.TGraphErrors(tree_templatemc.GetEntries())
                     nentries=tree_templatemc.GetEntries()
+                    #for MCtruth one can take either the counted truth entries or the fit, here we are using the counted ones
           #      if options.pu_sigregion:
           #              treetruthSigname="truth_fraction_signalregion"
           #              tree_truthpp=self.treeData("%s_pp_%s_%s"%(treetruthSigname, dim, cat))
@@ -1583,15 +1599,14 @@ class TemplatesFitApp(TemplatesApp):
                 #todo last JK correctly
                 if data and tot_err:
                     if options.blind:
-                        if cat=="EBEB": 
-                            JK=[0.00969710708263638 ,0.00745549032581063, 0.00746436270731503, 0.00687231555828861, 0.010172747399738  , 0.0154827562059132 , 0.0130907454386619, 0.0252044794540751,  (0.0505652363533445+0.0259307676481065+0.0384838948670937)/3]
-                        else:
-                            JK=[0.00969710708263638, 0.00745549032581063, 0.00746436270731503, 0.00687231555828861 ,0.010172747399738  , 0.0154827562059132 , 0.0130907454386619, 0.0252044794540751,  (0.0505652363533445+0.0259307676481065+0.0384838948670937)/3] 
+                        if cat=="EBEB":JK = array.array('d',options.plotPurity.get("JK_EBEB_blind"))
+                        elif cat=="EBEE":JK = array.array('d',options.plotPurity.get("JK_EBEE_blind"))
                     else:
-                        if cat=="EBEB": 
-                            JK=[0.00969710708263638 ,0.00745549032581063, 0.00746436270731503, 0.00687231555828861, 0.010172747399738  , 0.0154827562059132 , 0.0130907454386619, 0.0252044794540751,  0.0505652363533445 , 0.0259307676481065,  0.0384838948670937]
-                        else:
-                            JK=[0.00969710708263638, 0.00745549032581063, 0.00746436270731503, 0.00687231555828861 ,0.010172747399738  , 0.0154827562059132 , 0.0130907454386619, 0.0252044794540751,  0.0505652363533445,  0.0259307676481065,  0.0384838948670937] 
+                        if cat=="EBEB":JK = array.array('d',options.plotPurity.get("JK_EBEB"))
+
+                        elif cat=="EBEE":
+                            JK = array.array('d',options.plotPurity.get("JK_EBEE"))
+                if (len(JK)!= nentries):print "error JK uncertainty has not the same number of entries as mass bins"
                 for mb in range(0,nentries):
                     if not options.no_mctruth:
                         tree_mctruth.GetEntry(mb)
@@ -1599,11 +1614,11 @@ class TemplatesFitApp(TemplatesApp):
                         tree_template.GetEntry(mb)
                         if mb==(nentries-1):
                             if options.blind:
-                                massbin=(500+1600)/2.
-                                masserror=(1600-500)/2.
+                                massbin=(options.plotPurity.get("blindingpoint")+options.plotPurity.get("upperend_lastbin"))/2.
+                                masserror=(options.plotPurity.get("upperend_lastbin")-options.plotPurity.get("blindingpoint"))/2.
                             else:
-                                massbin=(800+1600)/2.
-                                masserror=(800)/2.
+                                massbin=(options.plotPurity.get("lowerend_lastbin")+options.plotPurity.get("upperend_lastbin"))/2.
+                                masserror=(options.plotPurity.get("lowerend_lastbin")-options.plotPurity.get("blindingpoint"))/2.
                         else:
                             massbin=tree_template.massbin
                             masserror=tree_template.masserror
@@ -1615,9 +1630,10 @@ class TemplatesFitApp(TemplatesApp):
                             pp_err=tree_template.error_pp
                             ff_err=tree_template.error_ff
                         elif tot_err and cat=="EBEB":
-                            sys=0.087
+                        #this error is the percentage and has thus to be multiplied by the purity
+                            sys=options.plotPurity.get("syserrorEBEB")
                         elif tot_err and cat=="EBEE":
-                            sys=0.144
+                            sys=options.plotPurity.get("syserrorEBEE")
                         if tot_err:
                             if not options.pu_sigregion:
                                 stat_pp=sqrt(JK[mb]*JK[mb]+tree_template.error_pp*tree_template.error_pp)
@@ -1629,6 +1645,7 @@ class TemplatesFitApp(TemplatesApp):
                                 stat_ff=sqrt(JK[mb]*JK[mb]+tree_template.error_ff*tree_template.error_ff)
                                 ff_sys=sys*sys*ff_p*ff_p
                                 ff_err=sqrt(sys*sys*ff_p*ff_p+stat_ff*stat_ff)
+                                print "JK", JK[mb], "ratio","stat error", tree_template.error_pp, "final stat error pp" , stat_pp 
                             else:
                                 tree_templateRat.GetEntry(mb)
                                 stat_pp=sqrt(JK[mb]*JK[mb]*tree_templateRat.ratSig_pp*tree_templateRat.ratSig_pp+tree_template.error_pp*tree_template.error_pp)
@@ -1640,11 +1657,12 @@ class TemplatesFitApp(TemplatesApp):
                                 pp_err=sqrt(pp_sys+stat_pp*stat_pp)
                                 pf_err=sqrt(pf_sys+stat_pf*stat_pf)
                                 ff_err=sqrt(ff_sys+stat_ff*stat_ff)
+                                print "JK", JK[mb], "ratio", tree_templateRat.ratSig_pp, "stat error", tree_template.error_pp, "final stat error pp" , stat_pp 
                             print "mb",mb,"pp_p", pp_p, "pp_err",stat_pp ,"pp_sys", sqrt(pp_sys)
                           #  print "pf_p",pf_p, "pf_err",stat_pf,"pf_sys", sqrt(pf_sys)
                           #  print "ff_p",ff_p, "ff_err",stat_ff,"ff_sys", sqrt(ff_sys)
                            # print "mb",mb
-                            print "pp_p", pp_p, "pp_err",pp_err
+                            print pp_p, "," ,pp_err
                          #   print "pf_p",pf_p, "pf_err",pf_err
                           #  print "ff_p",ff_p, "ff_err",ff_err
                           #  print
@@ -1670,12 +1688,13 @@ class TemplatesFitApp(TemplatesApp):
                         g_templateff.SetPointError(mb,masserror,ff_err)
                     else:
                         tree_templatemc.GetEntry(mb)
-                        if mb==(nentries-1) and cat=="EBEE":
-                            massbin=(800+1600)/2.
-                            masserror=(800)/2.
-                        elif mb==(nentries-1) and cat=="EBEB":
-                            massbin=(800+1600)/2.
-                            masserror=(1600-800)/2.
+                        if mb==(nentries-1):
+                            if options.blind:
+                                massbin=(options.plotPurity.get("blindingpoint")+options.plotPurity.get("upperend_lastbin"))/2.
+                                masserror=(options.plotPurity.get("upperend_lastbin")-options.plotPurity.get("blindingpoint"))/2.
+                            else:
+                                massbin=(options.plotPurity.get("lowerend_lastbin")+options.plotPurity.get("upperend_lastbin"))/2.
+                                masserror=(options.plotPurity.get("lowerend_lastbin")-options.plotPurity.get("blindingpoint"))/2.
                         else:
                             massbin=tree_templatemc.massbin
                             masserror=tree_templatemc.masserror
@@ -2009,10 +2028,11 @@ class TemplatesFitApp(TemplatesApp):
                 diphomass=self.massquantiles(dset_data,massargs,mass_b,mass_split)
                 massrange=[mass_split[2],mass_split[1]]
             elif options.fixed_massbins and cat=="EBEB":
-                diphomass=[200.0,216.187076923,230.0,253.415384615,281.651965812,295.277948718,332.332307692,408.787692308,500.0,600.,800.,12999.0]
+                diphomass = array.array('d',comparison.get("diphomassEBEB_binning"))
                 massrange=[0,len(diphomass)-1]
             elif options.fixed_massbins and cat=="EBEE":
-                diphomass=[299.446153846,320.0,355.459828644,443.85640967,500.0, 600.,800.,12999.0153846]
+                diphomass = array.array('d',comparison.get("diphomassEBEE_binning"))
+                
                 massrange=[0,len(diphomass)-1]
             for mb in range(massrange[0],massrange[1]):
                 massbin=(diphomass[mb]+diphomass[mb+1])/2.
