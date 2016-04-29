@@ -37,7 +37,7 @@ There are two options. Either running over the full mass range for comparison pl
 	- `fixed-massbins` looks for an array, given in the `templates_fitter.json`
 
 ### 2d fit with unrolled histograms
-./templates_fitter.py --load templates_fitter.json,lumi.json --read-ws compared_moriond16v1_sync_v5.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/moriond16/bkg_decomposition_moriond16v1_sync_v5/  --purity-sigregion -o fitted_moriond16v1_sync_v5_data.root  --nominal-fit --fixed-massbins  --template-binning="0.0,0.1,5.0,15.0" --fit-template unrolled_template_mix --store-new-only --lumi  2.7 --saveas pdf,convert_png,root |tee output_fit_moriond_v5_verbose.txt
+`./templates_fitter.py --load templates_fitter.json,lumi.json --read-ws compared_moriond16v1_sync_v5.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/moriond16/bkg_decomposition_moriond16v1_sync_v5/  --purity-sigregion -o fitted_moriond16v1_sync_v5_data.root  --nominal-fit --fixed-massbins  --template-binning="0.0,0.1,5.0,15.0" --fit-template unrolled_template_mix --store-new-only --lumi  2.7 --saveas pdf,convert_png,root |tee output_fit_moriond_v5_verbose.txt`
 - options:
 	- fit-template can be "unrolled_mctruth" or "unrolled_template_mix" + optional `--fit-mc`. Please be aware that the QCD statistics are too low to have a 3-components with for mctruth, such that for this option only the 2-component fit works. This can be specified in `templates_fitter.json`
 	- optional: `--saveas pdf,convert_png,root` if problems with png figures
@@ -55,7 +55,7 @@ There are two options. Either running over the full mass range for comparison pl
 	- `--fit-mc`: MC plots
 
 
-for the signal region you have for example:
+- for the signal region you have for example:
  `./templates_fitter.py --load templates_fitter_cmsswcomparison.json,lumi.json --saveas pdf,convert_png,root --read-ws templates_7415v2_v5_data_ecorr_pas.root,compared_templates_7415v2_v5_data_ecorr_pas.root,fitted_7415v2_v5_data_ecorr_pas.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/bkg_decomposition_templates_7415v2_v5_data_ecorr_pas/ --plot-purity --plot-closure template_mix --purity-sigregion --plot-purityvalue fraction --no-mctruth --lumi 2.7 --full-error -o purity_sigregion_7415v2_v5_data_ecorr_pas.root --store-new-only |tee output_sigregion_purity_74.txt` 
 - options:
 	- `--purity-sigregion`: to plot the purity in the signal region
