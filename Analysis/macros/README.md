@@ -9,32 +9,32 @@
 
 ### Preparing input: merge trees and fill template variables
 `./templates_maker.py --input-dir=/afs/cern.ch/user/m/musella/public/workspace/exo/full_analysis_moriond16v1_sync_v5_extra_vars_data/  -o  templates_moriond16v1_sync_v5.root --prepare-nosignal --only-subset="2D" --load templates_maker.json,templates_maker_prepare.json`
--json files:
+- json files:
 	- `templates_maker.json` contains datsets and aliases
 	- `templates_maker_prepare.json` contains specifications for templates creation
-
 - options: 
-	-`--prepare-nosignal` if no signal MC templates wanted
-	-`--prepare-data` if no MC templates wanted
-	-`--only-subset` "2D" for templates, refering to final "2D" fit, has extended ChIso region for 3.8 T. See also specifications in templates_maker_prepare.json. For the following event mixing the creation of single photon templates is also necessary "singlePho"
+	- `--prepare-nosignal` if no signal MC templates wanted
+	- `--prepare-data` if no MC templates wanted
+	- `--only-subset` "2D" for templates, refering to final "2D" fit, has extended ChIso region for 3.8 T. See also specifications in templates_maker_prepare.json. For the following event mixing the creation of single photon templates is also necessary "singlePho"
 
 ### Event mixing
 `./templates_maker.py --load templates_maker_prepare.json,templates_maker.json --read-ws templates_moriond16v1_sync_v5_singlephoton.root,templates_moriond16v1_sync_v5.root  --mix-mc --mix-templates  --store-new-only -o mix_moriond16v1_sync_v5.root`
 
 - options: 
-	-`--mix-mc` if MC templates for mixed pf and ff templates wanted
+	- `--mix-mc` if MC templates for mixed pf and ff templates wanted
 	- `--store-new-only` possible as it saves time. Just read all inputs afterwards via `--read-ws` afterwards.
 
 
 ### Comparison plots for templates
 There are two options. Either running over the full mass range for comparison plots, or to run with fixed mass bins to prepare the input for the final purity vs mass comparison.
+
 `./templates_fitter.py --load templates_fitter.json,lumi.json --read-ws templates_moriond16v1_sync_v5.root,mix_moriond16v1_sync_v5.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/moriond16/bkg_decomposition_moriond16v1_sync_v5/ -o compared_moriond16v1_sync_v5_fullmass.root --compare-templates --fit-massbins 1,1,0 --template-binning="0.0,0.1,5.0,15.0" --fit-mc  --store-new-only --lumi 2.7`
 - options: 
-	-`--lumi` puts lumi on plots if lumi.json file loaded
-	-`--fit-mc` if also comparison plots for MC templates needed
+	- `--lumi` puts lumi on plots if lumi.json file loaded
+	- `--fit-mc` if also comparison plots for MC templates needed
     - `--no-mctruth` if not event MCtruth is needed
-	-`fit-massbins`: "x,y,z" translates to x massbins on the whole,y for this execution, starting from bin z. "1,1,o" corresponds to full mass range
-	-`fixed-massbins` looks for an array, given in the `templates_fitter.json`
+	- `fit-massbins`: "x,y,z" translates to x massbins on the whole,y for this execution, starting from bin z. "1,1,o" corresponds to full mass range
+	- `fixed-massbins` looks for an array, given in the `templates_fitter.json`
 
 ### 2d fit with unrolled histograms
 - `./templates_maker.py --load templates_maker_prepare.json  --read-ws fit056_v19_mb5_w5_template.root -O /afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/compare_temp056_v19_3comp -o fit056_v19_mb5_3comp_all.root --nominal-fit --fit-massbins 5,5,0 --fit-template unrolled_mctruth --fit-categories EBEB`
