@@ -1606,7 +1606,7 @@ class TemplatesFitApp(TemplatesApp):
 
                         elif cat=="EBEE":
                             JK = array.array('d',options.plotPurity.get("JK_EBEE"))
-                if (len(JK)!= nentries):print "error JK uncertainty has not the same number of entries as mass bins"
+                    if (len(JK)!= nentries):print "error JK uncertainty has not the same number of entries as mass bins"
                 for mb in range(0,nentries):
                     if not options.no_mctruth:
                         tree_mctruth.GetEntry(mb)
