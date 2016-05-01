@@ -24,6 +24,10 @@
                                      
                                      "leadPt>>phoPt(150,0,3000)",
                                      "subleadPt>>phoPt(150,0,3000)",
+                                     "leadPhi>>leadPhi(64,-3.2,3.2)",
+                                     "subleadPhi>>subleadPhi(64,-3.2,3.2)",
+                                     "leadPhi>>phoPhi(64,-3.2,3.2)",
+                                     "subleadPhi>>phoPhi(64,-3.2,3.2)",
                                      
                                      "leadPt>>leadPt(150,0,3000)",
                                      "subleadPt>>subleadPt(150,0,3000)",

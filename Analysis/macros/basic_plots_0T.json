@@ -311,10 +311,10 @@
 					,null,null],
 
 
-	      ["leadPt"			,[["Rebin",2],["ytitle","Events / %(binw)s GeV"],["xtitle","p_{T}(#gamma 1) (GeV)"],["xrange",[100.0,1000.0]],["overflow",[null]]]
+	      ["leadPt"			,[["Rebin",2],["ytitle","Events / %(binw)s GeV"],"density", ["xtitle","p_{T}(#gamma 1) (GeV)"],["xrange",[100.0,1000.0]],["overflow",[null]]]
 					,null,null],
 
-	      ["subleadPt"		,[["Rebin",2],["ytitle","Events / %(binw)s GeV"],["xtitle","p_{T}(#gamma 2) (GeV)"],["xrange",[100.0,1000.0]],["overflow",[null]]]
+	      ["subleadPt"		,[["Rebin",2],["ytitle","Events / %(binw)s GeV"],"density",["xtitle","p_{T}(#gamma 2) (GeV)"],["xrange",[100.0,1000.0]],["overflow",[null]]]
 					,null,null],
 
  	      ["leadChgNum"		,[["xtitle","Number of charged tracks #gamma_{1}"],["xrange",[0,6]],
@@ -356,7 +356,11 @@
 
 	      ["subleadSigmaIpIp"	,[["Rebin",3],["ytitle","Events / %(binw)s"],["xtitle","#gamma_{2} #sigma_{i#phi i#phi}"],["overflow",[null]]]
 					,null,null,["sig"]],
-	      			    
+	      ["leadPhi"		,[["Rebin",3],["ytitle","Events / %(binw)s"],["xtitle","#gamma_{1} #Phi"],["overflow",[null]]]
+					,null,null,["sig"]],
+	      ["subleadPhi"		,[["Rebin",3],["ytitle","Events / %(binw)s"],["xtitle","#gamma_{2} #Phi"],["overflow",[null]]]
+					,null,null,["sig"]],
+
 	      ["leadTrkMissingHits"	,[["ytitle","Events"],["xtitle","#gamma_{1} electron track missing hits"]]
 					,null,null,["sig"]],
 

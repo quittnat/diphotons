@@ -76,8 +76,15 @@ You have to enable the different options in the respective json files for each s
 
 ## Compare data with MC for irreducible background
  - `./auto_mass_plot.sh`
- - `./basic_plots.py --load basic_plots.json --bkg-file=full_analysis_spring15_7415v2_sync_v3_compare_2/output_mc.root --data-file=full_analysis_spring15_7415v2_sync_v3_compare_2/output_data.root --lumi 2.4 --fudge 621 -O /afs/cern.ch/user/m/mquittna/www/diphoton/comparison_24fb`
+ - `./basic_plots.py --load basic_plots.json --bkg-file=full_analysis_spring15_7415v2_sync_v3_compare_2/output_mc.root --data-file=full_analysis_spring15_7415v2_sync_v3_compare_2/output_data.root --lumi 2.4 --fudge 1.4 -O /afs/cern.ch/user/m/mquittna/www/diphoton/comparison_24fb`
 
+## Extra activity plots
+ - `./auto_jeteta_plot.sh `
+	- for plots that require at least one jet
+-  `./auto_jet_plot.sh `
+	- for the rest
+## 0 T plots data/MC plots
+- `./auto_0T.sh`
 
 
 ### Throwing toys

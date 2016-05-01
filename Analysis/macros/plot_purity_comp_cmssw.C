@@ -1,9 +1,9 @@
 {
 	using namespace RooFit;
-//	TFile *_file0 = TFile::Open("purity_sigregion_7415v2_v5_data_ecorr_pas.root");
-//	TFile *_file1 = TFile::Open("purity_sigregion_moriond16v1_sync_v5.root");
-	TFile *_file0 = TFile::Open("purity_fullregion_7415v2_v5_data_ecorr_pas.root");
-	TFile *_file1 = TFile::Open("purity_fullregion_moriond16v1_sync_v5.root");
+	TFile *_file0 = TFile::Open("purity_sigregion_7415v2_v5_data_ecorr_pas.root");
+	TFile *_file1 = TFile::Open("purity_sigregion_moriond16v1_sync_v5.root");
+//	TFile *_file0 = TFile::Open("purity_fullregion_7415v2_v5_data_ecorr_pas.root");
+//	TFile *_file1 = TFile::Open("purity_fullregion_moriond16v1_sync_v5.root");
 
 
  _file0->cd();	
@@ -48,10 +48,10 @@
 
 
 
-		canvEBEB->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/moriond16/bkg_decomposition_moriond16v1_sync_v5/%s.png", canvEBEB->GetName()));
-//	canvEBEB->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/moriond16/bkg_decomposition_moriond16v1_sync_v5/%ssigregion.png", canvEBEB->GetName()));
-	canvEBEE->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/moriond16/bkg_decomposition_moriond16v1_sync_v5/%s.png", canvEBEE->GetName()));
-//	canvEBEE->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/moriond16/bkg_decomposition_moriond16v1_sync_v5/%ssigregion.png", canvEBEE->GetName()));
+//		canvEBEB->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/moriond16/bkg_decomposition_moriond16v1_sync_v5/%s.png", canvEBEB->GetName()));
+	canvEBEB->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/moriond16/bkg_decomposition_moriond16v1_sync_v5/%ssigregion.png", canvEBEB->GetName()));
+//	canvEBEE->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/moriond16/bkg_decomposition_moriond16v1_sync_v5/%s.png", canvEBEE->GetName()));
+	canvEBEE->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/moriond16/bkg_decomposition_moriond16v1_sync_v5/%ssigregion.png", canvEBEE->GetName()));
 }
 
 	    

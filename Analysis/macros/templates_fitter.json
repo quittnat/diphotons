@@ -38,6 +38,7 @@
         		"dimensions" :"2D", 
         		"observable": "templateNdim2d_unroll",
                 "components": ["pp","pf","ff"],
+                "limit_to_use_minos": 0.97, 
                 "lowerLimitSigRegion": "0.", 
                 "upperLimitSigRegion": "4.", 
 				"jackknife_pf":false,

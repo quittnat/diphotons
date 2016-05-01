@@ -824,12 +824,15 @@ class TemplatesFitApp(TemplatesApp):
         margin = ROOT.gPad.GetBottomMargin()+ROOT.gPad.GetTopMargin()
        #B ROOT.gPad.SetTopMargin(0.1*margin)
         ROOT.gPad.SetBottomMargin(0.2*margin)
+        ROOT.gPad.Modified()
+        ROOT.gPad.Update()
 
         canv.cd(2)
         margin = ROOT.gPad.GetBottomMargin()+ROOT.gPad.GetTopMargin()
         ROOT.gPad.SetBottomMargin(1.8*margin)
         ROOT.gPad.SetTopMargin(0.25*margin)
-                
+        ROOT.gPad.Modified()
+        ROOT.gPad.Update()
         self.keep( [canv] )
         self.format(canv,self.options.postproc)
         self.autosave(True)
@@ -1096,7 +1099,7 @@ class TemplatesFitApp(TemplatesApp):
                         fit_studies = fitUnrolledPdf.fitTo(data_massc, RooFit.NumCPU(8),RooFit.Strategy(2),RooFit.Extended(extended_fit),RooFit.SumW2Error(False),RooFit.Save(True),RooFit.Minos(True),RooFit.PrintLevel(1))
                         pu_pp=fpp.getParameter("jpp").getVal()
                         #TODO in json dont hardcode
-                        limit_minos=0.97
+                        limit_minos=options.nominalFit.get("limit_to_use_minos")
                         if (pu_pp < limit_minos):err_pp=fpp.getParameter("jpp").getError()
                         else: err_pp=abs(jpp.getAsymErrorLo())
                         print "pu_pp",pu_pp, "err_pp",err_pp
@@ -1618,7 +1621,7 @@ class TemplatesFitApp(TemplatesApp):
                                 masserror=(options.plotPurity.get("upperend_lastbin")-options.plotPurity.get("blindingpoint"))/2.
                             else:
                                 massbin=(options.plotPurity.get("lowerend_lastbin")+options.plotPurity.get("upperend_lastbin"))/2.
-                                masserror=(options.plotPurity.get("lowerend_lastbin")-options.plotPurity.get("blindingpoint"))/2.
+                                masserror=(options.plotPurity.get("upperend_lastbin")-options.plotPurity.get("lowerend_lastbin"))/2.
                         else:
                             massbin=tree_template.massbin
                             masserror=tree_template.masserror
@@ -1645,7 +1648,7 @@ class TemplatesFitApp(TemplatesApp):
                                 stat_ff=sqrt(JK[mb]*JK[mb]+tree_template.error_ff*tree_template.error_ff)
                                 ff_sys=sys*sys*ff_p*ff_p
                                 ff_err=sqrt(sys*sys*ff_p*ff_p+stat_ff*stat_ff)
-                                print "JK", JK[mb], "ratio","stat error", tree_template.error_pp, "final stat error pp" , stat_pp 
+                           #     print "JK", JK[mb], "ratio","stat error", tree_template.error_pp, "final stat error pp" , stat_pp 
                             else:
                                 tree_templateRat.GetEntry(mb)
                                 stat_pp=sqrt(JK[mb]*JK[mb]*tree_templateRat.ratSig_pp*tree_templateRat.ratSig_pp+tree_template.error_pp*tree_template.error_pp)
@@ -1657,8 +1660,8 @@ class TemplatesFitApp(TemplatesApp):
                                 pp_err=sqrt(pp_sys+stat_pp*stat_pp)
                                 pf_err=sqrt(pf_sys+stat_pf*stat_pf)
                                 ff_err=sqrt(ff_sys+stat_ff*stat_ff)
-                                print "JK", JK[mb], "ratio", tree_templateRat.ratSig_pp, "stat error", tree_template.error_pp, "final stat error pp" , stat_pp 
-                            print "mb",mb,"pp_p", pp_p, "pp_err",stat_pp ,"pp_sys", sqrt(pp_sys)
+                         #       print "JK", JK[mb], "ratio", tree_templateRat.ratSig_pp, "stat error", tree_template.error_pp, "final stat error pp" , stat_pp 
+                           # print "mb",mb,"pp_p", pp_p, "pp_err",stat_pp ,"pp_sys", sqrt(pp_sys)
                           #  print "pf_p",pf_p, "pf_err",stat_pf,"pf_sys", sqrt(pf_sys)
                           #  print "ff_p",ff_p, "ff_err",stat_ff,"ff_sys", sqrt(ff_sys)
                            # print "mb",mb
@@ -1796,7 +1799,7 @@ class TemplatesFitApp(TemplatesApp):
 
     ## ------------------------------------------------------------------------------------------------------------
     def plotClosure(self,cat,pu_val,opt,opt2,g_templatepp=None,g_templatepf=None,g_templateff=None,g_ratiopp=None,g_mctruthpp=None,g_mctruthpf=None,g_mctruthff=None):
-        leg = ROOT.TLegend(0.4,0.65,0.8,0.9)
+        leg = ROOT.TLegend(0.4,0.7,0.8,0.9)
         leg.SetNColumns(2)
         basicStyle = [["SetMarkerSize",1.3],["SetLineWidth",2]]
         mc_expectedStyle = basicStyle+ [["SetMarkerStyle",ROOT.kFullTriangleUp],["SetTitle",";m_{#gamma #gamma} (GeV);Fraction"]]
@@ -1887,7 +1890,7 @@ class TemplatesFitApp(TemplatesApp):
         ratio_expectedStyle = basicStyle+ [["SetMarkerStyle",ROOT.kFullTriangleUp],["SetLineStyle",1]]
         mctruth_expectedStyle = basicStyle+ [["SetMarkerStyle",ROOT.kOpenCircle],["SetLineStyle",ROOT.kDashed],["SetTitle",";m_{#gamma #gamma} (GeV);Fraction"]]
         if g_mctruthpp:
-            leg = ROOT.TLegend(0.4,0.65,0.8,0.9)
+            leg = ROOT.TLegend(0.4,0.7,0.8,0.9)
             cpu = ROOT.TCanvas("cpu_%s_%s_%s_%s" % (opt,cat,pu_val,opt2),"cpu_%s_%s_%s_%s" %(opt,cat,pu_val,opt2),1400,1000)
         else: 
             leg = ROOT.TLegend(0.7,0.7,0.8,0.9)

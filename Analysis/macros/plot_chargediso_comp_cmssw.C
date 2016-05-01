@@ -6,8 +6,8 @@
  //	TFile *_file1 = TFile::Open("compared_moriond16v1_sync_v4_data.root");
 
 	TFile *_file0 = TFile::Open("compared_templates_7415v2_v5_data_ecorr_pas_fullmass.root");
-// 	TFile *_file1 = TFile::Open("compared_moriond16v1_sync_v5_fullmass.root");
- 	TFile *_file1 = TFile::Open("compared_moriond16v1_sync_v4_data_fullmass.root");
+ 	TFile *_file1 = TFile::Open("compared_moriond16v1_sync_v5_fullmass.root");
+// 	TFile *_file1 = TFile::Open("compared_moriond16v1_sync_v4_data_fullmass.root");
  	_file0->cd();	
 //	RooDataHist* dppEBEB_old= (RooDataHist*)(wtemplates->data("unrolled_template_pp_2D_EBEB_mb_230_12999"));
 //    RooDataHist* dppEBEE_old= (RooDataHist*)(wtemplates->data("unrolled_template_pp_2D_EBEE_mb_320_12999"));
@@ -94,8 +94,8 @@
     gPad->SetBottomMargin(1.8*margin2);
     gPad->SetTopMargin(0.25*margin2);
                 
-	canvEBEB->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/moriond16/bkg_decomposition_moriond16v1_sync_v4_data/%s.png", canvEBEB->GetName()));
-//	canvEBEB->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/moriond16/bkg_decomposition_moriond16v1_sync_v5/%s.png", canvEBEB->GetName()));
+//	canvEBEB->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/moriond16/bkg_decomposition_moriond16v1_sync_v4_data/%s.png", canvEBEB->GetName()));
+	canvEBEB->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/moriond16/bkg_decomposition_moriond16v1_sync_v5/%s.png", canvEBEB->GetName()));
 //	canvEBEB->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/moriond16/bkg_decomposition_moriond16v1_sync_v4_data/%s_800_12999.png", canvEBEB->GetName()));
 	//canvEBEB->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/moriond16/bkg_decomposition_moriond16v1_sync_v5/%s_800_12999.png", canvEBEB->GetName()));
 	//////////////////////////////////////
@@ -142,8 +142,8 @@
     double margin4 = gPad->GetBottomMargin()+gPad->GetTopMargin();
     gPad->SetBottomMargin(1.8*margin4);
     gPad->SetTopMargin(0.25*margin4);
-//canvEBEE->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/moriond16/bkg_decomposition_moriond16v1_sync_v5/%s.png", canvEBEE->GetName()));
-	canvEBEE->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/moriond16/bkg_decomposition_moriond16v1_sync_v4_data/%s.png", canvEBEE->GetName()));
+canvEBEE->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/moriond16/bkg_decomposition_moriond16v1_sync_v5/%s.png", canvEBEE->GetName()));
+//	canvEBEE->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/moriond16/bkg_decomposition_moriond16v1_sync_v4_data/%s.png", canvEBEE->GetName()));
 //	canvEBEE->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/moriond16/bkg_decomposition_moriond16v1_sync_v4_data/%s_800_12999.png", canvEBEE->GetName()));
 //	canvEBEE->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/moriond16/bkg_decomposition_moriond16v1_sync_v4_data/%s_800_12999.png", canvEBEE->GetName()));
 //	canvEBEE->SaveAs(Form("/afs/cern.ch/user/m/mquittna/www/diphoton/moriond16/bkg_decomposition_moriond16v1_sync_v5/%s_800_12999.png", canvEBEE->GetName()));
