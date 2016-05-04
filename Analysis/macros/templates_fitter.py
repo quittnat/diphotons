@@ -986,24 +986,19 @@ class TemplatesFitApp(TemplatesApp):
                 data=data.reduce(ROOT.RooArgSet(mass,observable))
                 data.Print()
                 tree_mass=self.treeData("%s_pp_2D_%s"%(options.plotPurity["treetruth"], cat))
-                if not dodata:
-                    tp = ROOT.TNtuple("tree_fitresult_fraction%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_fraction_%s_%s_%s" % (tempname,dim,cat),"purity_pp:error_pp_sumw2on:error_pp:purity_pf:error_pf_sumw2on:error_pf:purity_ff:error_ff:massbin:masserror" )
-                    self.store_[tp.GetName()] = tp
-                if dodata:
-                    tps=[]
-                    for i in range(num):
-                        if not (jkpf or jkpp):tpi = ROOT.TNtuple("tree_fitresult_fraction%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_fraction_%s_%s_%s" % (tempname,dim,cat),"purity_pp:error_pp:purity_pf:error_pf:purity_ff:error_ff:massbin:masserror" )
-                        elif jkpf: tpi = ROOT.TNtuple("tree_fitresult_fraction%s%s_jkpf%i_%s_%s" % (dset,tempname,i,dim,cat),"tree_fitresult_fraction_%s_jk%i_%s_%s" % (tempname,i,dim,cat),"purity_pp:error_pp:purity_pf:error_pf:massbin:masserror" )
+                tps=[]
+                for i in range(num):
+                    if not (jkpf or jkpp):tpi = ROOT.TNtuple("tree_fitresult_fraction%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_fraction_%s_%s_%s" % (tempname,dim,cat),"purity_pp:err_pplow:err_pphigh:purity_pf:err_pflow:err_pfhigh:purity_ff:err_fflow:err_ffhigh:massbin:masserror" )
+                    elif jkpf: tpi = ROOT.TNtuple("tree_fitresult_fraction%s%s_jkpf%i_%s_%s" % (dset,tempname,i,dim,cat),"tree_fitresult_fraction_%s_jk%i_%s_%s" % (tempname,i,dim,cat),"purity_pp:error_pp:purity_pf:error_pf:massbin:masserror" )
 
-                        elif jkpp: tpi = ROOT.TNtuple("tree_fitresult_fraction%s%s_jkpp%i_%s_%s" % (dset,tempname,i,dim,cat),"tree_fitresult_fraction_%s_jk%i_%s_%s" % (tempname,i,dim,cat),"purity_pp:error_pp:purity_pf:error_pf:massbin:masserror" )
-                        self.store_[tpi.GetName()] = tpi
-                        tps.append(tpi)
-                    if extended_fit:
-                        ntp = ROOT.TNtuple("tree_fitresult_events%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_events_%s_%s_%s" % (tempname,dim,cat),"norm:purity_pp:error_pp_sumw2off:error_pp_sumw2on:purity_pf:error_pf_sumw2off:error_pf_sumw2on:massbin:masserror" )
-                        self.store_[ntp.GetName()] = ntp
+                    elif jkpp: tpi = ROOT.TNtuple("tree_fitresult_fraction%s%s_jkpp%i_%s_%s" % (dset,tempname,i,dim,cat),"tree_fitresult_fraction_%s_jk%i_%s_%s" % (tempname,i,dim,cat),"purity_pp:error_pp:purity_pf:error_pf:massbin:masserror" )
+                    self.store_[tpi.GetName()] = tpi
+                    tps.append(tpi)
                 if options.pu_sigregion:
-                    tpSig = ROOT.TNtuple("tree_fitresult_fraction_sigRegion%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_fraction_sigRegion_%s_%s_%s" % (tempname,dim,cat),"purity_pp:error_pp:purity_pf:error_pf:purity_ff:error_ff:massbin:masserror" )
-                    tpRatSig = ROOT.TNtuple("tree_fitresult_fraction_RatsigRegion%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_fraction_RatsigRegion_%s_%s_%s" % (tempname,dim,cat),"ratSig_pp:ratSig_pf:ratSig_ff:massbin:masserror" )
+                    print dset,tempname, dim, cat
+                    tpSig = ROOT.TNtuple("tree_fitresult_fraction_sigRegion%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_fraction_sigRegion%s%s_%s_%s" % (dset,tempname,dim,cat),"purity_pp:err_pplow:err_pphigh:purity_pf:err_pflow:err_pfhigh:purity_ff:err_fflow:err_ffhigh:massbin:masserror" )
+
+                    tpRatSig = ROOT.TNtuple("tree_fitresult_fraction_ratio_of_uncertainties_forsigregion%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_fraction_ratio_of_uncetainties_forsigregion%s%s_%s_%s" % (dset,tempname,dim,cat),"ratSig_pp:ratSig_pf:ratSig_ff:massbin:masserror" )
                     self.store_[tpSig.GetName()] = tpSig
                     self.store_[tpRatSig.GetName()] = tpRatSig
                 massrange= range(0,tree_mass.GetEntries())
@@ -1096,25 +1091,37 @@ class TemplatesFitApp(TemplatesApp):
               #save roofitresult in outputfile
                         data_massc.Print()
                         print data_massc.sumEntries()
-                        ##fit_studies = fitUnrolledPdf.fitTo(data_massc, RooFit.NumCPU(8),RooFit.Strategy(2),RooFit.Extended(extended_fit),RooFit.SumW2Error(False),RooFit.Save(True),RooFit.Minos(False),RooFit.PrintLevel(3))
                         fit_studies = fitUnrolledPdf.fitTo(data_massc, RooFit.NumCPU(8),RooFit.Strategy(2),RooFit.Extended(extended_fit),RooFit.SumW2Error(False),RooFit.Save(True),RooFit.Minos(True),RooFit.PrintLevel(1))
                         pu_pp=fpp.getParameter("jpp").getVal()
-                        limit_minos=options.nominalFit.get("limit_to_use_minos")
-                        if (pu_pp < limit_minos):err_pp=fpp.getParameter("jpp").getError()
-                        else: err_pp=abs(jpp.getAsymErrorLo())
-                        print "pu_pp",pu_pp, "err_pp",err_pp
+                        limit_minos=float(nomFit.get("limit_to_use_minos"))#TODO ask if minos error fails instead
+                        if (pu_pp < limit_minos):
+                            err_pphigh=fpp.getParameter("jpp").getAsymErrorHi()
+                            err_pplow=jpp.getAsymErrorLo()
+                        else: 
+                            err_pphigh=ROOT.TEfficiency.ClopperPearson(int(data_entries),int(pu_pp*data_entries),0.68,True)-pu_pp
+                            err_pplow=-1*(pu_pp-ROOT.TEfficiency.ClopperPearson(int(data_entries),int(pu_pp*data_entries),0.68,False))
+                        print "pu_pp",pu_pp, "err_pplow",err_pplow,"err_pphigh",err_pphigh
                         name=fitUnrolledPdf.GetName()
                         self.workspace_.rooImport(fitUnrolledPdf)
 
                         if len(components)>2: 
                             fpu_pf= ROOT.RooFormulaVar("fpu_pf","fpu_pf","(1-@0)*@1",ROOT.RooArgList(fpp.getParameter("jpp"),fpf.getParameter("jpf")))
                             pu_pf=fpu_pf.getVal()
-                            if (pu_pp < limit_minos): err_pf=fpu_pf.getPropagatedError(fit_studies)
-                            else: err_pf=0.
+                            if (pu_pp < limit_minos):
+                                #TODO correct error         
+                                err_pflow=-1*fpu_pf.getPropagatedError(fit_studies)
+                                err_pfhigh=fpu_pf.getPropagatedError(fit_studies)
+                            else: 
+                                err_pfhigh=ROOT.TEfficiency.ClopperPearson(int(data_entries),int(pu_pf*data_entries),0.68,True)-pu_pf
+                                err_pflow=-1*(pu_pf-ROOT.TEfficiency.ClopperPearson(int(data_entries),int(pu_pf*data_entries),0.68,False))
                             fpu_ff=ROOT.RooFormulaVar("fpu_ff","fpu_ff","(1-@0)*(1-@1)",ROOT.RooArgList(fpp.getParameter("jpp"),fpf.getParameter("jpf")))
                             pu_ff=fpu_ff.getVal()
-                            if (pu_pp < limit_minos): err_ff=fpu_ff.getPropagatedError(fit_studies)
-                            else: err_ff=0.
+                            if (pu_pp < limit_minos): 
+                                err_fflow=-2*fpu_ff.getPropagatedError(fit_studies)
+                                err_ffhigh=fpu_ff.getPropagatedError(fit_studies)
+                            else: 
+                                err_ffhigh=ROOT.TEfficiency.ClopperPearson(int(data_entries),int(pu_ff*data_entries),0.68,True)-pu_ff
+                                err_fflow=-1*(pu_ff-ROOT.TEfficiency.ClopperPearson(int(data_entries),int(pu_ff*data_entries),0.68,False))
                             covariance_studies=fit_studies.covarianceMatrix()
                             correlation_studies=fit_studies.correlationMatrix()
                             self.workspace_.rooImport(covariance_studies, "covariance_studies_%i"%k)
@@ -1123,45 +1130,45 @@ class TemplatesFitApp(TemplatesApp):
                         else:
                             pu_pf=1-pu_pp
                             pu_ff=0.
-                            err_ff=0.
-                            err_pf=err_pp
-                        print
-                       # self.histunrollback(data_massc,observable,catd,cut_s,options.template_binning,pu_pp,pu_pf,pu_ff)
-                        if dodata:
-                            tps[k].Fill(pu_pp,err_pp,pu_pf,err_pf,pu_ff,err_ff,tree_mass.massbin,tree_mass.masserror)
+                            err_fflow=0.
+                            err_ffhigh=0.
+                            if (pu_pp < limit_minos): 
+                                err_pflow=err_pplow
+                                err_pfhigh=err_pphigh
+                            else: 
+                                err_pfhigh=ROOT.TEfficiency.ClopperPearson(int(data_entries),int(pu_pf*data_entries),0.68,True)-pu_pf
+                                err_pflow=-1*(pu_pf-ROOT.TEfficiency.ClopperPearson(int(data_entries),int(pu_pf*data_entries),0.68,False))
+                        tps[k].Fill(pu_pp,err_pplow,err_pphigh,pu_pf,err_pflow,err_pfhigh,pu_ff,err_fflow,err_ffhigh,tree_mass.massbin,tree_mass.masserror)
                         if dodata and not (jkpp or jkpf):
                                 self.plotFit(observable,fitUnrolledPdf,ArgListPdf,data_massc,components,cat,log=False,i=k)
-                        ##elif not (jkpp or jkpf):
-                      ##          self.plotFit(observable,fitUnrolledPdf,ArgListPdf,data_massc,components,cat,log=False,i=k)
                         if options.pu_sigregion:
                             ppsigregion=fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()
                             fullsigregion=fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()
                             
                             fpuSig_pp= ROOT.RooFormulaVar("fpuSig_pp","fpuSig_pp","(@0*@1)/(@2)",ROOT.RooArgList(fpp,fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion")))
-                            print "manually computed purity in signal region:  pu_pp ",pu_pp," ppsigregion ",ppsigregion, " fullsigregion ",fullsigregion,"purity ", (pu_pp*ppsigregion)/fullsigregion 
+                           # print "manually computed purity in signal region:  pu_pp ",pu_pp," ppsigregion ",ppsigregion, " fullsigregion ",fullsigregion,"purity ", (pu_pp*ppsigregion)/fullsigregion 
                             puSig_pp=fpuSig_pp.getVal()
-                            print "sig region purity", puSig_pp 
-                            print
-                            print
+                           # print "sig region purity", puSig_pp 
                             if (pu_pp < limit_minos):
-                                errSig_pp=fpuSig_pp.getPropagatedError(fit_studies)
-                                ratSig_pp=errSig_pp/err_pp
+                                errSig_pplow=fpuSig_pp.getPropagatedError(fit_studies)
+                                errSig_pphigh=fpuSig_pp.getPropagatedError(fit_studies)
+                                ratSig_pp=(abs(errSig_pplow)+errSig_pphigh)/(abs(err_pplow)+err_pphigh)
+                                print "errSig_pp", errSig_pplow, errSig_pphigh
                             else:
                                 #ratio of error is one as Gaussian error propagation not correct at bouandry
                                 ratSig_pp=1.
-                                errSig_pp=err_pp #TODO upper error should be zero to be implemented
-                                print ROOT.TEfficiency.ClopperPearson(int(data_entries),int(pu_pp*data_entries),0.68,True)
-                                print ROOT.TEfficiency.ClopperPearson(data_entries,pu_pp*data_entries,0.68,False)
-                                return
-                            print "ratio", ratSig_pp, "errSig_pp", errSig_pp, "err_pp", err_pp
+                                errSig_pplow=err_pplow 
+                                errSig_pphigh=err_pphigh 
                             if len(components)==2:
                                 puSig_pf=1-puSig_pp
-                                errSig_pf=errSig_pp
-                                if err_pf !=0: 
-                                    ratSig_pf=errSig_pf/err_pf
+                                errSig_pflow=errSig_pplow #correct?
+                                errSig_pfhigh=errSig_pphigh #correct?
+                                if not (err_pflow and err_pfhigh) ==0: 
+                                    ratSig_pf=(abs(errSig_pflow)+errSig_pfhigh)/(abs(err_pflow)+err_pfhigh)
                                 else: ratSig_pf=0.
                                 puSig_ff=0.
-                                errSig_ff=0.
+                                errSig_fflow=0.
+                                errSig_ffhigh=0.
                                 ratSig_ff=0.
 
                             if len(components)>2:
@@ -1169,46 +1176,43 @@ class TemplatesFitApp(TemplatesApp):
                                 pfsigregion=fitUnrolledPdf.pdfList()[1].createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()/fitUnrolledPdf.pdfList()[1].createIntegral(ROOT.RooArgSet(observable)).getVal()
                                 fullsigregion=fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()/fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable)).getVal()
                                 puSig_pf=fpuSig_pf.getVal()
-                                print "pf fraction in sigregion ", puSig_pf
+                               # print "pf fraction in sigregion ", puSig_pf
                                 if (pu_pp < limit_minos):
-                                    errSig_pf=fpuSig_pf.getPropagatedError(fit_studies)
-                                    ratSig_pf=errSig_pf/err_pf
+                                    #TODO wrong
+                                    errSig_pflow=fpuSig_pf.getPropagatedError(fit_studies)
+                                    errSig_pfhigh=fpuSig_pf.getPropagatedError(fit_studies)
+                                    ratSig_pf=(abs(errSig_pflow)+errSig_pfhigh)/(abs(err_pflow)+err_pfhigh)
                                 else:
-                                    errSig_pf=0.
-                                    ratSig_pf=0.
+                                    errSig_pflow=fpuSig_pf.getPropagatedError(fit_studies)
+                                    errSig_pfhigh=fpuSig_pf.getPropagatedError(fit_studies)
+                                    ratSig_pf=(errSig_pflow+errSig_pfhigh)/(err_pflow+err_pfhigh)
 
                                 fpuSig_ff= ROOT.RooFormulaVar("fpuSig_ff","fpuSig_ff","(@0*@1)/@2",ROOT.RooArgList(fpu_ff,fitUnrolledPdf.pdfList()[2].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion")))
                                 ffsigregion=fitUnrolledPdf.pdfList()[2].createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()/fitUnrolledPdf.pdfList()[2].createIntegral(ROOT.RooArgSet(observable)).getVal()
                                 fullsigregion=fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()/fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable)).getVal()
                                 puSig_ff=fpuSig_ff.getVal()
                                 if (pu_pp < limit_minos):
-                                    errSig_ff=fpuSig_ff.getPropagatedError(fit_studies)
-                                    ratSig_ff=errSig_ff/err_ff
+                                    #TODO wrong
+                                    errSig_fflow=fpuSig_ff.getPropagatedError(fit_studies)
+                                    errSig_ffhigh=fpuSig_ff.getPropagatedError(fit_studies)
+                                    ratSig_ff=(abs(errSig_fflow)+errSig_ffhigh)/(abs(err_fflow)+err_ffhigh)
                                 else:
-                                    errSig_ff=0.
+                                    errSig_fflow=fpuSig_ff.getPropagatedError(fit_studies)
+                                    errSig_ffhigh=fpuSig_ff.getPropagatedError(fit_studies)
+                                    ratSig_ff=(abs(errSig_fflow)+errSig_ffhigh)/(abs(err_fflow)+err_ffhigh)
+
+                                if (pu_pp < limit_minos):
+                                    errSig_fflow=fpuSig_ff.getPropagatedError(fit_studies)
+                                    errSig_ffhigh=fpuSig_ff.getPropagatedError(fit_studies)
+                                    ratSig_ff=(abs(errSig_fflow)+errSig_ffhigh)/(abs(err_fflow)+err_ffhigh)
+                                else:
+                                    errSig_fflow=0.
+                                    errSig_ffhigh=0.
                                     ratSig_ff=0.
-                            tpSig.Fill(puSig_pp,errSig_pp,puSig_pf,errSig_pf,puSig_ff,errSig_ff,tree_mass.massbin,tree_mass.masserror)
+                            tpSig.Fill(puSig_pp,errSig_pplow,errSig_pphigh,puSig_pf,errSig_pflow,errSig_pfhigh,puSig_ff,errSig_fflow,errSig_ffhigh,tree_mass.massbin,tree_mass.masserror)
                             tpRatSig.Fill(ratSig_pp,ratSig_pf,ratSig_ff,tree_mass.massbin,tree_mass.masserror)
     #ML fit to weighted dataset: SumW2Error takes statistics of dataset into account, scales with number of events in datasetif ON good for MC comparison, takes limited statistics of MC dataset into account
   #  if OUT treated as if it would be data- for data MC comparison
-                    print "-------------------------------------------------------------------------"
-                    if not dodata:
-                        jpp.setVal(0.8)
-                        jpf.setVal(0.2)
-                        fit_mcstudies = fitUnrolledPdf.fitTo(data_massc, RooFit.NumCPU(8),RooFit.Strategy(2),RooFit.Extended(extended_fit),RooFit.SumW2Error(True),RooFit.Save(True))
-                        puerr_pp=fpp.getParameter("jpp").getError()
-                        if len(components)>2:
-                            puerr_pf=fpf.getParameter("jpf").getError()
-                            covariance_mcstudies=fit_mcstudies.covarianceMatrix()
-                            correlation_mcstudies=fit_mcstudies.correlationMatrix()
-                            self.workspace_.rooImport(covariance_mcstudies,"covariance_mcstudies")
-                            self.workspace_.rooImport(correlation_mcstudies,"correlation_mcstudies")
-                            self.workspace_.rooImport(fit_mcstudies,"fit_mcstudies")
-                        else: 
-                            puerr_pf=0.
-                        print "puerr_pp " ,puerr_pp, " puerr_pf " ,puerr_pf
-                    if not dodata:
-                        tp.Fill(pu_pp,puerr_pp,err_pp,pu_pf,puerr_pf,err_pf,pu_ff,err_ff,tree_mass.massbin,tree_mass.masserror )
                 if jkpf or jkpp:
                     self.plotJKpurity(options,cat,dim,tps,jkID)
                 print "done fit ...."
@@ -1546,34 +1550,34 @@ class TemplatesFitApp(TemplatesApp):
                 if data:
                     if options.pu_sigregion:
                         tree_template=self.treeData("fitresult_fraction_sigRegion_unrolled_%s_%s_%s"%(opt,dim, cat))
-                        tree_templateRat=self.treeData("fitresult_fraction_RatsigRegion_unrolled_%s_%s_%s"%(opt,dim, cat))
+                        tree_templateRat=self.treeData("fitresult_fraction_ratio_of_uncertainties_forsigregion_unrolled_%s_%s_%s"%(opt,dim, cat))
                         if not options.no_mctruth:
                             tree_mctruth=self.treeData("fitresult_fraction_sigRegion_mc_unrolled_mctruth_%s_%s"%( dim, cat))
-                            tree_mctruthInt=self.treeData("fitresult_fraction_RatsigRegion_mc_unrolled_mctruth_%s_%s"%( dim, cat))
+                            tree_mctruthInt=self.treeData("fitresult_fraction_ratio_of_uncertainties_forsigregion_mc_unrolled_mctruth_%s_%s"%( dim, cat))
                     else:
                         tree_template=self.treeData("fitresult_fraction_unrolled_%s_%s_%s"%(opt,dim, cat))
                         tree_mctruth=self.treeData("fitresult_fraction_mc_unrolled_mctruth_%s_%s"%( dim, cat))
                     g_templatepp=ROOT.TGraphAsymmErrors(tree_template.GetEntries())
-                    g_templatepf=ROOT.TGraphErrors(tree_template.GetEntries())
-                    g_templateff=ROOT.TGraphErrors(tree_template.GetEntries())
-                    g_ratiopp=ROOT.TGraphErrors(tree_template.GetEntries())
+                    g_templatepf=ROOT.TGraphAsymmErrors(tree_template.GetEntries())
+                    g_templateff=ROOT.TGraphAsymmErrors(tree_template.GetEntries())
+                    g_ratiopp=ROOT.TGraphAsymmErrors(tree_template.GetEntries())
                     g_syspp=ROOT.TGraphAsymmErrors(tree_template.GetEntries())
-                    g_syspf=ROOT.TGraphErrors(tree_template.GetEntries())
-                    g_sysff=ROOT.TGraphErrors(tree_template.GetEntries())
+                    g_syspf=ROOT.TGraphAsymmErrors(tree_template.GetEntries())
+                    g_sysff=ROOT.TGraphAsymmErrors(tree_template.GetEntries())
                     nentries=tree_template.GetEntries()
                 else:
                     if options.pu_sigregion:
                         tree_templatemc=self.treeData("fitresult_fraction_sigRegion_mc_unrolled_%s_%s_%s"%(opt,dim, cat))
-                        tree_templatemcInt=self.treeData("fitresult_fraction_RatsigRegion_mc_unrolled_%s_%s_%s"%(opt,dim, cat))
+                        tree_templatemcInt=self.treeData("fitresult_fraction_ratio_of_uncertainties_forsigregion_mc_unrolled_%s_%s_%s"%(opt,dim, cat))
                         tree_mctruth=self.treeData("fitresult_fraction_sigRegion_mc_unrolled_mctruth_%s_%s"%( dim, cat))
-                        tree_mctruthInt=self.treeData("fitresult_fraction_RatsigRegion_mc_unrolled_mctruth_%s_%s"%( dim, cat))
+                        tree_mctruthInt=self.treeData("fitresult_fraction_ratio_of_uncertainties_forsigregion_mc_unrolled_mctruth_%s_%s"%( dim, cat))
                     
                     else:
                         tree_templatemc=self.treeData("fitresult_fraction_mc_unrolled_%s_%s_%s"%(opt,dim, cat))
                         tree_mctruth=self.treeData("fitresult_fraction_mc_unrolled_mctruth_%s_%s"%( dim, cat))
                     g_templateppmc=ROOT.TGraphAsymmErrors(tree_templatemc.GetEntries())
-                    g_templatepfmc=ROOT.TGraphErrors(tree_templatemc.GetEntries())
-                    g_templateffmc=ROOT.TGraphErrors(tree_templatemc.GetEntries())
+                    g_templatepfmc=ROOT.TGraphAsymmErrors(tree_templatemc.GetEntries())
+                    g_templateffmc=ROOT.TGraphAsymmErrors(tree_templatemc.GetEntries())
                     nentries=tree_templatemc.GetEntries()
                     #for MCtruth one can take either the counted truth entries or the fit, here we are using the counted ones
                 if options.pu_sigregion:
@@ -1594,10 +1598,10 @@ class TemplatesFitApp(TemplatesApp):
                 g_truthpf=ROOT.TGraphErrors(tree_truthpf.GetEntries())
                 if not options.no_mctruth:
                     g_mctruthpp=ROOT.TGraphAsymmErrors(tree_mctruth.GetEntries())
-                    g_mctruthpf=ROOT.TGraphErrors(tree_mctruth.GetEntries())
-                    g_mctruthff=ROOT.TGraphErrors(tree_mctruth.GetEntries())
+                    g_mctruthpf=ROOT.TGraphAsymmErrors(tree_mctruth.GetEntries())
+                    g_mctruthff=ROOT.TGraphAsymmErrors(tree_mctruth.GetEntries())
                 if not data:
-                    g_pullpp=ROOT.TGraphErrors(nentries)
+                    g_pullpp=ROOT.TGraphAsymmErrors(nentries)
                     h_pullpp=ROOT.TH1F("h_pullpp_%s" % cat,"h_pullpp_%s"% cat,10*tree_mctruth.GetEntries(),-2.,2.)
             #        if ((tree_truthpp.GetEntries()!=nentries)):
             #            print "number of entries in trees dont agree"
@@ -1633,9 +1637,12 @@ class TemplatesFitApp(TemplatesApp):
                         pp_p=tree_template.purity_pp
                         ff_p=tree_template.purity_ff
                         if not tot_err:
-                            pf_err=tree_template.error_pf
-                            pp_err=tree_template.error_pp
-                            ff_err=tree_template.error_ff
+                            pp_errlow=tree_template.err_pplow
+                            pp_errhigh=tree_template.err_pphigh
+                            pf_errlow=tree_template.err_pflow
+                            pf_errhigh=tree_template.err_pfhigh
+                            ff_errlow=tree_template.err_fflow
+                            ff_errhigh=tree_template.err_ffhigh
                         elif tot_err and cat=="EBEB":
                         #this error is the percentage and has thus to be multiplied by the purity
                             sys=options.plotPurity.get("syserrorEBEB")
@@ -1643,58 +1650,69 @@ class TemplatesFitApp(TemplatesApp):
                             sys=options.plotPurity.get("syserrorEBEE")
                         if tot_err:
                             if not options.pu_sigregion:
-                                stat_pp=sqrt(JK[mb]*JK[mb]+tree_template.error_pp*tree_template.error_pp)
+                                stat_pplow=sqrt(JK[mb]*JK[mb]+tree_template.err_pplow*tree_template.err_pplow)
+                                stat_pphigh=sqrt(JK[mb]*JK[mb]+tree_template.err_pphigh*tree_template.err_pphigh)
                                 pp_sys=sys*sys*pp_p*pp_p
-                                pp_err=sqrt(pp_sys+stat_pp*stat_pp)
-                                stat_pf=sqrt(JK[mb]*JK[mb]+tree_template.error_pf*tree_template.error_pf)
+                                pp_errlow=sqrt(pp_sys+stat_pplow*stat_pplow)
+                                pp_errhigh=sqrt(pp_sys+stat_pphigh*stat_pphigh)
+                                stat_pflow=sqrt(JK[mb]*JK[mb]+tree_template.err_pflow*tree_template.err_pflow)
+                                stat_pfhigh=sqrt(JK[mb]*JK[mb]+tree_template.err_pfhigh*tree_template.err_pfhigh)
                                 pf_sys=sys*sys*pf_p*pf_p
-                                pf_err=sqrt(pf_sys+stat_pf*stat_pf)
-                                stat_ff=sqrt(JK[mb]*JK[mb]+tree_template.error_ff*tree_template.error_ff)
+                                pf_errlow=sqrt(pf_sys+stat_pflow*stat_pflow)
+                                pf_errhigh=sqrt(pf_sys+stat_pfhigh*stat_pfhigh)
+                                stat_fflow=sqrt(JK[mb]*JK[mb]+tree_template.err_fflow*tree_template.err_fflow)
+                                stat_ffhigh=sqrt(JK[mb]*JK[mb]+tree_template.err_ffhigh*tree_template.err_ffhigh)
                                 ff_sys=sys*sys*ff_p*ff_p
-                                ff_err=sqrt(sys*sys*ff_p*ff_p+stat_ff*stat_ff)
-                           #     print "JK", JK[mb], "ratio","stat error", tree_template.error_pp, "final stat error pp" , stat_pp 
+                                ff_errlow=sqrt(sys*sys*ff_p*ff_p+stat_fflow*stat_fflow)
+                                ff_errhigh=sqrt(sys*sys*ff_p*ff_p+stat_ffhigh*stat_ffhigh)
+                           #     print "JK", JK[mb], "ratio","stat error", tree_template.err_pp, "final stat error pp" , stat_pp 
                             else:
                                 tree_templateRat.GetEntry(mb)
-                                stat_pp=sqrt(JK[mb]*JK[mb]*tree_templateRat.ratSig_pp*tree_templateRat.ratSig_pp+tree_template.error_pp*tree_template.error_pp)
+                                stat_pplow=sqrt(JK[mb]*JK[mb]*tree_templateRat.ratSig_pp*tree_templateRat.ratSig_pp+tree_template.err_pplow*tree_template.err_pplow)
+                                stat_pphigh=sqrt(JK[mb]*JK[mb]*tree_templateRat.ratSig_pp*tree_templateRat.ratSig_pp+tree_template.err_pphigh*tree_template.err_pphigh)
                                 pp_sys=sys*sys*tree_templateRat.ratSig_pp*tree_templateRat.ratSig_pp*pp_p*pp_p     
-                                stat_pf=sqrt(JK[mb]*JK[mb]*tree_templateRat.ratSig_pf*tree_templateRat.ratSig_pf+tree_template.error_pf*tree_template.error_pf)
+                                stat_pflow=sqrt(JK[mb]*JK[mb]*tree_templateRat.ratSig_pf*tree_templateRat.ratSig_pf+tree_template.err_pflow*tree_template.err_pflow)
+                                stat_pfhigh=sqrt(JK[mb]*JK[mb]*tree_templateRat.ratSig_pf*tree_templateRat.ratSig_pf+tree_template.err_pfhigh*tree_template.err_pfhigh)
                                 pf_sys=sys*sys*tree_templateRat.ratSig_pf*tree_templateRat.ratSig_pf*pf_p*pf_p     
-                                stat_ff=sqrt(JK[mb]*JK[mb]*tree_templateRat.ratSig_ff*tree_templateRat.ratSig_ff+tree_template.error_ff*tree_template.error_ff)
+                                stat_fflow=sqrt(JK[mb]*JK[mb]*tree_templateRat.ratSig_ff*tree_templateRat.ratSig_ff+tree_template.err_fflow*tree_template.err_fflow)
+                                stat_ffhigh=sqrt(JK[mb]*JK[mb]*tree_templateRat.ratSig_ff*tree_templateRat.ratSig_ff+tree_template.err_ffhigh*tree_template.err_ffhigh)
                                 ff_sys=sys*sys*tree_templateRat.ratSig_ff*tree_templateRat.ratSig_ff*ff_p*ff_p     
-                                #TODO only one sided error for MINOS
-                                pp_err=sqrt(pp_sys+stat_pp*stat_pp)
-                                pf_err=sqrt(pf_sys+stat_pf*stat_pf)
-                                ff_err=sqrt(ff_sys+stat_ff*stat_ff)
+                                pp_errlow=sqrt(pp_sys+stat_pplow*stat_pplow)
+                                pf_errlow=sqrt(pf_sys+stat_pflow*stat_pflow)
+                                ff_errlow=sqrt(ff_sys+stat_fflow*stat_fflow)
+                                pp_errhigh=sqrt(pp_sys+stat_pphigh*stat_pphigh)
+                                pf_errhigh=sqrt(pf_sys+stat_pfhigh*stat_pfhigh)
+                                ff_errhigh=sqrt(ff_sys+stat_ffhigh*stat_ffhigh)
 
                          #       print "JK", JK[mb], "ratio", tree_templateRat.ratSig_pp, "stat error", tree_template.error_pp, "final stat error pp" , stat_pp 
                            # print "mb",mb,"pp_p", pp_p, "pp_err",stat_pp ,"pp_sys", sqrt(pp_sys)
                           #  print "pf_p",pf_p, "pf_err",stat_pf,"pf_sys", sqrt(pf_sys)
                           #  print "ff_p",ff_p, "ff_err",stat_ff,"ff_sys", sqrt(ff_sys)
                            # print "mb",mb
-                            print pp_p, "," ,pp_err
+                            print pp_p, "," ,pp_errlow, ",", pp_errhigh
                          #   print "pf_p",pf_p, "pf_err",pf_err
                           #  print "ff_p",ff_p, "ff_err",ff_err
                           #  print
                             g_syspf.SetPoint(mb,massbin,pf_p)
                             g_syspp.SetPoint(mb,massbin,pp_p)
                             g_sysff.SetPoint(mb,massbin,ff_p)
-                            g_syspf.SetPointError(mb,masserror,sqrt(pf_sys))
+                            g_syspf.SetPointError(mb,masserror,masserror,sqrt(pf_sys),sqrt(pf_sys))
                             if pp_p+sqrt(pp_sys)>1:
                                 new_error=1-pp_p
                                 g_syspp.SetPointError(mb,masserror,masserror,sqrt(pp_sys),new_error)
                             else:
                                 g_syspp.SetPointError(mb,masserror,masserror,sqrt(pp_sys),sqrt(pp_sys))
-                            g_sysff.SetPointError(mb,masserror,sqrt(ff_sys))
+                            g_sysff.SetPointError(mb,masserror,masserror, sqrt(ff_sys),sqrt(ff_sys))
                         g_templatepf.SetPoint(mb,massbin,pf_p)
-                        g_templatepf.SetPointError(mb,masserror,pf_err)
+                        g_templatepf.SetPointError(mb,masserror,masserror,pf_errlow,pf_errhigh)
                         g_templatepp.SetPoint(mb,massbin,pp_p)
-                        if pp_p+pp_err>1:
+                        if (pp_p+pp_errhigh>1):
                             new_error=1-pp_p
-                            g_templatepp.SetPointError(mb,masserror,masserror,pp_err,new_error)
+                            g_templatepp.SetPointError(mb,masserror,masserror,pp_errlow,new_error)
                         else:
-                            g_templatepp.SetPointError(mb,masserror,masserror,pp_err,pp_err)
+                            g_templatepp.SetPointError(mb,masserror,masserror,pp_errlow,pp_errhigh)
                         g_templateff.SetPoint(mb,massbin,ff_p)
-                        g_templateff.SetPointError(mb,masserror,ff_err)
+                        g_templateff.SetPointError(mb,masserror,masserror,ff_errlow,ff_errhigh)
                     else:
                         tree_templatemc.GetEntry(mb)
                         if mb==(nentries-1):
@@ -1708,22 +1726,22 @@ class TemplatesFitApp(TemplatesApp):
                             massbin=tree_templatemc.massbin
                             masserror=tree_templatemc.masserror
                         g_templatepfmc.SetPoint(mb,massbin,tree_templatemc.purity_pf)
-                        g_templatepfmc.SetPointError(mb,masserror,tree_templatemc.error_pf)
+                        g_templatepfmc.SetPointError(mb,masserror,masserror,tree_templatemc.err_pflow, tree_templatemc.err_pfhigh)
                         g_templateffmc.SetPoint(mb,massbin,tree_templatemc.purity_ff)
-                        g_templateffmc.SetPointError(mb,masserror,tree_templatemc.error_ff)
+                        g_templateffmc.SetPointError(mb,masserror,masserror,tree_templatemc.err_fflow,tree_templatemc.err_ffhigh)
                         g_templateppmc.SetPoint(mb,massbin,tree_templatemc.purity_pp)
-                        if tree_templatemc.purity_pp+tree_templatemc.error_pp>1:
+                        if( tree_templatemc.purity_pp+tree_templatemc.err_pphigh)>1:
                             new_error=1-tree_templatemc.purity_pp
-                            g_templateppmc.SetPointError(mb,masserror,masserror,tree_templatemc.error_pp,new_error)
+                            g_templateppmc.SetPointError(mb,masserror,masserror,tree_templatemc.err_pplow,new_error)
                         else:
-                            g_templateppmc.SetPointError(mb,masserror,masserror,tree_templatemc.error_pp,tree_templatemc.error_pp)
+                            g_templateppmc.SetPointError(mb,masserror,masserror,tree_templatemc.err_pplow,tree_templatemc.err_pphigh)
                     if not options.no_mctruth:
                         g_mctruthpp.SetPoint(mb,massbin,tree_mctruth.purity_pp)
-                        if tree_mctruth.purity_pp+tree_mctruth.error_pp>1:
+                        if (tree_mctruth.purity_pp+tree_mctruth.err_pphigh)>1:
                             new_error=1-tree_mctruth.purity_pp
-                            g_mctruthpp.SetPointError(mb,masserror,masserror,tree_mctruth.error_pp,new_error)
+                            g_mctruthpp.SetPointError(mb,masserror,masserror,tree_mctruth.err_pplow,new_error)
                         else:
-                            g_mctruthpp.SetPointError(mb,masserror,masserror,tree_mctruth.error_pp,tree_mctruth.error_pp)
+                            g_mctruthpp.SetPointError(mb,masserror,masserror,tree_mctruth.err_pplow,tree_mctruth.err_pphigh)
                         tree_truthpp.GetEntry(mb)
                         tree_truthpf.GetEntry(mb)
                         if tree_truthff!=None:
@@ -1737,18 +1755,18 @@ class TemplatesFitApp(TemplatesApp):
                         tree_mctruth.GetEntry(mb)
                         if data:
                   #      g_ratiopp.SetPoint(mb,massbin,(pp_p-tree_truthpp.frac_pu)/pp_err)
-                            g_ratiopp.SetPoint(mb,massbin,(pp_p-tree_mctruth.purity_pp)/pp_err)
-                            g_ratiopp.SetPointError(mb,0.,pp_err)
+                            g_ratiopp.SetPoint(mb,massbin,(pp_p-tree_mctruth.purity_pp)/((pp_errlow+pp_errhigh)/2.))
+                            g_ratiopp.SetPointError(mb,0.,0.,pp_errlow,pp_errhigh)
                         if not data:
                             if opt=="template_mix":
-                                pullpp=(tree_templatemc.purity_pp-tree_mctruth.purity_pp)/tree_templatemc.error_pp
+                                pullpp=(tree_templatemc.purity_pp-tree_mctruth.purity_pp)/((tree_templatemc.err_pplow+tree_templatemc.err_pphigh)/2)
                             else:print "dont know what to compare to truth"
                             g_pullpp.SetPoint(mb,massbin,pullpp)
                             h_pullpp.Fill(pullpp)
                         g_mctruthpf.SetPoint(mb,massbin,tree_mctruth.purity_pf)
                         g_mctruthff.SetPoint(mb,massbin,tree_mctruth.purity_ff)
-                        g_mctruthpf.SetPointError(mb,masserror,tree_mctruth.error_pf)
-                        g_mctruthff.SetPointError(mb,masserror,tree_mctruth.error_ff)
+                        g_mctruthpf.SetPointError(mb,masserror,masserror,tree_mctruth.err_pflow,tree_mctruth.err_pfhigh)
+                        g_mctruthff.SetPointError(mb,masserror,masserror,tree_mctruth.err_fflow,tree_mctruth.err_ffhigh)
                 if not data:
                     if options.pu_sigregion:  self.plotClosure(cat,pu_val,opt,"sigRegionMC",g_templateppmc,g_templatepfmc,g_templateffmc,g_pullpp,g_mctruthpp,g_mctruthpf,g_mctruthff)
                     else: self.plotClosure(cat,pu_val,opt,"fullRegionMC",g_templateppmc,g_templatepfmc,g_templateffmc,g_pullpp,g_mctruthpp,g_mctruthpf,g_mctruthff)
