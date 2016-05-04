@@ -966,7 +966,6 @@ class TemplatesFitApp(TemplatesApp):
                 if cat=="EEEB": catd="EBEE" 
                 else:catd=cat
                 data_book=self.rooData("hist2d_forUnrolled")
-                data_book.Print()
                 unrolledVar=ROOT.RooHistFunc(observable.GetName(),observable.GetName(),isoargs,data_book)
                 if not options.fit_mc: dodata=True
                 else: dodata=False
@@ -981,10 +980,8 @@ class TemplatesFitApp(TemplatesApp):
                #     data = self.reducedRooData("mc_2D_%s" % (catd),setargs,False,sel=weight_cut, redo=False)
                 data = self.reducedRooData("data_2D_%s" % (catd),setargs,False,sel=weight_cut, redo=False)
                 data_entries=data.sumEntries()
-                print data.sumEntries()
                 data.addColumn(unrolledVar)
                 data=data.reduce(ROOT.RooArgSet(mass,observable))
-                data.Print()
                 tree_mass=self.treeData("%s_pp_2D_%s"%(options.plotPurity["treetruth"], cat))
                 tps=[]
                 for i in range(num):
@@ -995,7 +992,6 @@ class TemplatesFitApp(TemplatesApp):
                     self.store_[tpi.GetName()] = tpi
                     tps.append(tpi)
                 if options.pu_sigregion:
-                    print dset,tempname, dim, cat
                     tpSig = ROOT.TNtuple("tree_fitresult_fraction_sigRegion%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_fraction_sigRegion%s%s_%s_%s" % (dset,tempname,dim,cat),"purity_pp:err_pplow:err_pphigh:purity_pf:err_pflow:err_pfhigh:purity_ff:err_fflow:err_ffhigh:massbin:masserror" )
 
                     tpRatSig = ROOT.TNtuple("tree_fitresult_fraction_ratio_of_uncertainties_forsigregion%s%s_%s_%s" % (dset,tempname,dim,cat),"tree_fitresult_fraction_ratio_of_uncetainties_forsigregion%s%s_%s_%s" % (dset,tempname,dim,cat),"ratSig_pp:ratSig_pf:ratSig_ff:massbin:masserror" )
@@ -1011,7 +1007,6 @@ class TemplatesFitApp(TemplatesApp):
                     cut_s= "%1.0f_%1.0f"%  (tree_mass.massbin-tree_mass.masserror,tree_mass.massbin+tree_mass.masserror)
                     print cut.GetTitle()
                     data_massc=data.reduce(cut.GetTitle())
-                    data_massc.Print()
                     #define fit parameters
                     jpp = ROOT.RooRealVar("jpp","jpp",0.6,0.,1.)
                     jpf = ROOT.RooRealVar("jpf","jpf",0.4,0.,1.)
@@ -1020,6 +1015,7 @@ class TemplatesFitApp(TemplatesApp):
                     pu_estimates_roopdf=ROOT.RooArgList(fpp)
                     if len(components)>2 and not extended_fit: 
                         fpf= ROOT.RooFormulaVar("fpf","fpf","jpf ",ROOT.RooArgList(jpf))
+                        fff= ROOT.RooFormulaVar("fff","fff","1-@0-@1 ",ROOT.RooArgList(fpp.getParameter("jpp"),fpf.getParameter("jpf")))
                         pu_estimates.add(fpf)
                     pdf_collections=[ ]
                     i=0
@@ -1042,12 +1038,10 @@ class TemplatesFitApp(TemplatesApp):
                             
                             print "%s%s%s_%s_%s_mb_%s"%(tempname_new,dset,comp, dim_new,cat,cut_s)
                             histo = self.rooData("%s%s%s_%s_%s_mb_%s"%(tempname_new,dset,comp, dim_new,cat,cut_s))
-                            histo.Print("v")
                             rooHistPdf=ROOT.RooHistPdf("pdf_%s"% histo.GetName(),"pdf_%s"% histo.GetTitle(),ROOT.RooArgSet(obsls),histo)
                          
                             self.keep([rooHistPdf])
                             pdf_set.add(rooHistPdf)
-                           # rooHistPdf.Print("v")
                             i=i+1
 
                         pdf_collections.append(pdf_set)
@@ -1063,7 +1057,6 @@ class TemplatesFitApp(TemplatesApp):
                                         if i < jks: name= "unrolled_template_mix_pf_2D_%i_%s_mb_%s"%(i,cat,cut_s)
                                         elif i>= jks:name= "unrolled_template_mix_pf_%i_2D_%s_mb_%s"%(i-jks,cat,cut_s)
                                         histo = self.rooData(name)
-                                        print name
                                         rooHistPdf=ROOT.RooHistPdf("pdf_%s"% histo.GetName(),"pdf_%s"% histo.GetName(),ROOT.RooArgSet(obsls),histo)
                                 else:
                                     if comp=="pp":
@@ -1078,48 +1071,49 @@ class TemplatesFitApp(TemplatesApp):
                                 self.keep([rooHistPdf])
                                 pdf_set.add(rooHistPdf)
                             pdf_collections.append(pdf_set)
-                            print "collection in i",pdf_collections.Print("v")
                     for k in range(num):
                         ArgListPdf=None
                         jpp.setVal(0.6)
                         jpf.setVal(0.4)
                         ArgListPdf=pdf_collections[k]
-                        ArgListPdf.Print()
                         fitUnrolledPdf=ROOT.RooAddPdf("fitPdfs_%s%s%s_%s_mb_%s" % (tempname,dset,cat,dim,cut_s),"fitPdfs_%s_%s_%s_mb_%s" % (tempname,cat,dim,cut_s),ArgListPdf,pu_estimates,True )
-                        print "addPdf integral in full region ",fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable)).getVal()
-                        print "addPdf integral in sig region ",fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion").getVal()
               #save roofitresult in outputfile
-                        data_massc.Print()
-                        print data_massc.sumEntries()
                         fit_studies = fitUnrolledPdf.fitTo(data_massc, RooFit.NumCPU(8),RooFit.Strategy(2),RooFit.Extended(extended_fit),RooFit.SumW2Error(False),RooFit.Save(True),RooFit.Minos(True),RooFit.PrintLevel(1))
                         pu_pp=fpp.getParameter("jpp").getVal()
-                        limit_minos=float(nomFit.get("limit_to_use_minos"))#TODO ask if minos error fails instead
-                        if (pu_pp < limit_minos):
-                            err_pphigh=fpp.getParameter("jpp").getAsymErrorHi()
-                            err_pplow=jpp.getAsymErrorLo()
-                        else: 
-                            err_pphigh=ROOT.TEfficiency.ClopperPearson(int(data_entries),int(pu_pp*data_entries),0.68,True)-pu_pp
-                            err_pplow=-1*(pu_pp-ROOT.TEfficiency.ClopperPearson(int(data_entries),int(pu_pp*data_entries),0.68,False))
-                        print "pu_pp",pu_pp, "err_pplow",err_pplow,"err_pphigh",err_pphigh
-                        name=fitUnrolledPdf.GetName()
-                        self.workspace_.rooImport(fitUnrolledPdf)
-
                         if len(components)>2: 
                             fpu_pf= ROOT.RooFormulaVar("fpu_pf","fpu_pf","(1-@0)*@1",ROOT.RooArgList(fpp.getParameter("jpp"),fpf.getParameter("jpf")))
                             pu_pf=fpu_pf.getVal()
-                            if (pu_pp < limit_minos):
-                                #TODO correct error         
-                                err_pflow=-1*fpu_pf.getPropagatedError(fit_studies)
-                                err_pfhigh=fpu_pf.getPropagatedError(fit_studies)
+                            fpu_ff= ROOT.RooFormulaVar("fpu_ff","fpu_ff","(1-@0)*(1-@1)*@2",ROOT.RooArgList(fpp.getParameter("jpp"),fpf.getParameter("jpf"),fff))
+                            pu_ff=fpu_ff.getVal()
+                        else:
+                            pu_pf=1-pu_pp
+                        limit_minos=float(nomFit.get("limit_to_use_minos"))#TODO ask if minos error fails instead
+                        if (pu_pp < limit_minos):
+                            err_pphigh=fpp.getParameter("jpp").getAsymErrorHi()
+                            err_pplow=fpp.getParameter("jpp").getAsymErrorLo()
+                            err_jpfhigh=fpf.getParameter("jpf").getAsymErrorHi()
+                            err_jpflow=fpf.getParameter("jpf").getAsymErrorLo()
+                        else: 
+                            err_pphigh=ROOT.TEfficiency.ClopperPearson(int(data_entries),int(pu_pp*data_entries),0.68,True)-pu_pp
+                            err_pplow=-1*(pu_pp-ROOT.TEfficiency.ClopperPearson(int(data_entries),int(pu_pp*data_entries),0.68,False))
+                        name=fitUnrolledPdf.GetName()
+                        self.workspace_.rooImport(fitUnrolledPdf)
+                        if len(components)>2: 
+                            if (pu_pp < limit_minos): 
+                                fpu_pf_errlow= ROOT.RooFormulaVar("fpu_pf_errlow","fpu_pf_errlow","sqrt(pow(@0,2)*pow(%f,2)+pow(1-@1,2)*pow(%f,2))"%(err_pplow,err_jpfhigh),ROOT.RooArgList(fpf.getParameter("jpf"),fpp.getParameter("jpp")))
+                                fpu_pf_errhigh=  ROOT.RooFormulaVar("fpu_pf_errhigh","fpu_pf_errhigh","sqrt(pow(@0,2)*pow(%f,2)+pow(1-@1,2)*pow(%f,2))"%(err_pplow,err_jpflow),ROOT.RooArgList(fpf.getParameter("jpf"),fpp.getParameter("jpp")))
+                                err_pflow=-1*fpu_pf_errlow.getVal()
+                                err_pfhigh=fpu_pf_errhigh.getVal()
+                                err_jfflow= ROOT.RooFormulaVar("fpu_jfflow","fpu_jfflow","sqrt(pow(@0*%f,2)+pow(@1*%f,2))"%(err_pplow,err_jpflow),ROOT.RooArgList(fpp.getParameter("jpp"),fpf.getParameter("jpf"))).getVal()
+                                err_jffhigh= ROOT.RooFormulaVar("fpu_jffhigh","fpu_jffhigh","sqrt(pow(@0*%f,2)+pow(@1*%f,2))"%(err_pphigh,err_jpfhigh),ROOT.RooArgList(fpp.getParameter("jpp"),fpf.getParameter("jpf"))).getVal()
+                                fpu_ff_errlow= ROOT.RooFormulaVar("fpu_ff_errlow","fpu_ff_errlow","sqrt(pow((1-@0)*@2*%f,2)+pow((1-@1)*@2*%f,2)+pow((1-@0)*(1-@1)*%f,2))"%(err_pplow,err_jpflow,err_jfflow),ROOT.RooArgList(fpp.getParameter("jpp"),fpf.getParameter("jpf"),fff))
+                                fpu_ff_errhigh= ROOT.RooFormulaVar("fpu_ff_errhigh","fpu_ff_errhigh","sqrt(pow((1-@0)*@2*%f,2)+pow((1-@1)*@2*%f,2)+pow((1-@0)*(1-@1)*%f,2))"%(err_pphigh,err_jpfhigh,err_jffhigh),ROOT.RooArgList(fpp.getParameter("jpp"),fpf.getParameter("jpf"),fff))
+
+                                err_fflow=-fpu_ff_errlow.getVal()
+                                err_ffhigh=-fpu_ff_errhigh.getVal()
                             else: 
                                 err_pfhigh=ROOT.TEfficiency.ClopperPearson(int(data_entries),int(pu_pf*data_entries),0.68,True)-pu_pf
                                 err_pflow=-1*(pu_pf-ROOT.TEfficiency.ClopperPearson(int(data_entries),int(pu_pf*data_entries),0.68,False))
-                            fpu_ff=ROOT.RooFormulaVar("fpu_ff","fpu_ff","(1-@0)*(1-@1)",ROOT.RooArgList(fpp.getParameter("jpp"),fpf.getParameter("jpf")))
-                            pu_ff=fpu_ff.getVal()
-                            if (pu_pp < limit_minos): 
-                                err_fflow=-2*fpu_ff.getPropagatedError(fit_studies)
-                                err_ffhigh=fpu_ff.getPropagatedError(fit_studies)
-                            else: 
                                 err_ffhigh=ROOT.TEfficiency.ClopperPearson(int(data_entries),int(pu_ff*data_entries),0.68,True)-pu_ff
                                 err_fflow=-1*(pu_ff-ROOT.TEfficiency.ClopperPearson(int(data_entries),int(pu_ff*data_entries),0.68,False))
                             covariance_studies=fit_studies.covarianceMatrix()
@@ -1127,6 +1121,7 @@ class TemplatesFitApp(TemplatesApp):
                             self.workspace_.rooImport(covariance_studies, "covariance_studies_%i"%k)
                             self.workspace_.rooImport(correlation_studies,"correlation_studies_%i"%k)
                             self.workspace_.rooImport(fit_studies,"fit_studies_%i" %k)
+                            print "err_pp",err_pplow, err_pphigh,"err_pf",err_pflow, err_pfhigh, "err_ff",err_fflow,err_ffhigh
                         else:
                             pu_pf=1-pu_pp
                             pu_ff=0.
