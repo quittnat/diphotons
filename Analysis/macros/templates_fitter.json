@@ -34,22 +34,27 @@
                 "categories" :["EB","EE"]
     },
    "nominalFit":{
-        "3_components":{
+        "_3_components":{
         		"dimensions" :"2D", 
         		"observable": "templateNdim2d_unroll",
                 "components": ["pp","pf","ff"],
+                "weight_cut": "weight < 5.", 
                 "limit_to_use_minos": 0.97, 
                 "lowerLimitSigRegion": "0.", 
+                "jppstart": "0.6", 
+                "jpfstart": "0.4", 
                 "upperLimitSigRegion": "4.", 
 				"jackknife_pf":false,
 				"jackknife_pp":false,
-		"mass_binning" :"mass[13000,0.0,13000.0]",
-                "extended_fit":false
+		"mass_binning" :"mass[13000,0.0,13000.0]"
          },
-        "_2_components":{
+        "2_components":{
         		"dimensions" :"2D", 
         		"observable": "templateNdim2d_unroll",
                 "components": ["pp","pf"],
+                "weight_cut": "weight < 5.", 
+                "jppstart": "0.6", 
+                "jpfstart": "0.4", 
                 "limit_to_use_minos": 0.97, 
                 "lowerLimitSigRegion": "0.", 
                 "upperLimitSigRegion": "4.", 

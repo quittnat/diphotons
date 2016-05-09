@@ -927,16 +927,13 @@ class TemplatesFitApp(TemplatesApp):
             isoargs.add(self.buildRooVar(iso1,biniso,recycle=True))
             isoargs.add(self.buildRooVar(iso2,biniso,recycle=True))
             obsls=ROOT.RooArgList("obsls")
-            weight_cut="weight < 5." 
+            weight_cut=nomFit.get("weight_cut") 
             var,var_b=self.getVar(nomFit.get("observable"))
             lowsigRegion=float(nomFit.get("lowerLimitSigRegion"))
             upsigRegion=float(nomFit.get("upperLimitSigRegion"))
-            extended_fit=nomFit.get("extended_fit",False)
             observable=self.buildRooVar(var,var_b,recycle=True)
             observable.setRange("sigRegion",lowsigRegion,upsigRegion)
             obsls.add(observable)
-             
-            #you want to keep bins from 0 to 3
             components=nomFit.get("components")
             print "nominal fit with: ", name, " observable : ", nomFit.get("observable")
             tempname=options.fit_templates[0]
@@ -1008,14 +1005,14 @@ class TemplatesFitApp(TemplatesApp):
                     print cut.GetTitle()
                     data_massc=data.reduce(cut.GetTitle())
                     #define fit parameters
-                    jpp = ROOT.RooRealVar("jpp","jpp",0.6,0.,1.)
-                    jpf = ROOT.RooRealVar("jpf","jpf",0.4,0.,1.)
-                    fpp= ROOT.RooFormulaVar("fpp","fpp","jpp ",ROOT.RooArgList(jpp))
+                    jpp = ROOT.RooRealVar("jpp","jpp",float(nomFit.get("jppstart")),0.,1.)
+                    #jpf = ROOT.RooRealVar("jpf","jpf",float(nomFit.get("jpfstart")),0.,1.)
+                    jpf = ROOT.RooRealVar("jpf","jpf",float(nomFit.get("jpfstart")),0.,1.)
+                    fpp= ROOT.RooFormulaVar("fpp_%s"%cut_s,"fpp_%s"%cut_s,"jpp",ROOT.RooArgList(jpp))
                     pu_estimates=ROOT.RooArgList(fpp)
                     pu_estimates_roopdf=ROOT.RooArgList(fpp)
-                    if len(components)>2 and not extended_fit: 
-                        fpf= ROOT.RooFormulaVar("fpf","fpf","jpf ",ROOT.RooArgList(jpf))
-                        fff= ROOT.RooFormulaVar("fff","fff","1-@0-@1 ",ROOT.RooArgList(fpp.getParameter("jpp"),fpf.getParameter("jpf")))
+                    if len(components)>2: 
+                        fpf= ROOT.RooFormulaVar("fpf_%s"%cut_s,"fpf_%s"%cut_s,"jpf ",ROOT.RooArgList(jpf))
                         pu_estimates.add(fpf)
                     pdf_collections=[ ]
                     i=0
@@ -1073,61 +1070,67 @@ class TemplatesFitApp(TemplatesApp):
                             pdf_collections.append(pdf_set)
                     for k in range(num):
                         ArgListPdf=None
-                        jpp.setVal(0.6)
-                        jpf.setVal(0.4)
+                        jpp.setVal(float(nomFit.get("jppstart")))
+                        jpf.setVal(float(nomFit.get("jpfstart")))
                         ArgListPdf=pdf_collections[k]
-                        fitUnrolledPdf=ROOT.RooAddPdf("fitPdfs_%s%s%s_%s_mb_%s" % (tempname,dset,cat,dim,cut_s),"fitPdfs_%s_%s_%s_mb_%s" % (tempname,cat,dim,cut_s),ArgListPdf,pu_estimates,True )
+                        fitUnrolledPdf=ROOT.RooAddPdf("fitPdfs_%s%s%s_%s_mb_%s" % (tempname,dset,cat,dim,cut_s),"fitPdfs_%s%s%s_%s_mb_%s" % (tempname,dset,cat,dim,cut_s),ArgListPdf,pu_estimates,True )
               #save roofitresult in outputfile
-                        fit_studies = fitUnrolledPdf.fitTo(data_massc, RooFit.NumCPU(8),RooFit.Strategy(2),RooFit.Extended(extended_fit),RooFit.SumW2Error(False),RooFit.Save(True),RooFit.Minos(True),RooFit.PrintLevel(1))
+                        #recursive definition: fpp*pdf_pp+(1-fpp)*(fpf*pdf_pf+(1-fpf)*fff*pdf_fff)
+                        #fraction for pp = fpp.getVal()=jpp
+                        #fraction for pf=fpu_pf.getVal()=(1-fpp)*fpf
+                        #fraction for ff=fpu_ff.getVal()=(1-fpp)*(1-fpf)
+                        #sum of all fractions is 1
+                        fit_studies = fitUnrolledPdf.fitTo(data_massc, RooFit.NumCPU(8),RooFit.Strategy(2),RooFit.SumW2Error(False),RooFit.Save(True),RooFit.Minos(True),RooFit.PrintLevel(1))
                         pu_pp=fpp.getParameter("jpp").getVal()
                         if len(components)>2: 
                             fpu_pf= ROOT.RooFormulaVar("fpu_pf","fpu_pf","(1-@0)*@1",ROOT.RooArgList(fpp.getParameter("jpp"),fpf.getParameter("jpf")))
                             pu_pf=fpu_pf.getVal()
-                            fpu_ff= ROOT.RooFormulaVar("fpu_ff","fpu_ff","(1-@0)*(1-@1)*@2",ROOT.RooArgList(fpp.getParameter("jpp"),fpf.getParameter("jpf"),fff))
+                            fpu_ff= ROOT.RooFormulaVar("fpu_ff","fpu_ff","(1-@0)*(1-@1)",ROOT.RooArgList(fpp.getParameter("jpp"),fpf.getParameter("jpf")))
+                            print "[INFO] fraction values", fpp.getVal(), fpu_pf.getVal(), fpu_ff.getVal()
                             err_jpfhigh=fpf.getParameter("jpf").getAsymErrorHi()
                             err_jpflow=fpf.getParameter("jpf").getAsymErrorLo()
                             pu_ff=fpu_ff.getVal()
+                            self.buildRooVar("fpf_%s"%cut_s,[fpf.getParameter("jpf").getVal(),0.,1.])
                         else:
                             pu_pf=1-pu_pp
-                        limit_minos=float(nomFit.get("limit_to_use_minos"))#TODO ask if minos error fails instead
-                        if (pu_pp < limit_minos):
+                        #use MINOS error except if one of the parameters is at the limit
+                        limit_minos=float(nomFit.get("limit_to_use_minos"))
+                        if( (pu_pp < limit_minos) and not ((fpp.getParameter("jpp").getAsymErrorHi()==0 or fpp.getParameter("jpp").getAsymErrorLo()==0) or (len(components) >2 and (err_jpfhigh==0 or err_jpflow==0)))):
                             err_pphigh=fpp.getParameter("jpp").getAsymErrorHi()
                             err_pplow=fpp.getParameter("jpp").getAsymErrorLo()
                         else: 
+                            print "[INFO] take Clopper Pearson uncertainty as MINOS failed"
                             err_pphigh=ROOT.TEfficiency.ClopperPearson(int(data_entries),int(pu_pp*data_entries),0.68,True)-pu_pp
                             err_pplow=-1*(pu_pp-ROOT.TEfficiency.ClopperPearson(int(data_entries),int(pu_pp*data_entries),0.68,False))
-                        name=fitUnrolledPdf.GetName()
-                        self.workspace_.rooImport(fitUnrolledPdf)
+                        self.buildRooVar("fpp_%s"%cut_s,[fpp.getParameter("jpp").getVal(),0.,1.])
+                        self.workspace_.rooImport(fitUnrolledPdf,ROOT.RooFit.RecycleConflictNodes())
                         if len(components)>2: 
-                            if (pu_pp < limit_minos): 
-                                fpu_pf_errlow= ROOT.RooFormulaVar("fpu_pf_errlow","fpu_pf_errlow","sqrt(pow(@0,2)*pow(%f,2)+pow(1-@1,2)*pow(%f,2))"%(err_pplow,err_jpfhigh),ROOT.RooArgList(fpf.getParameter("jpf"),fpp.getParameter("jpp")))
-                                fpu_pf_errhigh=  ROOT.RooFormulaVar("fpu_pf_errhigh","fpu_pf_errhigh","sqrt(pow(@0,2)*pow(%f,2)+pow(1-@1,2)*pow(%f,2))"%(err_pplow,err_jpflow),ROOT.RooArgList(fpf.getParameter("jpf"),fpp.getParameter("jpp")))
+                            if (pu_pp < limit_minos) and not (err_pphigh==0 or err_pplow==0 or err_jpfhigh==0 or err_jpflow==0): 
+                                fpu_pf_errlow= ROOT.RooFormulaVar("fpu_pf_errlow","fpu_pf_errlow","sqrt(pow(@0*%f,2)+pow(1-@1,2)*pow(%f,2))"%(err_pplow,err_jpflow),ROOT.RooArgList(fpf.getParameter("jpf"),fpp.getParameter("jpp")))
+                                fpu_pf_errhigh=  ROOT.RooFormulaVar("fpu_pf_errhigh","fpu_pf_errhigh","sqrt(pow(@0,2)*pow(%f,2)+pow(1-@1,2)*pow(%f,2))"%(err_pphigh,err_jpfhigh),ROOT.RooArgList(fpf.getParameter("jpf"),fpp.getParameter("jpp")))
                                 err_pflow=-1*fpu_pf_errlow.getVal()
                                 err_pfhigh=fpu_pf_errhigh.getVal()
-                                err_jfflow= ROOT.RooFormulaVar("fpu_jfflow","fpu_jfflow","sqrt(pow(@0*%f,2)+pow(@1*%f,2))"%(err_pplow,err_jpflow),ROOT.RooArgList(fpp.getParameter("jpp"),fpf.getParameter("jpf"))).getVal()
-                                err_jffhigh= ROOT.RooFormulaVar("fpu_jffhigh","fpu_jffhigh","sqrt(pow(@0*%f,2)+pow(@1*%f,2))"%(err_pphigh,err_jpfhigh),ROOT.RooArgList(fpp.getParameter("jpp"),fpf.getParameter("jpf"))).getVal()
-                                fpu_ff_errlow= ROOT.RooFormulaVar("fpu_ff_errlow","fpu_ff_errlow","sqrt(pow((1-@0)*@2*%f,2)+pow((1-@1)*@2*%f,2)+pow((1-@0)*(1-@1)*%f,2))"%(err_pplow,err_jpflow,err_jfflow),ROOT.RooArgList(fpp.getParameter("jpp"),fpf.getParameter("jpf"),fff))
-                                fpu_ff_errhigh= ROOT.RooFormulaVar("fpu_ff_errhigh","fpu_ff_errhigh","sqrt(pow((1-@0)*@2*%f,2)+pow((1-@1)*@2*%f,2)+pow((1-@0)*(1-@1)*%f,2))"%(err_pphigh,err_jpfhigh,err_jffhigh),ROOT.RooArgList(fpp.getParameter("jpp"),fpf.getParameter("jpf"),fff))
+                                fpu_ff_errlow= ROOT.RooFormulaVar("fpu_ff_errlow","fpu_ff_errlow","sqrt(pow((1-@0)*%f,2)+pow((1-@1)*%f,2))"%(err_pplow,err_jpflow),ROOT.RooArgList(fpf.getParameter("jpf"),fpp.getParameter("jpp")))
+                                fpu_ff_errhigh= ROOT.RooFormulaVar("fpu_ff_errhigh","fpu_ff_errhigh","sqrt(pow((1-@0)*%f,2)+pow((1-@1)*%f,2))"%(err_pphigh,err_jpfhigh),ROOT.RooArgList(fpf.getParameter("jpf"),fpp.getParameter("jpp")))
 
                                 err_fflow=-fpu_ff_errlow.getVal()
-                                err_ffhigh=-fpu_ff_errhigh.getVal()
+                                err_ffhigh=fpu_ff_errhigh.getVal()
                             else: 
+                                print "[INFO] take Clopper Pearson uncertainty as MINOS failed"
                                 err_pfhigh=ROOT.TEfficiency.ClopperPearson(int(data_entries),int(pu_pf*data_entries),0.68,True)-pu_pf
                                 err_pflow=-1*(pu_pf-ROOT.TEfficiency.ClopperPearson(int(data_entries),int(pu_pf*data_entries),0.68,False))
                                 err_ffhigh=ROOT.TEfficiency.ClopperPearson(int(data_entries),int(pu_ff*data_entries),0.68,True)-pu_ff
                                 err_fflow=-1*(pu_ff-ROOT.TEfficiency.ClopperPearson(int(data_entries),int(pu_ff*data_entries),0.68,False))
-                            covariance_studies=fit_studies.covarianceMatrix()
-                            correlation_studies=fit_studies.correlationMatrix()
-                            self.workspace_.rooImport(covariance_studies, "covariance_studies_%i"%k)
-                            self.workspace_.rooImport(correlation_studies,"correlation_studies_%i"%k)
-                            self.workspace_.rooImport(fit_studies,"fit_studies_%i" %k)
-                            print "err_pp",err_pplow, err_pphigh,"err_pf",err_pflow, err_pfhigh, "err_ff",err_fflow,err_ffhigh
+                            self.workspace_.rooImport(fit_studies.covarianceMatrix(), "covariance_studies%i_%s"%(k,cut_s))
+                            self.workspace_.rooImport(fit_studies.correlationMatrix(),"correlation_studies%i_%s"%(k,cut_s))
+                            self.workspace_.rooImport(fit_studies,"fit_studies%i_%s" %(k,cut_s))
+                            print  "[INFO] fraction errors: err_pp",err_pplow, err_pphigh,"err_pf",err_pflow, err_pfhigh, "err_ff",err_fflow,err_ffhigh
                         else:
                             pu_pf=1-pu_pp
                             pu_ff=0.
                             err_fflow=0.
                             err_ffhigh=0.
-                            if (pu_pp < limit_minos): 
+                            if (pu_pp < limit_minos) and not (err_pphigh==0 or err_pplow==0): 
                                 err_pflow=err_pplow
                                 err_pfhigh=err_pphigh
                             else: 
@@ -1141,7 +1144,9 @@ class TemplatesFitApp(TemplatesApp):
 #############################################Extrapolation to Signal region#########################################################
 
                         if options.pu_sigregion:
+                            #formula to extrapolate back to signal region
                             fpuSig_pp= ROOT.RooFormulaVar("fpuSig_pp","fpuSig_pp","(@0*@1)/(@2)",ROOT.RooArgList(fpp,fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion")))
+                            #do extra because interested in error on ratio of the two integrals, not the individual error
                             integralratio_pp= ROOT.RooFormulaVar("integralratio_pp","integralratio_pp","(@0)/(@1)",ROOT.RooArgList(fitUnrolledPdf.pdfList()[0].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion")))
                             puSig_pp=fpuSig_pp.getVal()
                             errSig_pplow= ROOT.RooFormulaVar("errSig_pplow","errSig_pplow","pow(%f*@0,2)+pow(%f*@1,2)"%(err_pplow,integralratio_pp.getPropagatedError(fit_studies)),ROOT.RooArgList(integralratio_pp,fpp)).getVal()
@@ -1163,8 +1168,8 @@ class TemplatesFitApp(TemplatesApp):
                             elif len(components)>2:
                                 fpuSig_pf= ROOT.RooFormulaVar("fpuSig_pf","fpuSig_pf","(@0*@1)/@2",ROOT.RooArgList(fpu_pf,fitUnrolledPdf.pdfList()[1].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion")))
                                 integralratio_pf= ROOT.RooFormulaVar("integralratio_pf","integralratio_pf","(@0)/(@1)",ROOT.RooArgList(fitUnrolledPdf.pdfList()[1].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion")))
-                                errSig_pflow= ROOT.RooFormulaVar("errSig_pflow","errSig_pflow","pow(%f*@0,2)+pow(%f*@1,2)"%(err_pflow,integralratio_pf.getPropagatedError(fit_studies)),ROOT.RooArgList(integralratio_pf,fpf)).getVal()
-                                errSig_pfhigh= ROOT.RooFormulaVar("errSig_pfhigh","errSig_pfhigh","pow(%f*@0,2)+pow(%f*@1,2)"%(err_pfhigh,integralratio_pf.getPropagatedError(fit_studies)),ROOT.RooArgList(integralratio_pf,fpf)).getVal()
+                                errSig_pflow= ROOT.RooFormulaVar("errSig_pflow","errSig_pflow","pow(%f*@0,2)+pow(%f*@1,2)"%(err_pflow,integralratio_pf.getPropagatedError(fit_studies)),ROOT.RooArgList(integralratio_pf,fpu_pf)).getVal()
+                                errSig_pfhigh= ROOT.RooFormulaVar("errSig_pfhigh","errSig_pfhigh","pow(%f*@0,2)+pow(%f*@1,2)"%(err_pfhigh,integralratio_pf.getPropagatedError(fit_studies)),ROOT.RooArgList(integralratio_pf,fpu_pf)).getVal()
 
                                 puSig_pf=fpuSig_pf.getVal()
                                 ratSig_pfhigh=errSig_pfhigh/err_pfhigh
@@ -1172,8 +1177,8 @@ class TemplatesFitApp(TemplatesApp):
                                 fpuSig_ff= ROOT.RooFormulaVar("fpuSig_ff","fpuSig_ff","(@0*@1)/@2",ROOT.RooArgList(fpu_ff,fitUnrolledPdf.pdfList()[2].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion")))
                                 puSig_ff=fpuSig_ff.getVal()
                                 integralratio_ff= ROOT.RooFormulaVar("integralratio_ff","integralratio_ff","(@0)/(@1)",ROOT.RooArgList(fitUnrolledPdf.pdfList()[2].createIntegral(ROOT.RooArgSet(observable),"sigRegion"),fitUnrolledPdf.createIntegral(ROOT.RooArgSet(observable),"sigRegion")))
-                                errSig_fflow= ROOT.RooFormulaVar("errSig_fflow","errSig_fflow","pow(%f*@0,2)+pow(%f*@1,2)"%(err_fflow,integralratio_ff.getPropagatedError(fit_studies)),ROOT.RooArgList(integralratio_ff,fff)).getVal()
-                                errSig_ffhigh= ROOT.RooFormulaVar("errSig_ffhigh","errSig_ffhigh","pow(%f*@0,2)+pow(%f*@1,2)"%(err_ffhigh,integralratio_ff.getPropagatedError(fit_studies)),ROOT.RooArgList(integralratio_ff,fff)).getVal()
+                                errSig_fflow= ROOT.RooFormulaVar("errSig_fflow","errSig_fflow","pow(%f*@0,2)+pow(%f*@1,2)"%(err_fflow,integralratio_ff.getPropagatedError(fit_studies)),ROOT.RooArgList(integralratio_ff,fpu_ff)).getVal()
+                                errSig_ffhigh= ROOT.RooFormulaVar("errSig_ffhigh","errSig_ffhigh","pow(%f*@0,2)+pow(%f*@1,2)"%(err_ffhigh,integralratio_ff.getPropagatedError(fit_studies)),ROOT.RooArgList(integralratio_ff,fpu_ff)).getVal()
                                 ratSig_ffhigh=errSig_ffhigh/err_ffhigh
                                 ratSig_fflow=errSig_fflow/abs(err_fflow)
                             tpSig.Fill(puSig_pp,errSig_pplow,errSig_pphigh,puSig_pf,errSig_pflow,errSig_pfhigh,puSig_ff,errSig_fflow,errSig_ffhigh,tree_mass.massbin,tree_mass.masserror)
