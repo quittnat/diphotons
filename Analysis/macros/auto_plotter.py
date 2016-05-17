@@ -37,9 +37,11 @@ def rescaleHisto(histo,scale):
             
             if cont: err/=cont
             cont *= scl[0]
-            if scl[1]<0.: err = 0.
-            sclerr = scl[1]/scl[0]
-            err = sqrt(err*err + sclerr*sclerr) * cont
+            if scl[1]==-1:err=0.
+            else:
+                if scl[1]<0.: err = 0.
+                sclerr = scl[1]/scl[0]
+                err = sqrt(err*err + sclerr*sclerr) * cont
             histo.SetBinContent(bin+1,cont)
             histo.SetBinError(bin+1,err)
         ## histo.Print("all")
@@ -63,7 +65,7 @@ def mktdir(parent,name):
 # -----------------------------------------------------------------------------------------------------------
 def bookhisto(folder,hdef,prefix):
     
-    name, xvar, nxbins, xbins, yvar, nybins, yvar = hdef
+    name, xvar, nxbins, xbins, yvar, nybins, ybins = hdef
     name = "".join([prefix,name])
     
     histo = folder.Get(name)
@@ -97,6 +99,10 @@ class AutoPlot(PyRApp):
                             default=[]),
                 make_option("--process",action="callback", dest="processes", type="string", callback=optpars_utils.ScratchAppend(),
                             default=[]),
+                make_option("--rename",action="callback", dest="rename", type="string", callback=optpars_utils.ScratchAppend(),
+                            default=[],help="renaming of histogram process"),
+                make_option("--asymError",action="store_true", dest="asym_error",default=False, callback=optpars_utils.ScratchAppend(),
+                            default=[],help="renaming of histogram process"),
                 make_option("--move",action="callback", dest="move", type="string", callback=optpars_utils.ScratchAppend(),
                             default=[]),
                 make_option("--prescale",action="callback", dest="prescale", type="string", callback=optpars_utils.ScratchAppend(),
@@ -316,11 +322,15 @@ class AutoPlot(PyRApp):
         histograms = map(self.mkAllHistos, outputs )
         
         filled = map(self.fillAllHistograms, histograms)
-        
+       # if asymmetric error
+        if options.asym_error:
+            
         for folder,histos in filled:
             print folder.GetPath()
             folder.cd()
-            for h in set(reduce(lambda x,y: x+y, histos, [])): 
+            for h in set(reduce(lambda x,y: x+y, histos, [])):
+                if options.rename:
+                    h.SetName(h.GetName().replace("Data",options.rename[0]))
                 h.Write(h.GetName(),ROOT.TObject.kWriteDelete)
         
         output.Close()
