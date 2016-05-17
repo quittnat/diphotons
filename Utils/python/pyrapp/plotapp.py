@@ -383,17 +383,47 @@ class PlotApp(PyRApp):
                 
                 if doRatio:
                     pads[1].cd()
-                    ratio = datastk.GetStack().At(datastk.GetStack().GetEntries()-1).Clone("%s_%s_ratio" % (plotname,catname))
+                    if drawmethod.split("DrawRatio")[1].rsplit("]")[1]=="asymRatio":
+                        asymError=True
                     den = bkgstk.GetStack().At(bkgstk.GetStack().GetEntries()-1)
-                    ratio.Sumw2()
                     den.Sumw2()
+                    if asymError:
+                        #not necessary with error propagation
+                        ratio_err = datastk.GetHists()[0].Clone("%s_%s_ratio_err" % (plotname,catname))
+                        ratio = datastk.GetHists()[1].Clone("%s_%s_ratio" % (plotname,catname))
+                        ratio_err2 = ratio.Clone("%s_%s_ratio_err2" % (plotname,catname))
+                        for bin in range(1,ratio_err.GetNbinsX()+1):
+                            #print "sym error %.3f"%(ratio_err.GetBinError(bin)/ratio.GetBinContent(bin))
+                            #print "difference %.3f"%(abs(ratio.GetBinContent(bin)-ratio_err.GetBinContent(bin))/ratio.GetBinContent(bin))
+                            if ratio.GetBinContent(bin) > ratio_err.GetBinContent(bin):
+                               err_up=ratio_err.GetBinError(bin)-abs(ratio.GetBinContent(bin)-ratio_err.GetBinContent(bin))
+                               err_low=ratio_err.GetBinError(bin)+abs(ratio.GetBinContent(bin)-ratio_err.GetBinContent(bin))
+                            else:
+                               err_up=ratio_err.GetBinError(bin)+abs(ratio.GetBinContent(bin)-ratio_err.GetBinContent(bin))
+                               err_low=ratio_err.GetBinError(bin)-abs(ratio.GetBinContent(bin)-ratio_err.GetBinContent(bin))
+                            #print "%.3f,%.3f"%(err_up/ratio.GetBinContent(bin), err_low/ratio.GetBinContent(bin))
+                            #print "%.3f,%.3f"%(err_up,err_low)
+                            err_ratioup=pow((err_up/ratio.GetBinContent(bin))**2+(den.GetBinError(bin)/den.GetBinContent(bin))**2,0.5)*(ratio.GetBinContent(bin)/den.GetBinContent(bin))
+                            err_ratiolow=pow((err_low/ratio.GetBinContent(bin))**2+(den.GetBinError(bin)/den.GetBinContent(bin))**2,0.5)*(ratio.GetBinContent(bin)/den.GetBinContent(bin))
+                            ratio_err2.SetBinContent(bin,err_ratioup+err_ratiolow+ratio.GetBinContent(bin))
+                            ratio_err2.SetBinError(bin,(err_ratioup+err_ratiolow)/2)
+                         #   print err_ratioup,err_ratiolow
+                        ratio_err2.Divide(ratio_err2,den,1.,1.,"B")
+                    else:ratio = datastk.GetStack().At(datastk.GetStack().GetEntries()-1).Clone("%s_%s_ratio" % (plotname,catname))
+                    ratio.Sumw2()
                     ratio.Divide(ratio,den,1.,1.,"B")
                     self.keep(ratio,True)
+                    if asymError:
+                        self.keep(ratio_err,True)
+                        self.keep(ratio_err2,True)
                     
                     scaleFonts(ratio,pads[0].GetHNDC()/pads[1].GetHNDC())
                     
-                    ratio.Draw("e")
-                    pads[0].cd()
+                    if asymError:
+                        ratio.Draw("e")
+                        ratio_err2.SetMarkerStyle(1)
+                        ratio_err2.Draw("E2 X0 same")
+                    else: ratio.Draw("e")
                 
                 # if needed draw inset with zoom-in
                 ##   DrawInset[rngmin,rngmax,posx1,posy1,posx2,posy2]
