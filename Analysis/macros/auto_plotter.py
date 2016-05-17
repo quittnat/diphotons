@@ -337,7 +337,8 @@ class AutoPlot(PyRApp):
                 hasym.SetTitle("%s" % (hup.GetTitle().replace("_up","")))
                 hasym.SetNameTitle(hasym.GetName().replace("Data",options.rename[0]),hasym.GetTitle().replace("Data",options.rename[0]))
                 for bin in range(1,hasym.GetNbinsX()+1):
-                    hasym.SetBinError(bin,(hup.GetBinError(bin)+hlow.GetBinError(bin)/2.))
+                    hasym.SetBinError(bin,(hup.GetBinError(bin)+hlow.GetBinError(bin))/2.)
+                    print hup.GetBinError(bin),hlow.GetBinError(bin), hasym.GetBinError(bin)
                 hasym.Write(hasym.GetName(),ROOT.TObject.kWriteDelete)
                 for h in set(reduce(lambda x,y: x+y, histos, [])):
                     if "HighR9mass_up" in h.GetName():huph=h
@@ -345,16 +346,19 @@ class AutoPlot(PyRApp):
                 hasymh = huph.Clone("%s" % (huph.GetName().replace("_up","")))
                 hasymh.SetTitle("%s" % (huph.GetTitle().replace("_up","")))
                 hasymh.SetNameTitle(hasymh.GetName().replace("Data",options.rename[0]),hasymh.GetTitle().replace("Data",options.rename[0]))
+                
                 for bin in range(1,hasymh.GetNbinsX()+1):
-                    hasymh.SetBinError(bin,(huph.GetBinError(bin)+hlowh.GetBinError(bin)/2.))
+                    hasymh.SetBinError(bin,(huph.GetBinError(bin)+hlowh.GetBinError(bin))/2.)
+                    print huph.GetBinError(bin),hlowh.GetBinError(bin), hasymh.GetBinError(bin)
                 hasymh.Write(hasymh.GetName(),ROOT.TObject.kWriteDelete)
                 print hasym.GetName()
                 print hasymh.GetName()
                 
                 
             for h in set(reduce(lambda x,y: x+y, histos, [])):
-             #   if options.rename:
-             #       h.SetName(h.GetName().replace("Data",options.rename[0]))
+                if options.rename:
+                    h.SetName(h.GetName().replace("Data",options.rename[0]))
+                h.Print()
                 h.Write(h.GetName(),ROOT.TObject.kWriteDelete)
         
         output.Close()
