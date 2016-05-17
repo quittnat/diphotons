@@ -100,9 +100,8 @@ class AutoPlot(PyRApp):
                 make_option("--process",action="callback", dest="processes", type="string", callback=optpars_utils.ScratchAppend(),
                             default=[]),
                 make_option("--rename",action="callback", dest="rename", type="string", callback=optpars_utils.ScratchAppend(),
-                            default=[],help="renaming of histogram process"),
-                make_option("--asymError",action="store_true", dest="asym_error",default=False, callback=optpars_utils.ScratchAppend(),
-                            default=[],help="renaming of histogram process"),
+                                                default=[],help="renaming of histogram process"),
+                make_option("--asymError",action="store_true", dest="asym_error",default=False),
                 make_option("--move",action="callback", dest="move", type="string", callback=optpars_utils.ScratchAppend(),
                             default=[]),
                 make_option("--prescale",action="callback", dest="prescale", type="string", callback=optpars_utils.ScratchAppend(),
@@ -322,15 +321,40 @@ class AutoPlot(PyRApp):
         histograms = map(self.mkAllHistos, outputs )
         
         filled = map(self.fillAllHistograms, histograms)
-       # if asymmetric error
-        if options.asym_error:
-            
+        
         for folder,histos in filled:
+            print
             print folder.GetPath()
             folder.cd()
+            print histos
+            if options.asym_error:
+                #TODO improve write correctly without mass and low/highR9
+                for h in set(reduce(lambda x,y: x+y, histos, [])):
+                    if "LowR9mass_up" in h.GetName():hup=h
+                    if "LowR9mass_low" in h.GetName():hlow=h
+                print "[INFO] apply asymmetric errors for:"
+                hasym = hup.Clone("%s" % (hup.GetName().replace("_up","")))
+                hasym.SetTitle("%s" % (hup.GetTitle().replace("_up","")))
+                hasym.SetNameTitle(hasym.GetName().replace("Data",options.rename[0]),hasym.GetTitle().replace("Data",options.rename[0]))
+                for bin in range(1,hasym.GetNbinsX()+1):
+                    hasym.SetBinError(bin,(hup.GetBinError(bin)+hlow.GetBinError(bin)/2.))
+                hasym.Write(hasym.GetName(),ROOT.TObject.kWriteDelete)
+                for h in set(reduce(lambda x,y: x+y, histos, [])):
+                    if "HighR9mass_up" in h.GetName():huph=h
+                    if "HighR9mass_low" in h.GetName():hlowh=h
+                hasymh = huph.Clone("%s" % (huph.GetName().replace("_up","")))
+                hasymh.SetTitle("%s" % (huph.GetTitle().replace("_up","")))
+                hasymh.SetNameTitle(hasymh.GetName().replace("Data",options.rename[0]),hasymh.GetTitle().replace("Data",options.rename[0]))
+                for bin in range(1,hasymh.GetNbinsX()+1):
+                    hasymh.SetBinError(bin,(huph.GetBinError(bin)+hlowh.GetBinError(bin)/2.))
+                hasymh.Write(hasymh.GetName(),ROOT.TObject.kWriteDelete)
+                print hasym.GetName()
+                print hasymh.GetName()
+                
+                
             for h in set(reduce(lambda x,y: x+y, histos, [])):
-                if options.rename:
-                    h.SetName(h.GetName().replace("Data",options.rename[0]))
+             #   if options.rename:
+             #       h.SetName(h.GetName().replace("Data",options.rename[0]))
                 h.Write(h.GetName(),ROOT.TObject.kWriteDelete)
         
         output.Close()
