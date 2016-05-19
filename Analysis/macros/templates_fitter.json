@@ -1,4 +1,10 @@
 {
+	"inputEnvelope" : { "fit" : "cic2",
+                "weight_cut": "weight <1000.",
+				"mass_binning" :"mass[13000,200.0,13000.0]",
+                "categories" : ["EBEB","EBEE"],
+                "components": [  ["pp",{ "cic2" : {}}]] 
+},
     "comparisons" : {
 	"fit2DTruth" : { "fit" : "2D",
 		"templates" : { "mix:kDSinglePho2DMC" : {}, "mix:kDSinglePho2D" : {}},
@@ -34,7 +40,7 @@
                 "categories" :["EB","EE"]
     },
    "nominalFit":{
-        "_3_components":{
+        "3_components":{
         		"dimensions" :"2D", 
         		"observable": "templateNdim2d_unroll",
                 "components": ["pp","pf","ff"],
@@ -48,7 +54,7 @@
 				"jackknife_pp":false,
 		"mass_binning" :"mass[13000,0.0,13000.0]"
          },
-        "2_components":{
+        "_2_components":{
         		"dimensions" :"2D", 
         		"observable": "templateNdim2d_unroll",
                 "components": ["pp","pf"],

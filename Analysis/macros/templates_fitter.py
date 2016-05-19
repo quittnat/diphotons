@@ -65,6 +65,9 @@ class TemplatesFitApp(TemplatesApp):
                         make_option("--compare-templates",dest="compare_templates",action="store_true",default=False,
                                     help="Make templates comparison plots",
                                     ),
+                        make_option("--input-envelope",dest="input_envelope",action="store_true",default=False,
+                                    help="roodataset for envelope",
+                                    ),
                         make_option("--nominal-fit",dest="nominal_fit",action="store_true",default=False,
                                     help="do fit templates",
                                     ),
@@ -138,6 +141,8 @@ class TemplatesFitApp(TemplatesApp):
         
         if options.compare_templates:
             self.compareTemplates(options,args)
+        if options.input_envelope:
+            self.inputEnvelope(options,args)
             
         if options.nominal_fit:
             self.nominalFit(options,args)
@@ -152,7 +157,39 @@ class TemplatesFitApp(TemplatesApp):
         
 
     ## ------------------------------------------------------------------------------------------------------------
+    def inputEnvelope(self,options,args):
+        fout = self.openOut(options)
+        fout.Print()
+        fout.cd()
+        weight_cut=options.inputEnvelope["weight_cut"] 
+        fitname=options.inputEnvelope["fit"]
+        components=options.inputEnvelope.get("components")
+        print fitname, components
+        for comp in components:
+            if type(comp) == str or type(comp)==unicode:
+                compname = comp
+                templatesls= comparison["templates"]
+            else:
+                compname, templatesls = comp
+            for cat in options.inputEnvelope.get("categories"):
+                print cat, compname
+                templates = []
+                massargs=ROOT.RooArgSet("massargs")
+                mass_var,mass_b=self.getVar(options.inputEnvelope.get("mass_binning"))
+                mass=self.buildRooVar(mass_var,mass_b,recycle=True)
+                massargs.add(mass)
+                setargs=ROOT.RooArgSet(massargs)
+                rooweight=self.buildRooVar("weight",[],recycle=True)
+                setargs.add(rooweight)
+                setargs.Print()
+                truthname= "mctruth_%s_%s_%s" % (compname,fitname,cat)
+                print truthname
+                print
+                truth = self.reducedRooData(truthname,setargs,False,sel=weight_cut,redo=False)
+                truth.Print()
+        self.saveWs(options,fout)
     
+    ## ------------------------------------------------------------------------------------------------------------
     def compareTemplates(self,options,args):
         fout = self.openOut(options)
         fout.Print()
