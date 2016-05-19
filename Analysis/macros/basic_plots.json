@@ -1,16 +1,26 @@
 {
-    "drawopts" : ["Draw,DrawRatio[0.7]","e","hist","hist nostack"],
+    "drawopts" : ["Draw,DrawRatio[0.7]asymRatio","e X0 nostack","hist","hist nostack"],
     "legpos"  : [0.580,0.65,0.930,0.91],
 
     "_sig" : null,
 
-    "data" : [
+    "_data" : [
 	      ["Data","Data",
 	      [["SetBinErrorOption",1],["colors","kBlack"],["SetLineWidth",2],["SetFillStyle",0],["Scale",1],["legopt","pe"],["SetMarkerStyle","kFullCircle"],["SetFillColor","kWhite"]],
 	      { "Data_13TeV:__infile__/%(sel)s" : [] }
 	      ]
 	      
     ],
+    "data" : [
+	      ["Data_err","",
+	      [["SetBinErrorOption",1],["colors","kBlack"],["SetLineWidth",2],["SetFillStyle",0],["Scale",1],["legopt",""],["SetFillColor","kWhite"]],
+	      { "Data_err_13TeV:__infile__/%(sel)s" : [] }
+	      ],
+	      ["Data","Data",
+	      [["SetBinErrorOption",1],["colors","kBlack"],["SetLineWidth",2],["SetFillStyle",0],["Scale",1],["legopt","pe"],["SetMarkerStyle","kFullCircle"],["SetFillColor","kWhite"]],
+	      { "Data_13TeV:__infile__/%(sel)s" : [] }
+	      ]
+	],      
     "_data" : [
 	      ["Data","Data",
 	      [["SetBinErrorOption",1],["colors","kBlack"],["SetLineWidth",2],["SetFillStyle",0],["Scale",1],["legopt","pe"],["SetMarkerStyle","kFullCircle"],["SetFillColor","kWhite"]],
@@ -160,12 +170,12 @@
 	"EEHighR9" : ["EEHighR9"],
 	"EELowR9"  : ["EELowR9"]
 	}, 
-    "groups": {
+    "_groups": {
         "EB"       : ["EBHighR9","EBLowR9"],
         "EE"       : ["EEHighR9","EELowR9"]
 	}, 
     "groups": {
-        "EB"       : ["EBHighR9","EBLowR9"]
+        "EE"       : ["EEHighR9","EELowR9"]
 	}, 
 
 
@@ -303,6 +313,8 @@
 					  ["xrange",[320.0,1600.0]],["rebin",[[320,355,444,500,600,800,1600]]],
 					  ["xrange",[320.0,1600.0]],["rebin",[[320,360,440,500,800,1000,1600]]],
 					  ["xrange",[320.0,1600.0]],["rebin",[[320,355,444,500,600,800,1000,1600]]],
+					  ["xrange",[320.0,1600.0]],["rebin",[[320,355,444,500,600,800,1600]]],
+					  ["xrange",[230.0,1600.0]],["rebin",[[230,253,282,332,409,500,600,800,1600]]],
 					  "density",["ytitle","Events / %(binw)s GeV"]
 					]
 					,null,null]
@@ -312,7 +324,7 @@
 					],
     "plots": [
 	      ["mass"			,[["xtitle","m_{#gamma #gamma} (GeV)"],
-					  ["xrange",[230.0,1600.0]],["rebin",[[230,250,270,330,400,500,600,800,1600]]],
+					  ["xrange",[320.0,1600.0]],["rebin",[[320,355,444,500,600,800,1600]]],
 					  ["density",20],["ytitle","Events / (%(binw)s GeV)"]
 					]
 					,null,null],
@@ -458,8 +470,9 @@
     ],
 
     "postproc" : {
-    	       "*" : [["addCmsLumi",[4,1,"Preliminary"]]],
-    	       "*EB" : [["addCat",["EBEB"]]],
+    	       "notused" : [["addCmsLumi",[4,1,"Preliminary"]]],
+    	       "*" : [["addCmsLumi",[4,1,"Unpublished"]],["addCat",["EBEE"]]],
+    	       "notused" : [["addCat",["EBEB"]]],
     	       "*EE" : [["addCat",["EBEE"]]]
 	       }	
     

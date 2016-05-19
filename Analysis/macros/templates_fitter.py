@@ -211,9 +211,10 @@ class TemplatesFitApp(TemplatesApp):
                     setargs.add(rooweight)
                     setargs.Print()
                     #needed to estimate true purity for alter 2dfit
-                  
                     if not options.no_mctruth:
                         truthname= "mctruth_%s_%s_%s" % (compname,fitname,cat)
+                        print truthname
+                        print
                         truth = self.reducedRooData(truthname,setargs,False,sel=weight_cut,redo=ReDo)
                         truth.Print()
                         templates.append(truth)
@@ -326,13 +327,13 @@ class TemplatesFitApp(TemplatesApp):
                                 histls.append(tempHisto)
                       #     if not prepfit: 
                             print "plot 1d histos"
-                            self.plotHistos(histls,tit,template_binning,False,logx=False,logy=True,numEntries=numEntries_s,ID=id)
+                           # self.plotHistos(histls,tit,template_binning,False,logx=False,logy=True,numEntries=numEntries_s,ID=id)
                         
 
                         ## roll out for combine tool per category
-                        if fit["ndim"]>1:
-                            self.histounroll(templates_massc,template_binning,isoargs,compname,cat,cut_s,prepfit,sigRegionlow2D,sigRegionup2D,extra_shape_unc=options.extra_shape_unc)
-                            self.histounroll_book(template_binning,isoargs)
+                       # if fit["ndim"]>1:
+                           ## self.histounroll(templates_massc,template_binning,isoargs,compname,cat,cut_s,prepfit,sigRegionlow2D,sigRegionup2D,extra_shape_unc=options.extra_shape_unc)
+                        #    self.histounroll_book(template_binning,isoargs)
 
     ## ------------------------------------------------------------------------------------------------------------
     def buildTemplates(self,templatesls,setargs, weight_cut=None,compname="pf",cat="EBEB"):
@@ -1659,7 +1660,7 @@ class TemplatesFitApp(TemplatesApp):
                                 pf_syshigh=pf_sys
                                 ff_syslow=ff_sys
                                 ff_syshigh=ff_sys
-                                print "[INFO] fullregion for pp component:  purity pp %.2f"% pp_p," JK (absolute) %.3f"% JK[mb], "stat error from fit: low %.3f"% tree_template.err_pplow, "high %3.f" %tree_template.err_pphigh,"final stat error low %.3f" % stat_pplow, "high %.3f"%stat_pphigh ,"sys error*purity_pp %.3f" % sqrt(pp_sys),"total error low %.3f"%pp_errlow, "high %.3f" %pp_errhigh
+                            #    print "[INFO] fullregion for pp component:  purity pp %.2f"% pp_p," JK (absolute) %.3f"% JK[mb], "stat error from fit: low %.3f"% tree_template.err_pplow, "high %3.f" %tree_template.err_pphigh,"final stat error low %.3f" % stat_pplow, "high %.3f"%stat_pphigh ,"sys error*purity_pp %.3f" % sqrt(pp_sys),"total error low %.3f"%pp_errlow, "high %.3f" %pp_errhigh
                             else:
                                 tree_templateRat.GetEntry(mb)
                                 stat_pplow=sqrt(JK[mb]**2*tree_templateRat.ratSig_pplow**2+tree_template.err_pplow**2)
@@ -1682,9 +1683,11 @@ class TemplatesFitApp(TemplatesApp):
                                 pf_errhigh=sqrt(pf_syshigh+stat_pfhigh**2)
                                 ff_errhigh=sqrt(ff_syshigh+stat_ffhigh**2)
 
-                                print "[INFO] sigregion for pp component: "," purity pp %.2f"%pp_p," JK (absolute for fullregion) %.3f"%JK[mb], "stat error from fit: low %.3f"%tree_template.err_pplow, "high %.3f"% tree_template.err_pphigh,"final stat error low %.3f" % stat_pplow, "high %.3f"%stat_pphigh ,"sys error*purity_pp low %.3f"% sqrt(pp_syslow),"high %.3f"%sqrt(pp_syshigh),"total error low %.3f"% pp_errlow, "high % .3f"%pp_errhigh
-                            print
-                            print
+                            #    print "[INFO] sigregion for pp component: "," purity pp %.2f"%pp_p," JK (absolute for fullregion) %.3f"%JK[mb], "stat error from fit: low %.3f"%tree_template.err_pplow, "high %.3f"% tree_template.err_pphigh,"final stat error low %.3f" % stat_pplow, "high %.3f"%stat_pphigh ,"sys error*purity_pp low %.3f"% sqrt(pp_syslow),"high %.3f"%sqrt(pp_syshigh),"total error low %.3f"% pp_errlow, "high % .3f"%pp_errhigh
+                           ##print outs for auto_mass_plot.sh
+                          #  print pp_p
+                          #  print "[",(-pp_errlow+pp_errhigh+pp_p) ,"," , pp_errhigh  ,"],"
+                          #  print "[",(-pp_errlow+pp_errhigh+pp_p) ,",",  pp_errlow  ,"],"
                             g_syspf.SetPoint(mb,massbin,pf_p)
                             g_syspp.SetPoint(mb,massbin,pp_p)
                             g_sysff.SetPoint(mb,massbin,ff_p)
@@ -1758,7 +1761,7 @@ class TemplatesFitApp(TemplatesApp):
                    # else: self.plotClosure(cat,pu_val,opt,"fullRegionMC",g_truthpp,g_truthpf,g_truthff,g_pullpp,g_mctruthpp,g_mctruthpf,g_mctruthff)
                 else:
                     if options.pu_sigregion:
-                        self.plotPurityMassbins(cat,pu_val,opt,"sigRegionData",g_templatepp,g_templatepf,g_templateff,g_syspp,g_syspf,g_sysff)
+        #                self.plotPurityMassbins(cat,pu_val,opt,"sigRegionData",g_templatepp,g_templatepf,g_templateff,g_syspp,g_syspf,g_sysff)
                         if not options.no_mctruth:
                             self.plotPurityMassbins(cat,pu_val,opt,"sigRegionData_MC",g_templatepp,g_templatepf,g_templateff,g_mctruthpp=g_mctruthpp,g_mctruthpf=g_mctruthpf,g_mctruthff=g_mctruthff,g_ratiopp=g_ratiopp)
 
@@ -1767,7 +1770,7 @@ class TemplatesFitApp(TemplatesApp):
                             #self.plotPurityMassbins(cat,pu_val,opt,"sigRegionData_MC_sys",g_templatepp,g_templatepf,g_templateff,g_syspp,g_syspf,g_sysff,g_truthpp,g_truthpf,g_truthff,g_ratiopp)
 
                     else: 
-                        self.plotPurityMassbins(cat,pu_val,opt,"data_sys",g_templatepp,g_templatepf,g_templateff,g_syspp,g_syspf,g_sysff)
+         #               self.plotPurityMassbins(cat,pu_val,opt,"data_sys",g_templatepp,g_templatepf,g_templateff,g_syspp,g_syspf,g_sysff)
                         if not options.no_mctruth:
                             self.plotPurityMassbins(cat,pu_val,opt,"data_MC",g_templatepp,g_templatepf,g_templateff,g_mctruthpp=g_mctruthpp,g_mctruthpf=g_mctruthpf,g_mctruthff=g_mctruthff,g_ratiopp=g_ratiopp)
                             self.plotPurityMassbins(cat,pu_val,opt,"data_MC_sys",g_templatepp,g_templatepf,g_templateff,g_syspp,g_syspf,g_sysff,g_mctruthpp,g_mctruthpf,g_mctruthff,g_ratiopp)
