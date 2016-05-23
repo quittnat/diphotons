@@ -21,10 +21,20 @@ forked the flashgg and this repository.
 ## ## FLASHGG_TAG=
 ## FLASHGG_BRANCH=topic_diphotons_7412 # set empty if you want the master (safe as long as you are not producing MicroAOD)
 
-# Spring15 settings
-PROJECT_AREA=EXO_7_4_15
-CMSSW_VERSION=CMSSW_7_4_15
-FLASHGG_BRANCH=topic_diphotons_7415 # set empty if you want the master (safe as long as you are not producing MicroAOD)
+## # 74x settings
+## PROJECT_AREA=EXO_7_4_15
+## CMSSW_VERSION=CMSSW_7_4_15
+## FLASHGG_BRANCH=topic_diphotons_7415 # set empty if you want the master (safe as long as you are not producing MicroAOD)
+
+## # 76x settings
+## PROJECT_AREA=EXO_7_6_3
+## CMSSW_VERSION=CMSSW_7_6_3
+## FLASHGG_BRANCH= # set empty if you want the master (safe as long as you are not producing MicroAOD)
+
+# 80x settings
+PROJECT_AREA=EXO_8_0_3_patch2
+CMSSW_VERSION=CMSSW_8_0_3_patch2
+FLASHGG_BRANCH=diphotons_80 # set empty if you want the master (safe as long as you are not producing MicroAOD)
 
 
 # read github name from git config

@@ -154,6 +154,8 @@ class TemplatesApp(PlotApp):
                                     default=None,help="default: %default"),
                         make_option("--prepare-data",dest="prep_data",action="store_true",
                                     default=False,help="prepare templates only with data, no mc, signals, or templatesMC,mctruth)"),
+                        make_option("--prepare-signal",dest="prep_signal",action="store_true",
+                                    default=False,help="generate signal trees (overrides --prepare-nosignal)"),
                         make_option("--prepare-nosignal",dest="prep_nosig",action="store_true",
                                     default=False,help="prepare templates without signals"),
                         make_option("--prepare-signal",dest="prep_sig",action="store_true",
@@ -186,6 +188,13 @@ class TemplatesApp(PlotApp):
                                     default=[],
                                     help="Binning of the parametric observable to be used for templates",
                                     ),                        
+                        make_option("--signals",dest="signals",action="callback",callback=optpars_utils.Load(scratch=True),type="string",
+                                    default={}),
+                        ### make_option("--template-binning",dest="template_binning",action="callback",callback=optpars_utils.ScratchAppend(float),
+                        ###             type="string",
+                        ###             default=[],
+                        ###             help="Binning of the parametric observable to be used for templates",
+                        ###             ),                        
                         ]
                   )
             ]+option_groups,option_list=option_list)
@@ -467,7 +476,7 @@ class TemplatesApp(PlotApp):
         if not options.prep_data:
             self.datasets_["templatesMC"]   = self.openDataset(None,options.mc_file,options.infile,options.templatesMC)
        
-        if not (options.prep_data or options.prep_nosig):
+        if not (options.prep_data or options.prep_nosig) or options.prep_signal:
             for name,trees in options.signals.iteritems():
                 self.datasets_[name] = self.openDataset(None,options.mc_file,options.infile,trees)        
             # used by parent class PlotApp to read in objects
@@ -509,12 +518,11 @@ class TemplatesApp(PlotApp):
             categories      = fit["categories"]
             if not (options.prep_data or options.prep_sig):
                 truth_selection = fit["truth_selection"]
-            if not options.prep_data:
-                if not options.prep_nosig:
-                    signals         = fit.get("signals",[])
-                    if signals == "__all__":
-                        signals = options.signals.keys()
-                        fit["signals"] = signals
+            if not (options.prep_data or options.prep_nosig) or options.prep_signal:
+                signals         = fit.get("signals",[])
+                if signals == "__all__":
+                    signals = options.signals.keys()
+                    fit["signals"] = signals
             template_binning = array.array('d',fit["template_binning"])
             templates       = fit["templates"]
             storeTrees      = fit.get("store_trees",False)
@@ -542,19 +550,20 @@ class TemplatesApp(PlotApp):
             tmp.cd()
             
             ## prepare data
-            if not options.prep_sig:
-                dataTrees = self.prepareTrees("data",selection,options.verbose,"Data trees")
-                self.buildRooDataSet(dataTrees,"data",name,fit,categories,fulllist,weight,preselection,storeTrees)
-                for cat in categories.keys():
-                    print "dataset - %s" % (cat), self.rooData("data_%s_%s" % (name,cat) ).sumEntries()
-                    print "number of entries data - %s" % (cat), self.rooData("data_%s_%s" % (name,cat) ).numEntries()
+            dataTrees = self.prepareTrees("data",selection,options.verbose,"Data trees")
+            weightexpr = self.aliases_.get(weight,None)
+            self.buildRooDataSet(dataTrees,"data",name,fit,categories,fulllist,weight if weightexpr != "1" else "1",preselection,storeTrees)
+            for cat in categories.keys():
+                print "dataset - %s" % (cat), self.rooData("data_%s_%s" % (name,cat) ).sumEntries()
+                print "number of entries data - %s" % (cat), self.rooData("data_%s_%s" % (name,cat) ).numEntries()
           ## prepare mc
-                if not options.prep_data:
-                    mcTrees =  self.prepareTrees("mc",selection,options.verbose,"MC trees")
-                    self.buildRooDataSet(mcTrees,"mc",name,fit,categories,fulllist,weight,preselection,storeTrees)
+            if not options.prep_data:
+                mcTrees =  self.prepareTrees("mc",selection,options.verbose,"MC trees")
+                
+                self.buildRooDataSet(mcTrees,"mc",name,fit,categories,fulllist,weight,preselection,storeTrees)
           
           ## prepare signal
-            if not (options.prep_data or options.prep_nosig):
+            if not (options.prep_data or options.prep_nosig) or options.prep_signal:
                 for sig in signals:
                     sigTrees =  self.prepareTrees(sig,selection,options.verbose,"Signal %s trees" % sig)
                     self.buildRooDataSet(sigTrees,sig,name,fit,categories,fulllist,weight,preselection,storeTrees)
@@ -1130,6 +1139,7 @@ class TemplatesApp(PlotApp):
                         twei = wei.GetTitle() % {"leg" : leg}
                         ## this will actually discard all events with weight 0 
                         ##   or outside of the range of any variable in fulllist
+                        ##print twei
                         filler.fillFromTree(tree,twei)
             
             # restore variables definition
@@ -1157,6 +1167,7 @@ class TemplatesApp(PlotApp):
         
         ## read trees for given selection
         allTrees = self.getTreesForSelection(name,selection)
+        if not allTrees: return None
         for cat,trees in allTrees.iteritems():
             treePaths = []
             ## set aliases
@@ -1176,6 +1187,8 @@ class TemplatesApp(PlotApp):
         """ Load trees used for datasets definition.
         """ 
         ret = {}
+        
+        if not dataset in self.datasets_ or not self.datasets_[dataset]: return None
         
         ## keep track of already loaded datasets
         key = "%s:%s" % ( dataset, selection ) 

@@ -135,21 +135,32 @@ def mvStatBox(h,prev=None,vert=-1,horiz=0.):
 def addCmsLumi(canv,period,pos,extraText=None):
     if extraText:
         ROOT.gROOT.ProcessLine("writeExtraText = true;")
-        if type(extraText) == str and extraText != "":
+        if type(extraText) == str or type(extraText) == unicode and extraText != "":
             ROOT.gROOT.ProcessLine('extraText = "%s";' % extraText)
     ROOT.CMS_lumi(canv,period,pos)
 
 
 # -----------------------------------------------------------------------------------------------------------
 def printIntegral(h,xmin=None,xmax=None):
-    bmin=-1
-    bmax=-1
-    if xmin:
-        bmin = h.FindBin(xmin)
-    if xmax:
-        bmax = h.FindBin(xmax)
+    try:
+        bmin=-1
+        bmax=-1
+        if xmin:
+            bmin = h.FindBin(xmin)
+        if xmax:
+            bmax = h.FindBin(xmax)
+                
+        print("Integral %s(%s,%s): %2.4g" % (h.GetName(), str(xmin), str(xmax), h.Integral(bmin,bmax) ))
+    except:
+        pass
 
-    print("Integral %s(%s,%s): %1.3g" % (h.GetName(), str(xmin), str(xmax), h.Integral(bmin,bmax) ))
+# -----------------------------------------------------------------------------------------------------------
+def printMean(h):
+    try:
+                
+        print("Mean %s: %2.4g" % (h.GetName(), h.GetMean() ))
+    except:
+        pass
         
 # -----------------------------------------------------------------------------------------------------------
 def apply(h,modifs):

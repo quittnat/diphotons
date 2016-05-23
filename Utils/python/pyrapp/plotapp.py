@@ -174,10 +174,14 @@ class PlotApp(PyRApp):
                                     default=None,help="default: %default"),
                         make_option("--lumi",dest="lumi",action="store",type="float",
                                     default=None,help="default: %default"),
+                        make_option("--lumistr",dest="lumistr",action="store",type="string",
+                                    default=None,help="default: %default"),
                         make_option("--fudge",dest="fudge",action="store",type="float",
                                     default=1.,help="default: %default"),
                         make_option("--sqrts",dest="sqrts",action="store",type="string",
                                     default="13TeV",help="default: %default"),
+                        make_option("--mag-field",action="store", dest="mag_field", type="string",
+                                    default=None),
                         make_option("--sig-file",dest="sig_file",action="store",type="string",
                                     default=None,help="default: %default"),
                         make_option("--bkg-file",dest="bkg_file",action="store",type="string",
@@ -202,7 +206,9 @@ class PlotApp(PyRApp):
         else:
             self.lumistr = "%1.2g" % self.options.lumi
             self.options.lumi *= self.options.fudge
-
+        if self.options.lumistr:
+            self.lumistr=self.options.lumistr
+            
         global ROOT, style_utils
         import ROOT
         import style_utils
@@ -503,7 +509,7 @@ class PlotApp(PyRApp):
                     sfin = self.open(fname, folder=self.options.input_dir)
                 if folder:
                     try:
-                        sfin = sfin.Get(folder)
+                        sfin = sfin.Get(str(folder))
                     except Exception, e:
                         print "Unable to read %s from %s" % ( folder, fname)
                         print e
@@ -515,8 +521,7 @@ class PlotApp(PyRApp):
                 h = None
                 for gr in group:
                     nam = self.template_ % { "name" : name, "cat" : gr, "sample" : s }
-                    # print nam
-                    hgr = sfin.Get(nam)
+                    hgr = sfin.Get(str(nam))
                     if not hgr:
                         raise IOError("Could not read %s from %s" % (nam, str(sfin)) )
                     if hgr.IsA().InheritsFrom("TH1"):
@@ -533,8 +538,8 @@ class PlotApp(PyRApp):
                         ret.append(hgr)
             else:
                 nam = self.template_ % { "name" : name, "cat" : cat, "sample" : s }
-                h = sfin.Get(nam)
-                if not hgr:
+                h = sfin.Get(str(nam))
+                if not h:
                     raise IOError("Could not read %s from %s" % (nam, str(sfin)) )
                 if h.IsA().InheritsFrom("TH1"):
                     h.GetXaxis().SetTitle(  h.GetXaxis().GetTitle().replace("@"," ") )
@@ -669,7 +674,10 @@ class PlotApp(PyRApp):
         
         if self.lumistr:
             ROOT.gROOT.ProcessLine( 'lumi_%s = "%s fb^{-1}";' % (  self.options.sqrts, self.lumistr ) )
-
+            
+        if self.options.mag_field:
+            ROOT.gROOT.ProcessLine( 'magText = ", %s";' % (  self.options.mag_field ) )
+            
         ## self.dev_null = ROOT.std.ofstream("/dev/null")
         ## ROOT.std.cout.rdbuf(self.dev_null.rdbuf())
         ## ROOT.std.cerr.rdbuf(self.dev_null.rdbuf())
