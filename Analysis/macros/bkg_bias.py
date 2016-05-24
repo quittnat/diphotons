@@ -10,7 +10,7 @@ from pprint import pprint
 import array
 
 from getpass import getuser
-
+##for copy and paste stuff, not necessary
 from combine_maker import CombineApp
 
 import random
@@ -678,7 +678,7 @@ class BiasApp(CombineApp):
         ncat   = len(keys) / nfuncs
         for icat in range(ncat):
             for ifunc in range(nfuncs):
-                styles.append( [ (style_utils.colors,colors[ifunc%len(colors)]+icat), ("SetMarkerStyle",markers[icat % len(markers)]) ] )
+                styles.append( [ (style_utils.colors,colors[ifunc%len(colors)+icat%len(colors)]), ("SetMarkerStyle",markers[icat % len(markers)]) ] )
                 
         
         ROOT.gStyle.SetOptFit(0)
