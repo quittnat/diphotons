@@ -87,18 +87,58 @@ class BiasApp(CombineApp):
                                     default=[]
                                     ),
                         make_option("--bias-labels",dest="bias_labels",action="callback",type="string",callback=optpars_utils.ScratchAppend(str),
-                                    default=[]
+                                    default=[
+                                        ]
+                                        ##"testRange_230_7000",
+                                        ##"testRange_320_7000",
+                                        ##"testRange_300_6000",
+                                        ##"testRange_400_6000",
+                                        ##"testRange_500_6000",
+                                        ##"testRange_300_6000",
+                                        ##"testRange_400_6000",
+                                        ##"testRange_500_6000"
                                     ),                    
                         make_option("--bias-param",dest="bias_param",action="callback",type="string",callback=optpars_utils.Load(scratch=True),
                                     default={
-                                "EBEB_dijet_230_7000" : "(x>500.)*((0.06*((x/600.)^-4))+1e-6)",
-                                "EBEE_dijet_320_7000" : "(x>500.)*((0.1*((x/600.)^-5)))",
-                                "EBEB_dijet_300_6000" : "(x>500.)*((0.22*((x/600.)^-5))+1e-6)",
-                                "EBEB_dijet_400_6000" : "(x>500.)*((0.2*((x/600.)^-5))+2e-6)",
-                                "EBEB_dijet_500_6000" : "(x>500.)*((0.18*((x/600.)^-5))+5e-6)",
-                                "EBEE_dijet_300_6000" : "(x>500.)*((0.06*((x/600.)^-4))+1e-7)",
-                                "EBEE_dijet_400_6000" : "(x>500.)*((0.04*((x/600.)^-4))+1e-7)",
-                                "EBEE_dijet_500_6000" : "(x>500.)*((0.04*((x/600.)^-4))+1e-7)",
+                              ##  "EBEB_dijet_230_7000" : "(x>500.)*((0.06*((x/600.)^-4))+1e-6)",
+                              ##  "EBEE_dijet_320_7000" : "(x>500.)*((0.1*((x/600.)^-5)))",
+                              ##  "EBEB_dijet_300_6000" : "(x>500.)*((0.22*((x/600.)^-5))+1e-6)",
+                              ##  "EBEB_dijet_400_6000" : "(x>500.)*((0.2*((x/600.)^-5))+2e-6)",
+                              ##  "EBEB_dijet_500_6000" : "(x>500.)*((0.18*((x/600.)^-5))+5e-6)",
+                              ##  "EBEE_dijet_300_6000" : "(x>500.)*((0.06*((x/600.)^-4))+1e-7)",
+                              ##  "EBEE_dijet_400_6000" : "(x>500.)*((0.04*((x/600.)^-4))+1e-7)",
+                              ##  "EBEE_dijet_500_6000" : "(x>500.)*((0.04*((x/600.)^-4))+1e-7)",
+                          ##    1000,1200 --test-range 1200,1800 --test-range 1800,2500 --test-range 2500,3500 --test-range 3500,4500 --test-range 500,550 --test-range     550,600 --test-range 600,650 --test-range 650,700 --test-range 700,750 --test-range 750,800 --test-range 800,900 --test-range 900,1000 --test-range 450    0,5500  
+                              
+                              
+                                "EBEB_dijet_testRange_500_550" : "(x>500.)*((0.06*((x/600.)^-4))+1e-6)",
+                                "EBEB_dijet_testRange_550_600" : "(x>500.)*((0.06*((x/600.)^-4))+1e-6)",
+                                "EBEB_dijet_testRange_600_650" : "(x>500.)*((0.06*((x/600.)^-4))+1e-6)",
+                                "EBEB_dijet_testRange_650_700" : "(x>500.)*((0.06*((x/600.)^-4))+1e-6)",
+                                "EBEB_dijet_testRange_700_750" : "(x>500.)*((0.06*((x/600.)^-4))+1e-6)",
+                                "EBEB_dijet_testRange_750_800" : "(x>500.)*((0.06*((x/600.)^-4))+1e-6)",
+                                "EBEB_dijet_testRange_800_900" : "(x>500.)*((0.06*((x/600.)^-4))+1e-6)",
+                                "EBEB_dijet_testRange_900_1000" : "(x>500.)*((0.06*((x/600.)^-4))+1e-6)",
+                                "EBEB_dijet_testRange_1000_1200" :"(x>500.)*((0.06*((x/600.)^-4))+1e-6)",
+                                "EBEB_dijet_testRange_1200_1800" :"(x>500.)*((0.06*((x/600.)^-4))+1e-6)",
+                                "EBEB_dijet_testRange_1800_2500" :"(x>500.)*((0.06*((x/600.)^-4))+1e-6)",
+                                "EBEB_dijet_testRange_2500_3500" :"(x>500.)*((0.06*((x/600.)^-4))+1e-6)",
+                                "EBEB_dijet_testRange_3500_4500" :"(x>500.)*((0.06*((x/600.)^-4))+1e-6)",
+                                "EBEB_dijet_testRange_4500_5500" :"(x>500.)*((0.06*((x/600.)^-4))+1e-6)",
+                                "EBEE_dijet_testRange_500_550" : "(x>500.)*((0.1*((x/600.)^-5)))",
+                                "EBEE_dijet_testRange_550_600" :  "(x>500.)*((0.1*((x/600.)^-5)))",
+                                "EBEE_dijet_testRange_600_650" :  "(x>500.)*((0.1*((x/600.)^-5)))",
+                                "EBEE_dijet_testRange_650_700" :  "(x>500.)*((0.1*((x/600.)^-5)))",
+                                "EBEE_dijet_testRange_700_750" :  "(x>500.)*((0.1*((x/600.)^-5)))",
+                                "EBEE_dijet_testRange_750_800" :  "(x>500.)*((0.1*((x/600.)^-5)))",
+                                "EBEE_dijet_testRange_800_900" :  "(x>500.)*((0.1*((x/600.)^-5)))",
+                                "EBEE_dijet_testRange_900_1000" : "(x>500.)*((0.1*((x/600.)^-5)))",
+                                "EBEE_dijet_testRange_1000_1200" : "(x>500.)*((0.1*((x/600.)^-5)))",
+                                "EBEE_dijet_testRange_1200_1800" : "(x>500.)*((0.1*((x/600.)^-5)))",
+                                "EBEE_dijet_testRange_1800_2500" : "(x>500.)*((0.1*((x/600.)^-5)))",
+                                "EBEE_dijet_testRange_2500_3500" : "(x>500.)*((0.1*((x/600.)^-5)))",
+                                "EBEE_dijet_testRange_3500_4500" : "(x>500.)*((0.1*((x/600.)^-5)))",
+                                "EBEE_dijet_testRange_4500_5500" : "(x>500.)*((0.1*((x/600.)^-5)))"
                                 ### "EBEB_dijet_300_6000" : "(0.110705*((x/600.000000)^-6.04594))+7.28617e-05",
                                 ### "EBEB_dijet_400_6000" : "(0.103261*((x/600.000000)^-6.14835))+7.29511e-05",
                                 ### "EBEB_dijet_500_6000" : "(0.125619*((x/600.000000)^-6.23181))+7.29431e-05",
@@ -576,14 +616,18 @@ class BiasApp(CombineApp):
                     
                     nlabel = "_".join(toks)
                     slabel = "_".join([cat,model,label])
+                    slabel2 = "_".join([cat,model,rng])
                     
                     bias_func = None
-                    print slabel
-                    print options.bias_param.keys()
-                    if slabel in options.bias_param:
-                        bias_func = ROOT.TF1("err_correction",options.bias_param[slabel],0,2e+6)
+                    print "slabel2",slabel2
+                    print options.bias_param["%s"%slabel2]
+                    if slabel2 in options.bias_param:
+                        print "slabel in bias param"
+                        bias_func = ROOT.TF1("err_correction",options.bias_param[slabel2],0,2e+6)
                         ## bias_func.Print()
-                        
+                    else: 
+                        print "why the hell not"    
+                        return
                     if not slabel in profiles:
                         profile = ROOT.TGraphErrors()
                         bprofile = ROOT.TGraphErrors()
@@ -679,6 +723,7 @@ class BiasApp(CombineApp):
         for icat in range(ncat):
             for ifunc in range(nfuncs):
                 styles.append( [ (style_utils.colors,colors[ifunc%len(colors)+icat%len(colors)]), ("SetMarkerStyle",markers[icat % len(markers)]) ] )
+            #    styles.append( [ (style_utils.colors,colors[ifunc%len(colors)]+icat), ("SetMarkerStyle",markers[icat % len(markers)]) ] )
                 
         
         ROOT.gStyle.SetOptFit(0)
@@ -691,7 +736,7 @@ class BiasApp(CombineApp):
         profiles[keys[0]].GetXaxis().SetRangeUser(xfirst,xlast)
         bprofiles[keys[0]].GetXaxis().SetRangeUser(xfirst,xlast)                    
         ckeys = sorted(cprofiles.keys())
-        print ckeys
+        print "ckeys",ckeys
         if len(ckeys) > 0:
             cprofiles[ckeys[0]].GetXaxis().SetRangeUser(xfirst,xlast)                  
         first = True

@@ -17,19 +17,20 @@ wait
 wait
 
 ## fit the toys 
-./submit_toys.sh all.q full_analysis_moriond16v1_sync_v4_data/bias_study_toys_from_mc_unbinned_EBEB.root  full_analysis_moriond16v1_sync_v4_data/bias_study_toys_from_mc_unbinned/EBEB_2 1000 2 --observable 'mgg[4000,230,10000]' --fit-range 230,10000 & 
-./submit_toys.sh all.q full_analysis_moriond16v1_sync_v4_data/bias_study_toys_from_mc_unbinned_EBEE.root  full_analysis_moriond16v1_sync_v4_data/bias_study_toys_from_mc_unbinned/EBEE_2 1000 2 --observable 'mgg[3400,320,10000]' --fit-range 320,10000 & 
+#./submit_toys.sh all.q full_analysis_moriond16v1_sync_v4_data/bias_study_toys_from_mc_unbinned_EBEB.root  full_analysis_moriond16v1_sync_v4_data/bias_study_toys_from_mc_unbinned/EBEB_2 1000 2 --observable 'mgg[4000,230,10000]' --fit-range 230,10000 & 
+#./submit_toys.sh all.q full_analysis_moriond16v1_sync_v4_data/bias_study_toys_from_mc_unbinned_EBEE.root  full_analysis_moriond16v1_sync_v4_data/bias_study_toys_from_mc_unbinned/EBEE_2 1000 2 --observable 'mgg[3400,320,10000]' --fit-range 320,10000 & 
 ##qsub system
 #./submit_toys.sh 8nm full_analysis_moriond16v1_0T_sync_v6_data/bias_study_toys_from_mc_unbinned_EBEB.root  full_analysis_moriond16v1_0T_sync_v6_data/bias_study_toys_from_mc_unbinned/EBEB_2 500 2 --observable 'mgg[4000,230,10000]' --fit-range 230,10000 & 
 
 ## fit and plot asimov
 #./submit_toys.sh all.q full_analysis_moriond16v1_sync_v4_data/bias_study_toys_from_mc_unbinned_EBEB_asimov.root  full_analysis_moriond16v1_sync_v4_data/bias_study_toys_from_mc_unbinned/EBEB_asimov 1 1  --observable 'mgg[4000,230,10000]' --fit-range 230,10000 --plot-toys-fits --n-toys -1 -O . --plot-fit-bands & 
+#./submit_toys.sh all.q full_analysis_moriond16v1_sync_v4_data/bias_study_toys_from_mc_unbinned_EBEE_asimov.root  full_analysis_moriond16v1_sync_v4_data/bias_study_toys_from_mc_unbinned/EBEE_asimov 1 1  --observable 'mgg[3400,320,10000]' --fit-range 320,10000 --plot-toys-fits --n-toys -1 -O . --plot-fit-bands & 
 
 #cp full_analysis_moriond16v1_sync_v4_data/bias_study_toys_from_mc_unbinned/EBEB_asimov/*.png /afs/cern.ch/user/m/mquittna/www/diphoton/spring16/full_analysis_moriond16v1_sync_v4_data/bias_study_10fb/. 
-#cp full_analysis_moriond16v1_sync_v4_data/bias_study_toys_from_mc_unbinned/EBEB_1/*.png /afs/cern.ch/user/m/mquittna/www/diphoton/spring16/full_analysis_moriond16v1_sync_v4_data/bias_study_10fb/. 
 
 
 wait
 #./hadd_toys.sh full_analysis_moriond16v1_sync_v4_data/bias_study_toys_from_mc_unbinned/EBEB_2
-#./bkg_bias.py --analyze-bias --bias-files full_analysis_moriond16v1_sync_v4_data/bias_study_toys_from_mc_unbinned/toys.root --bias-labels fit -O /afs/cern.ch/user/m/mquittna/www/diphoton/spring16/full_analysis_moriond16v1_sync_v4_data/bias_study_10fb/ 
+
+./bkg_bias.py --analyze-bias --bias-files full_analysis_moriond16v1_sync_v4_data/bias_study_toys_from_mc_unbinned/toys.root --scale-bias 10 --bias-labels 10fb -O /afs/cern.ch/user/m/mquittna/www/diphoton/spring16/full_analysis_moriond16v1_sync_v4_data/bias_study_10fb/ 
 #./bkg_bias.py --analyze-bias --bias-files full_analysis_moriond16v1_sync_v4_data/bias_study_toys_from_mc_unbinned/toys.root --bias-labels fit -O /afs/cern.ch/user/m/mquittna/www/diphoton/spring16/full_analysis_moriond16v1_sync_v4_data/bias_study_10fb/ 
