@@ -158,8 +158,6 @@ class TemplatesApp(PlotApp):
                                     default=False,help="generate signal trees (overrides --prepare-nosignal)"),
                         make_option("--prepare-nosignal",dest="prep_nosig",action="store_true",
                                     default=False,help="prepare templates without signals"),
-                        make_option("--prepare-signal",dest="prep_sig",action="store_true",
-                                    default=False,help="prepare  signals"),
                         make_option("--mix-mc",dest="mix_mc",action="store_true",
                                     default=False,help="template mixing also with MC"),
                         make_option("--only-subset",dest="only_subset",action="callback",type="string", callback=optpars_utils.ScratchAppend(),
@@ -401,24 +399,24 @@ class TemplatesApp(PlotApp):
         print "--------------------------------------------------------------------------------------------------------------------------"
         print "Reading back workspace from %s " % options.read_ws
         print 
-        ### fin = self.open(options.read_ws)
-        ### cfg = json.loads( str(fin.Get("cfg").GetString()) )
-        ### options.fits = cfg["fits"]
-        ### self.workspace_ = fin.Get("wtemplates")
-        ### self.workspace_.rooImport = getattr(self.workspace_,"import")
-        ### for name in cfg["stored"]:
-        ###     self.store_[name]=fin.Get(name)
-        ###     
-        ### if not options.mix_templates:
-        ###     options.mix = cfg.get("mix",{})
-        ### if not options.compare_templates:
-        ###     options.comparisons = cfg.get("comparisons",{})
-        ### 
-        ### for name in self.save_params_:
-        ###     val = cfg.get(name,None)
-        ###     print name, val
-        ###     if val:
-        ###         setattr(options,name,val)
+###        fin = self.open(options.read_ws)
+###        cfg = json.loads( str(fin.Get("cfg").GetString()) )
+###        options.fits = cfg["fits"]
+###        self.workspace_ = fin.Get("wtemplates")
+###        self.workspace_.rooImport = getattr(self.workspace_,"import")
+###        for name in cfg["stored"]:
+###            self.store_[name]=fin.Get(name)
+###            
+###        if not options.mix_templates:
+###            options.mix = cfg.get("mix",{})
+###        ##if not options.compare_templates:
+###        ##    options.comparisons = cfg.get("comparisons",{})
+###        
+###        for name in self.save_params_:
+###            val = cfg.get(name,None)
+###            print name, val
+###            if val:
+###                setattr(options,name,val)
         
         for ws in options.read_ws_list:
             self.mergeWs(options,ws)
@@ -433,6 +431,7 @@ class TemplatesApp(PlotApp):
         print "TTrees :"
         print "---------------------------------------------------------"
         for key,val in self.store_.iteritems():
+            print val
             print key.ljust(30), ":", ("%d" % val.GetEntries()).rjust(8)
         print
         
@@ -516,7 +515,7 @@ class TemplatesApp(PlotApp):
             bins            = fit["bins"]
             components      = fit["components"]
             categories      = fit["categories"]
-            if not (options.prep_data or options.prep_sig):
+            if not (options.prep_data or options.prep_signal):
                 truth_selection = fit["truth_selection"]
             if not (options.prep_data or options.prep_nosig) or options.prep_signal:
                 signals         = fit.get("signals",[])
@@ -569,7 +568,7 @@ class TemplatesApp(PlotApp):
                     self.buildRooDataSet(sigTrees,sig,name,fit,categories,fulllist,weight,preselection,storeTrees)
             
           ## prepare truth templates
-            if not (options.prep_data or options.prep_sig):
+            if not (options.prep_data or options.prep_signal):
                 for truth,sel in truth_selection.iteritems():
                     cut = ROOT.TCut(preselection)
                     cut *= ROOT.TCut(sel)
@@ -581,7 +580,7 @@ class TemplatesApp(PlotApp):
               
             print
           ## sanity check
-            if not (options.prep_data or options.prep_sig):
+            if not (options.prep_data or options.prep_signal):
                 for cat in categories.keys():
                     catCounts = {}
                     catCounts["tot"] = self.rooData("mc_%s_%s" % (name,cat) ).sumEntries()
@@ -599,7 +598,7 @@ class TemplatesApp(PlotApp):
                       
             ## prepare templates
             print
-            if not options.prep_sig:
+            if not options.prep_signal:
                 for component,cfg in fit["templates"].iteritems():
                     if component.startswith("_"): continue
                     # templates (data) is default one
