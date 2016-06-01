@@ -264,7 +264,6 @@ class TemplatesFitApp(TemplatesApp):
                      
                     if cat=="EEEB": catd="EBEE"#TODO implement in json file
                     else: catd=cat
-                    setargs.add(massargs)
                     setargs.Print()
                     dset_data = self.reducedRooData("data_%s_%s" % (fitname,catd),setargs,False,sel=weight_cut,redo=ReDo)
                     if not options.no_mctruth:
@@ -364,13 +363,13 @@ class TemplatesFitApp(TemplatesApp):
                                 histls.append(tempHisto)
                       #     if not prepfit: 
                             print "plot 1d histos"
-                           # self.plotHistos(histls,tit,template_binning,False,logx=False,logy=True,numEntries=numEntries_s,ID=id)
+                            self.plotHistos(histls,tit,template_binning,False,logx=False,logy=True,numEntries=numEntries_s,ID=id)
                         
 
                         ## roll out for combine tool per category
-                       # if fit["ndim"]>1:
-                           ## self.histounroll(templates_massc,template_binning,isoargs,compname,cat,cut_s,prepfit,sigRegionlow2D,sigRegionup2D,extra_shape_unc=options.extra_shape_unc)
-                        #    self.histounroll_book(template_binning,isoargs)
+                        if fit["ndim"]>1:
+                            self.histounroll(templates_massc,template_binning,isoargs,compname,cat,cut_s,prepfit,sigRegionlow2D,sigRegionup2D,extra_shape_unc=options.extra_shape_unc)
+                            self.histounroll_book(template_binning,isoargs)
 
     ## ------------------------------------------------------------------------------------------------------------
     def buildTemplates(self,templatesls,setargs, weight_cut=None,compname="pf",cat="EBEB"):
@@ -1798,7 +1797,7 @@ class TemplatesFitApp(TemplatesApp):
                    # else: self.plotClosure(cat,pu_val,opt,"fullRegionMC",g_truthpp,g_truthpf,g_truthff,g_pullpp,g_mctruthpp,g_mctruthpf,g_mctruthff)
                 else:
                     if options.pu_sigregion:
-        #                self.plotPurityMassbins(cat,pu_val,opt,"sigRegionData",g_templatepp,g_templatepf,g_templateff,g_syspp,g_syspf,g_sysff)
+                        self.plotPurityMassbins(cat,pu_val,opt,"sigRegionData",g_templatepp,g_templatepf,g_templateff,g_syspp,g_syspf,g_sysff)
                         if not options.no_mctruth:
                             self.plotPurityMassbins(cat,pu_val,opt,"sigRegionData_MC",g_templatepp,g_templatepf,g_templateff,g_mctruthpp=g_mctruthpp,g_mctruthpf=g_mctruthpf,g_mctruthff=g_mctruthff,g_ratiopp=g_ratiopp)
 
@@ -1807,7 +1806,7 @@ class TemplatesFitApp(TemplatesApp):
                             #self.plotPurityMassbins(cat,pu_val,opt,"sigRegionData_MC_sys",g_templatepp,g_templatepf,g_templateff,g_syspp,g_syspf,g_sysff,g_truthpp,g_truthpf,g_truthff,g_ratiopp)
 
                     else: 
-         #               self.plotPurityMassbins(cat,pu_val,opt,"data_sys",g_templatepp,g_templatepf,g_templateff,g_syspp,g_syspf,g_sysff)
+                        self.plotPurityMassbins(cat,pu_val,opt,"data_sys",g_templatepp,g_templatepf,g_templateff,g_syspp,g_syspf,g_sysff)
                         if not options.no_mctruth:
                             self.plotPurityMassbins(cat,pu_val,opt,"data_MC",g_templatepp,g_templatepf,g_templateff,g_mctruthpp=g_mctruthpp,g_mctruthpf=g_mctruthpf,g_mctruthff=g_mctruthff,g_ratiopp=g_ratiopp)
                             self.plotPurityMassbins(cat,pu_val,opt,"data_MC_sys",g_templatepp,g_templatepf,g_templateff,g_syspp,g_syspf,g_sysff,g_mctruthpp,g_mctruthpf,g_mctruthff,g_ratiopp)

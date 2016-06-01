@@ -7,9 +7,9 @@
 },
     "comparisons" : {
 	"fit2DTruth" : { "fit" : "2D",
-		"templates" : { "mix:kDSinglePho2DMC" : {}, "mix:kDSinglePho2D" : {}},
+		"templates" : {  "mix:kDSinglePho2D" : {}},
                 "categories" : ["EBEB","EBEE"],
-                "components": ["pf","ff",  ["pp",{ "2D" : {},"template_mc:2D":{}}] 
+                "components": ["pf","ff",  ["pp",{ "2D" : {}}] 
                 ],
                 "weight_cut": "weight <1000.",
 		"redo" : true,
