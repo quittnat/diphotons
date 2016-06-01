@@ -158,8 +158,6 @@ class TemplatesApp(PlotApp):
                                     default=False,help="generate signal trees (overrides --prepare-nosignal)"),
                         make_option("--prepare-nosignal",dest="prep_nosig",action="store_true",
                                     default=False,help="prepare templates without signals"),
-                        make_option("--prepare-signal",dest="prep_sig",action="store_true",
-                                    default=False,help="prepare  signals"),
                         make_option("--mix-mc",dest="mix_mc",action="store_true",
                                     default=False,help="template mixing also with MC"),
                         make_option("--only-subset",dest="only_subset",action="callback",type="string", callback=optpars_utils.ScratchAppend(),
@@ -516,7 +514,7 @@ class TemplatesApp(PlotApp):
             bins            = fit["bins"]
             components      = fit["components"]
             categories      = fit["categories"]
-            if not (options.prep_data or options.prep_sig):
+            if not (options.prep_data):
                 truth_selection = fit["truth_selection"]
             if not (options.prep_data or options.prep_nosig) or options.prep_signal:
                 signals         = fit.get("signals",[])
@@ -569,7 +567,7 @@ class TemplatesApp(PlotApp):
                     self.buildRooDataSet(sigTrees,sig,name,fit,categories,fulllist,weight,preselection,storeTrees)
             
           ## prepare truth templates
-            if not (options.prep_data or options.prep_sig):
+            if not (options.prep_data):
                 for truth,sel in truth_selection.iteritems():
                     cut = ROOT.TCut(preselection)
                     cut *= ROOT.TCut(sel)
@@ -581,7 +579,7 @@ class TemplatesApp(PlotApp):
               
             print
           ## sanity check
-            if not (options.prep_data or options.prep_sig):
+            if not (options.prep_data):
                 for cat in categories.keys():
                     catCounts = {}
                     catCounts["tot"] = self.rooData("mc_%s_%s" % (name,cat) ).sumEntries()
@@ -599,64 +597,63 @@ class TemplatesApp(PlotApp):
                       
             ## prepare templates
             print
-            if not options.prep_sig:
-                for component,cfg in fit["templates"].iteritems():
-                    if component.startswith("_"): continue
-                    # templates (data) is default one
-                    if options.prep_data:
-                        datasets=cfg.get("dataset",["templates"])
-                    else: 
-                        datasets=cfg.get("datasetmc",["templates"])  
-                    for dat in datasets:
-                        print dat
-                        trees = self.prepareTrees(dat,cfg["sel"],options.verbose,"Templates selection for %s %s" % (dat,component))
-                        if dat=="data" or dat=="templates":
-                            dat="_"
-                        if not options.prep_data and dat=="templatesMC" or dat=="mc":
-                            dat="_mc_"
-                        cats = {}
-                        presel = cfg.get("presel",preselection)
-                        for cat,fill in cfg["fill_categories"].iteritems():
-                            if cat.startswith("_"): continue
-                            config = { "src" : categories[cat]["src"],
-                                       "fill": fill
-                                       }
-                            cats[cat] = config
+            for component,cfg in fit["templates"].iteritems():
+                if component.startswith("_"): continue
+                # templates (data) is default one
+                if options.prep_data:
+                    datasets=cfg.get("dataset",["templates"])
+                else: 
+                    datasets=cfg.get("datasetmc",["templates"])  
+                for dat in datasets:
+                    print dat
+                    trees = self.prepareTrees(dat,cfg["sel"],options.verbose,"Templates selection for %s %s" % (dat,component))
+                    if dat=="data" or dat=="templates":
+                        dat="_"
+                    if not options.prep_data and dat=="templatesMC" or dat=="mc":
+                        dat="_mc_"
+                    cats = {}
+                    presel = cfg.get("presel",preselection)
+                    for cat,fill in cfg["fill_categories"].iteritems():
+                        if cat.startswith("_"): continue
+                        config = { "src" : categories[cat]["src"],
+                                   "fill": fill
+                                   }
+                        cats[cat] = config
+                    
                         
-                            
-                            self.buildRooDataSet(trees,"template%s%s" % (dat,component),name,fit,cats,fulllist,weight,presel,storeTrees)
+                        self.buildRooDataSet(trees,"template%s%s" % (dat,component),name,fit,cats,fulllist,weight,presel,storeTrees)
 
-                    for cat in categories.keys():
-                        tree=self.treeData("template%s%s_%s_%s" % (dat,component,name,cat) )
-                        jk=cfg.get("jk",0) 
-                        if jk !=0 and component=="pp" and options.prep_data:
-                            n= int(tree.GetEntries())
-                            d=n/jk
-                            g=jk
-                            if n % d != 0:
-                                g += 1
-                            g=int(g)
-                            print "computing partitions: n=%d d=%d g=%i" % (n,d,g)
-                            all_events= range(n)
-                            random.shuffle(all_events)
-                            for j in range(g):
-                                lo=int(1+d*j)
-                                hi=int(d+d*j)
-                                print lo, hi
-                                tree_temp=tree.CloneTree(0)
-                                tree_temp.SetName("tree_template%s%s_%i_%s_%s" %(dat,component,j,name,cat))
-                                for k in all_events:
-                                    if not(k>= lo and k < hi ): tree_temp.Fill(tree.GetEntry(k))
-                                self.store_[tree_temp.GetName()] = tree_temp
-                                print"template%s%s_%i_%s_%s" % (dat,component,j,name,cat), self.rooData("template%s%s_%i_%s_%s" % (dat,component,j,name,cat),autofill=True,cloneFrom="template%s%s_%s_%s" % (dat,component,name,cat)).sumEntries()
-                
-                        else:
-                            print "template -%s - %s" % (component,cat), self.rooData("template%s%s_%s_%s" % (dat,component,name,cat) ).sumEntries()
-                            print "number of entries template %s - %s" % (component,cat), self.rooData("template%s%s_%s_%s" % (dat,component,name,cat) ).numEntries()
-                    print 
-                    print "--------------------------------------------------------------------------------------------------------------------------"
-                    print
-                
+                for cat in categories.keys():
+                    tree=self.treeData("template%s%s_%s_%s" % (dat,component,name,cat) )
+                    jk=cfg.get("jk",0) 
+                    if jk !=0 and component=="pp" and options.prep_data:
+                        n= int(tree.GetEntries())
+                        d=n/jk
+                        g=jk
+                        if n % d != 0:
+                            g += 1
+                        g=int(g)
+                        print "computing partitions: n=%d d=%d g=%i" % (n,d,g)
+                        all_events= range(n)
+                        random.shuffle(all_events)
+                        for j in range(g):
+                            lo=int(1+d*j)
+                            hi=int(d+d*j)
+                            print lo, hi
+                            tree_temp=tree.CloneTree(0)
+                            tree_temp.SetName("tree_template%s%s_%i_%s_%s" %(dat,component,j,name,cat))
+                            for k in all_events:
+                                if not(k>= lo and k < hi ): tree_temp.Fill(tree.GetEntry(k))
+                            self.store_[tree_temp.GetName()] = tree_temp
+                            print"template%s%s_%i_%s_%s" % (dat,component,j,name,cat), self.rooData("template%s%s_%i_%s_%s" % (dat,component,j,name,cat),autofill=True,cloneFrom="template%s%s_%s_%s" % (dat,component,name,cat)).sumEntries()
+            
+                    else:
+                        print "template -%s - %s" % (component,cat), self.rooData("template%s%s_%s_%s" % (dat,component,name,cat) ).sumEntries()
+                        print "number of entries template %s - %s" % (component,cat), self.rooData("template%s%s_%s_%s" % (dat,component,name,cat) ).numEntries()
+                print 
+                print "--------------------------------------------------------------------------------------------------------------------------"
+                print
+            
         if options.mix_templates:
             self.doMixTemplates(options,args)
 

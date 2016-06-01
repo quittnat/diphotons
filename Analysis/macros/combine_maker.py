@@ -119,8 +119,8 @@ class CombineApp(TemplatesApp):
                                     ),                        
                         make_option("--plot-binning",dest="plot_binning",action="callback",callback=optpars_utils.ScratchAppend(float),
                                     type="string",
-                                    ## default=[94,230,2110],
-                                    default=[69,230,1610],
+                                     default=[94,230,2110],
+                                    ##default=[69,320,1610],
                                     help="Binning to be used for plots",
                                     ),                      
                         make_option("--cat-plot-binning",dest="cat_plot_binning",action="callback",callback=optpars_utils.Load(scratch=True),
@@ -428,7 +428,7 @@ class CombineApp(TemplatesApp):
         ROOT.gSystem.Load("libdiphotonsUtils")
         if ROOT.gROOT.GetVersionInt() >= 60000:
             ROOT.gSystem.Load("libdiphotonsRooUtils")
-        ROOT.gSystem.Load("libHiggsAnalysisCombinedLimit")
+     ##   ROOT.gSystem.Load("libHiggsAnalysisCombinedLimit")
         
         self.pdfPars_ = ROOT.RooArgSet()
         self.observables_ = {}
