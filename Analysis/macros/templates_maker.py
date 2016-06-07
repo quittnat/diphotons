@@ -548,12 +548,13 @@ class TemplatesApp(PlotApp):
             tmp.cd()
             
             ## prepare data
-            dataTrees = self.prepareTrees("data",selection,options.verbose,"Data trees")
+        ##    dataTrees = self.prepareTrees("data",selection,options.verbose,"Data trees")
             weightexpr = self.aliases_.get(weight,None)
-            self.buildRooDataSet(dataTrees,"data",name,fit,categories,fulllist,weight if weightexpr != "1" else "1",preselection,storeTrees)
-            for cat in categories.keys():
-                print "dataset - %s" % (cat), self.rooData("data_%s_%s" % (name,cat) ).sumEntries()
-                print "number of entries data - %s" % (cat), self.rooData("data_%s_%s" % (name,cat) ).numEntries()
+            print weightexpr 
+         ##   self.buildRooDataSet(dataTrees,"data",name,fit,categories,fulllist,weight if weightexpr != "1" else "1",preselection,storeTrees)
+     ##       for cat in categories.keys():
+   #3             print "dataset - %s" % (cat), self.rooData("data_%s_%s" % (name,cat) ).sumEntries()
+    ##            print "number of entries data - %s" % (cat), self.rooData("data_%s_%s" % (name,cat) ).numEntries()
           ## prepare mc
             if not options.prep_data:
                 mcTrees =  self.prepareTrees("mc",selection,options.verbose,"MC trees")
@@ -1046,7 +1047,6 @@ class TemplatesApp(PlotApp):
         if ":=" in name:
             name,vdef = [ t.lstrip(" ").rstrip(" ").lstrip("\t").rstrip("\t") for t in name.split(":=",1) ]
             self.aliases_[name] = vdef
-            
         name = name.lstrip(" ").rstrip(" ").lstrip("\t").rstrip("\t")
         if len(xbins) == 0 and name in self.variables_:
             xbins = self.variables_[name]
