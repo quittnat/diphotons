@@ -125,10 +125,10 @@ class CombineApp(TemplatesApp):
                                     ),                      
                         make_option("--cat-plot-binning",dest="cat_plot_binning",action="callback",callback=optpars_utils.Load(scratch=True),
                                     type="string",default={ 
-                                                            "EBEE0T": [64,330,1610], 
-                                                            "EBEE": [64,330,1610], 
-                                                            "EEHighR9": [64,330,1610], 
-                                                            "EELowR9": [64,330,1610], 
+                                                        #    "EBEE0T": [64,330,1610], 
+                                                        #    "EBEE": [64,330,1610], 
+                                                         #   "EEHighR9": [64,330,1610], 
+                                                         #   "EELowR9": [64,330,1610], 
                                                             },
                                     help="Binning to be used for plots",
                                     ),
@@ -2488,6 +2488,8 @@ kmax * number of nuisance parameters (source of systematic uncertainties)
             ### else:
             frame = obs.frame(230,1610)
             resid = obs.frame(230,1610)
+      #      frame = obs.frame(230,4010)
+      #      resid = obs.frame(230,4010)
             ## frame = fmobs.frame(RooFit.Range("plotBinning"))
             ## resid  = fmobs.frame(RooFit.Range("plotBinning"))
             curveopts.append(RooFit.Range("plotBinning"))
@@ -2704,6 +2706,7 @@ kmax * number of nuisance parameters (source of systematic uncertainties)
         else:
             ## ymin = max(1.1e-2,ymin)
             ymin = max(1.1e-1,ymin)
+        ##      ymin = max(1.1e-4,ymin)
         
         ### frame.GetXaxis().SetLimits(200,20000)
         ### frame.GetXaxis().SetRangeUser(200,2000)
@@ -2981,6 +2984,37 @@ kmax * number of nuisance parameters (source of systematic uncertainties)
             
             
             self.keep( [pdf,linc,logc] )
+        if model == "atlas_default":                
+            pname = "atlas_default_%s" % name
+            pow1 = self.buildRooVar("%s_p1" % pname,[-10.0,0.0], importToWs=False)
+            pow2 = self.buildRooVar("%s_p2" % pname,[0.0,100.0], importToWs=False)
+            pow1.setVal(-2)
+            pow2.setVal(11)
+            
+            self.pdfPars_.add(pow1)
+            self.pdfPars_.add(pow2)
+            roolist = ROOT.RooArgList( xvar, pow1, pow2)
+            pdf = ROOT.RooGenericPdf( pname, pname, "TMath::Max(1e-50,pow(@0/13000.,@1)*pow(1-pow(@0/13000.,1/3.),@2))", roolist )
+            self.keep( [pdf,pow1,pow2] )
+        if model == "atlas":                
+            pname = "atlas_%s" % name
+           # pow1 = self.buildRooVar("%s_p1" % pname,[-3.0,-2.0], importToWs=False)
+           # pow3 = self.buildRooVar("%s_p3" % pname,[0.2,0.4], importToWs=False)
+           # pow2 = self.buildRooVar("%s_p2" % pname,[4.0,10.0], importToWs=False)
+            pow1 = self.buildRooVar("%s_p1" % pname,[-5.0,0.0], importToWs=False)
+            pow3 = self.buildRooVar("%s_p3" % pname,[0.0,1.0], importToWs=False)
+            pow2 = self.buildRooVar("%s_p2" % pname,[0.0,20.0], importToWs=False)
+            pow1.setVal(-2.62)
+            pow3.setVal(0.27)
+            pow2.setVal(8.32)
+            
+            self.pdfPars_.add(pow1)
+            self.pdfPars_.add(pow2)
+            self.pdfPars_.add(pow3)
+            
+            roolist = ROOT.RooArgList( xvar, pow1, pow2,pow3)
+            pdf = ROOT.RooGenericPdf( pname, pname, "TMath::Max(1e-50,pow(@0/13000.,@1)*pow(1-pow(@0/13000.,@3),@2))", roolist )
+            self.keep( [pdf,pow1,pow2,pow3] )
 
         elif model == "pow":                
             pname = "pow_%s" % name
