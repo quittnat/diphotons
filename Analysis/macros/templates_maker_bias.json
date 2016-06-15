@@ -196,11 +196,11 @@
    
    "dataset_variables" : ["rho","nvtx","run","puweight","weight","weight200_500","weight500_1000","weight1000_2000","lumi","event","leadScEta","subleadScEta"],     "#" :"list of variables to be put in the dataset (other than the template ones)",
    "_dataset_variables" : ["rho","nvtx","run","puweight","lumi","event"],     "#" :"list of variables to be put in the dataset (other than the template ones)",
-    "_weight_expression" : "weight2 :=(weight/puweight)",           "#" :"event weight expression  ",
+    "weight_expression" : "weight2 :=(weight/puweight)",           "#" :"event weight expression  ",
     "_weight_expression" : "weight2 :=(weight/puweight*(2.866712/4.135543)*(((genMass > 2000) + (genMass <= 200) + weight200_500 + weight500_1000 + weight1000_2000))*((max(abs(leadScEta),abs(subleadScEta))<1.5)*(1.408 + 1.014e-4*genMass) + (max(abs(leadScEta),abs(subleadScEta))>1.5)*(1.367 + 1.647e-4*genMass)))",           "#" :"event weight expression  ",
     "_weight_expression" : "weight2 :=(weight/puweight*(2.866712/1.599150)*(((genMass > 2000) + (genMass <= 200) + weight200_500 + weight500_1000 + weight1000_2000))*((max(abs(leadScEta),abs(subleadScEta))<1.5)*(1-0.408 - 1.014e-4*genMass) + (max(abs(leadScEta),abs(subleadScEta))>1.5)*(1-0.367 -1.647e-4*genMass)))",           "#" :"event weight expression  ",
     "_weight_expression" : "weight2 :=(weight/puweight*(((genMass > 2000) + (genMass <= 200) + weight200_500 + weight500_1000 + weight1000_2000))*((max(abs(leadScEta),abs(subleadScEta))<1.5)*(1.0 -0.408 - 1.014e-4*genMass) + (max(abs(leadScEta),abs(subleadScEta))>1.5)*(1- 0.367 - 1.647e-4*genMass)))",           "#" :"event weight expression  ",
-    "weight_expression" : "weight2 :=(weight/puweight*(((genMass > 2000) + (genMass <= 200) + weight200_500 + weight500_1000 + weight1000_2000))*((1./(-4.16477e-07*pow(mass-900,2)+1.0)*(mass < 900)) + (mass >=900)))",           "#" :"event weight expression  ",
+    "_weight_expression" : "_weight2 :=(weight/puweight*(((genMass > 2000) + (genMass <= 200) + weight200_500 + weight500_1000 + weight1000_2000))*((1./(-4.16477e-07*pow(mass-900,2)+1.0)*(mass < 900)) + (mass >=900)))",           "#" :"event weight expression  ",
     "_weight_expression" : "weight2 :=(weight/puweight*((genMass > 2000) + (genMass <= 200) + weight200_500 + weight500_1000 + weight1000_2000))",           "#" :"event weight expression  ",
   
   "_weight_expression" : "weight",           "#" :"event weight expression  ",
