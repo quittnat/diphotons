@@ -92,6 +92,7 @@ class BiasApp(CombineApp):
                                     help="Backround models",default=[],
                                     ),
                         make_option("--analyze-bias",dest="analyze_bias",action="store_true",default=False),
+                        make_option("--alternative-bias",dest="alternative_bias",action="store_true",default=False,help="find bias as the envelope of the ntruth-nbias of different MC model variations"),
                         make_option("--bias-files",dest="bias_files",action="callback",type="string",callback=optpars_utils.ScratchAppend(str),
                                     default=[]
                                     ),
@@ -109,7 +110,7 @@ class BiasApp(CombineApp):
                                     ),                    
                         make_option("--bias-param",dest="bias_param",action="callback",type="string",callback=optpars_utils.Load(scratch=True),
                                     default={
- ##                                        #k01
+ ## 5%*mass
  ##   "EBEB_dijet_testRange_500_525" :  "(pow(x,2.2-0.4*log(x)))/10.",
  ##   "EBEB_dijet_testRange_525_550" :  "(pow(x,2.2-0.4*log(x)))/10.",
  ##   "EBEB_dijet_testRange_550_580" :  "(pow(x,2.2-0.4*log(x)))/10.",
@@ -197,84 +198,84 @@ class BiasApp(CombineApp):
  ##   "EBEE_dijet_testRange_3520_3695" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
  ##   "EBEE_dijet_testRange_3695_3880" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
  ##   "EBEE_dijet_testRange_3880_4000" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10."                                       
- ##                                        
- ###large width                                        
- ##     "EBEB_dijet_testRange_500_550" :  "(pow(x,2.2-0.4*log(x)))/10.",
- ##     "EBEB_dijet_testRange_550_605" :  "(pow(x,2.2-0.4*log(x)))/10.",
- ##     "EBEB_dijet_testRange_605_665" :  "(pow(x,2.2-0.4*log(x)))/10.",
- ##     "EBEB_dijet_testRange_665_730" :  "(pow(x,2.2-0.4*log(x)))/10.",
- ##     "EBEB_dijet_testRange_730_805" :  "(pow(x,2.2-0.4*log(x)))/10.",
- ##     "EBEB_dijet_testRange_805_885" :  "(pow(x,2.2-0.4*log(x)))/10.",
- ##     "EBEB_dijet_testRange_885_975" :  "(pow(x,2.2-0.4*log(x)))/10.",
- ##     "EBEB_dijet_testRange_975_1070" : "(pow(x,2.2-0.4*log(x)))/10.",
- ##     "EBEB_dijet_testRange_1070_1180" :"(pow(x,2.2-0.4*log(x)))/10.",    
- ##     "EBEB_dijet_testRange_1180_1295" :"(pow(x,2.2-0.4*log(x)))/10.",  
- ##     "EBEB_dijet_testRange_1295_1425" :"(pow(x,2.2-0.4*log(x)))/10.",  
- ##     "EBEB_dijet_testRange_1425_1570" :"(pow(x,2.2-0.4*log(x)))/10.",  
- ##     "EBEB_dijet_testRange_1570_1725" :"(pow(x,2.2-0.4*log(x)))/10.",  
- ##     "EBEB_dijet_testRange_1725_1900" :"(pow(x,2.2-0.4*log(x)))/10.",  
- ##     "EBEB_dijet_testRange_1900_2090" :"(pow(x,2.2-0.4*log(x)))/10.",
- ##     "EBEB_dijet_testRange_2090_2295" :"(pow(x,2.2-0.4*log(x)))/10.",
- ##     "EBEB_dijet_testRange_2295_2525" :"(pow(x,2.2-0.4*log(x)))/10.",
- ##     "EBEB_dijet_testRange_2525_2780" :"(pow(x,2.2-0.4*log(x)))/10.",
- ##     "EBEB_dijet_testRange_2780_3060" :"(pow(x,2.2-0.4*log(x)))/10.",  
- ##     "EBEB_dijet_testRange_3060_3365" :"(pow(x,2.2-0.4*log(x)))/10.",
- ##     "EBEB_dijet_testRange_3365_3700" :"(pow(x,2.2-0.4*log(x)))/10.",
- ##     "EBEB_dijet_testRange_3700_4000" :"(pow(x,2.2-0.4*log(x)))/10.",                                      
- ##   "EBEE_dijet_testRange_500_550" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
- ##   "EBEE_dijet_testRange_550_605" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
- ##   "EBEE_dijet_testRange_605_665" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
- ##   "EBEE_dijet_testRange_665_730" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
- ##   "EBEE_dijet_testRange_730_805" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
- ##   "EBEE_dijet_testRange_805_885" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
- ##   "EBEE_dijet_testRange_885_975" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
- ##   "EBEE_dijet_testRange_975_1070" : "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
- ##   "EBEE_dijet_testRange_1070_1180" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",    
- ##   "EBEE_dijet_testRange_1180_1295" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
- ##   "EBEE_dijet_testRange_1295_1425" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
- ##   "EBEE_dijet_testRange_1425_1570" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
- ##   "EBEE_dijet_testRange_1570_1725" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
- ##   "EBEE_dijet_testRange_1725_1900" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
- ##   "EBEE_dijet_testRange_1900_2090" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
- ##   "EBEE_dijet_testRange_2090_2295" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
- ##   "EBEE_dijet_testRange_2295_2525" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
- ##   "EBEE_dijet_testRange_2525_2780" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
- ##   "EBEE_dijet_testRange_2780_3060" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",   
- ##   "EBEE_dijet_testRange_3060_3365" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
- ##   "EBEE_dijet_testRange_3365_3700" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
- ##   "EBEE_dijet_testRange_3700_4000" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10."                                       
+                                        
+ ###10 % *mass                                      
+ ##      "EBEB_dijet_testRange_500_550" :  "(pow(x,2.2-0.4*log(x)))/10.",
+ ##      "EBEB_dijet_testRange_550_605" :  "(pow(x,2.2-0.4*log(x)))/10.",
+ ##      "EBEB_dijet_testRange_605_665" :  "(pow(x,2.2-0.4*log(x)))/10.",
+ ##      "EBEB_dijet_testRange_665_730" :  "(pow(x,2.2-0.4*log(x)))/10.",
+ ##      "EBEB_dijet_testRange_730_805" :  "(pow(x,2.2-0.4*log(x)))/10.",
+ ##      "EBEB_dijet_testRange_805_885" :  "(pow(x,2.2-0.4*log(x)))/10.",
+ ##      "EBEB_dijet_testRange_885_975" :  "(pow(x,2.2-0.4*log(x)))/10.",
+ ##      "EBEB_dijet_testRange_975_1070" : "(pow(x,2.2-0.4*log(x)))/10.",
+ ##      "EBEB_dijet_testRange_1070_1180" :"(pow(x,2.2-0.4*log(x)))/10.",    
+ ##      "EBEB_dijet_testRange_1180_1295" :"(pow(x,2.2-0.4*log(x)))/10.",  
+ ##      "EBEB_dijet_testRange_1295_1425" :"(pow(x,2.2-0.4*log(x)))/10.",  
+ ##      "EBEB_dijet_testRange_1425_1570" :"(pow(x,2.2-0.4*log(x)))/10.",  
+ ##      "EBEB_dijet_testRange_1570_1725" :"(pow(x,2.2-0.4*log(x)))/10.",  
+ ##      "EBEB_dijet_testRange_1725_1900" :"(pow(x,2.2-0.4*log(x)))/10.",  
+ ##      "EBEB_dijet_testRange_1900_2090" :"(pow(x,2.2-0.4*log(x)))/10.",
+ ##      "EBEB_dijet_testRange_2090_2295" :"(pow(x,2.2-0.4*log(x)))/10.",
+ ##      "EBEB_dijet_testRange_2295_2525" :"(pow(x,2.2-0.4*log(x)))/10.",
+ ##      "EBEB_dijet_testRange_2525_2780" :"(pow(x,2.2-0.4*log(x)))/10.",
+ ##      "EBEB_dijet_testRange_2780_3060" :"(pow(x,2.2-0.4*log(x)))/10.",  
+ ##      "EBEB_dijet_testRange_3060_3365" :"(pow(x,2.2-0.4*log(x)))/10.",
+ ##      "EBEB_dijet_testRange_3365_3700" :"(pow(x,2.2-0.4*log(x)))/10.",
+ ##      "EBEB_dijet_testRange_3700_4000" :"(pow(x,2.2-0.4*log(x)))/10.",                                      
+ ##    "EBEE_dijet_testRange_500_550" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
+ ##    "EBEE_dijet_testRange_550_605" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
+ ##    "EBEE_dijet_testRange_605_665" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
+ ##    "EBEE_dijet_testRange_665_730" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
+ ##    "EBEE_dijet_testRange_730_805" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
+ ##    "EBEE_dijet_testRange_805_885" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
+ ##    "EBEE_dijet_testRange_885_975" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
+ ##    "EBEE_dijet_testRange_975_1070" : "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
+ ##    "EBEE_dijet_testRange_1070_1180" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",    
+ ##    "EBEE_dijet_testRange_1180_1295" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
+ ##    "EBEE_dijet_testRange_1295_1425" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
+ ##    "EBEE_dijet_testRange_1425_1570" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
+ ##    "EBEE_dijet_testRange_1570_1725" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
+ ##    "EBEE_dijet_testRange_1725_1900" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
+ ##    "EBEE_dijet_testRange_1900_2090" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
+ ##    "EBEE_dijet_testRange_2090_2295" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
+ ##    "EBEE_dijet_testRange_2295_2525" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
+ ##    "EBEE_dijet_testRange_2525_2780" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
+ ##    "EBEE_dijet_testRange_2780_3060" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",   
+ ##    "EBEE_dijet_testRange_3060_3365" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
+ ##    "EBEE_dijet_testRange_3365_3700" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.", 
+ ##    "EBEE_dijet_testRange_3700_4000" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10."                                       
  ###default                        
-        "EBEB_dijet_testRange_500_550" :  "(pow(x,2.2-0.4*log(x)))/10.",
-        "EBEB_dijet_testRange_550_600" :  "(pow(x,2.2-0.4*log(x)))/10.",
-        "EBEB_dijet_testRange_600_650" :  "(pow(x,2.2-0.4*log(x)))/10.",
-        "EBEB_dijet_testRange_650_700" :  "(pow(x,2.2-0.4*log(x)))/10.",
-        "EBEB_dijet_testRange_700_750" :  "(pow(x,2.2-0.4*log(x)))/10.",
-        "EBEB_dijet_testRange_750_800" :  "(pow(x,2.2-0.4*log(x)))/10.",
-        "EBEB_dijet_testRange_800_900" :  "(pow(x,2.2-0.4*log(x)))/10.",
-        "EBEB_dijet_testRange_900_1000" : "(pow(x,2.2-0.4*log(x)))/10.",
-        "EBEB_dijet_testRange_1000_1200" :"(pow(x,2.2-0.4*log(x)))/10.",
-        "EBEB_dijet_testRange_1200_1800" :"(pow(x,2.2-0.4*log(x)))/10.",
-        "EBEB_dijet_testRange_1800_2500" :"(pow(x,2.2-0.4*log(x)))/10.",
-        "EBEB_dijet_testRange_2500_3500" :"(pow(x,2.2-0.4*log(x)))/10.",
-        "EBEB_dijet_testRange_3500_4500" :"(pow(x,2.2-0.4*log(x)))/10.",
-        "EBEB_dijet_testRange_4500_5500" :"(pow(x,2.2-0.4*log(x)))/10.",
-                                      
-                                     
-       "EBEE_dijet_testRange_500_550" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",   
-       "EBEE_dijet_testRange_550_600" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",   
-       "EBEE_dijet_testRange_600_650" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",   
-       "EBEE_dijet_testRange_650_700" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",   
-       "EBEE_dijet_testRange_700_750" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",   
-       "EBEE_dijet_testRange_750_800" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",   
-       "EBEE_dijet_testRange_800_900" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",   
-       "EBEE_dijet_testRange_900_1000" : "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",  
-       "EBEE_dijet_testRange_1000_1200" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",  
-       "EBEE_dijet_testRange_1200_1800" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",  
-       "EBEE_dijet_testRange_1800_2500" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",  
-       "EBEE_dijet_testRange_2500_3500" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",  
-       "EBEE_dijet_testRange_3500_4500" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",  
-       "EBEE_dijet_testRange_4500_5500" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10." 
- ##                             
+ ##        "EBEB_dijet_testRange_500_550" :  "(pow(x,2.2-0.4*log(x)))/10.",
+ ##        "EBEB_dijet_testRange_550_600" :  "(pow(x,2.2-0.4*log(x)))/10.",
+ ##        "EBEB_dijet_testRange_600_650" :  "(pow(x,2.2-0.4*log(x)))/10.",
+ ##        "EBEB_dijet_testRange_650_700" :  "(pow(x,2.2-0.4*log(x)))/10.",
+ ##        "EBEB_dijet_testRange_700_750" :  "(pow(x,2.2-0.4*log(x)))/10.",
+ ##        "EBEB_dijet_testRange_750_800" :  "(pow(x,2.2-0.4*log(x)))/10.",
+ ##        "EBEB_dijet_testRange_800_900" :  "(pow(x,2.2-0.4*log(x)))/10.",
+ ##        "EBEB_dijet_testRange_900_1000" : "(pow(x,2.2-0.4*log(x)))/10.",
+ ##        "EBEB_dijet_testRange_1000_1200" :"(pow(x,2.2-0.4*log(x)))/10.",
+ ##        "EBEB_dijet_testRange_1200_1800" :"(pow(x,2.2-0.4*log(x)))/10.",
+ ##        "EBEB_dijet_testRange_1800_2500" :"(pow(x,2.2-0.4*log(x)))/10.",
+ ##        "EBEB_dijet_testRange_2500_3500" :"(pow(x,2.2-0.4*log(x)))/10.",
+ ##        "EBEB_dijet_testRange_3500_4500" :"(pow(x,2.2-0.4*log(x)))/10.",
+ ##        "EBEB_dijet_testRange_4500_5500" :"(pow(x,2.2-0.4*log(x)))/10.",
+ ##                                      
+ ##                                     
+ ##       "EBEE_dijet_testRange_500_550" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",   
+ ##       "EBEE_dijet_testRange_550_600" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",   
+ ##       "EBEE_dijet_testRange_600_650" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",   
+ ##       "EBEE_dijet_testRange_650_700" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",   
+ ##       "EBEE_dijet_testRange_700_750" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",   
+ ##       "EBEE_dijet_testRange_750_800" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",   
+ ##       "EBEE_dijet_testRange_800_900" :  "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",   
+ ##       "EBEE_dijet_testRange_900_1000" : "(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",  
+ ##       "EBEE_dijet_testRange_1000_1200" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",  
+ ##       "EBEE_dijet_testRange_1200_1800" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",  
+ ##       "EBEE_dijet_testRange_1800_2500" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",  
+ ##       "EBEE_dijet_testRange_2500_3500" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",  
+ ##       "EBEE_dijet_testRange_3500_4500" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10.",  
+ ##       "EBEE_dijet_testRange_4500_5500" :"(x>500.)*(0.10*(x/600.)^(-5)+2e-5)/10." 
+ ## ##                             
   ##k=0.01
  ##  "EBEB_dijet_testRange_500_515" :  "(pow(x,2.2-0.4*log(x)))/10.",
  ##  "EBEB_dijet_testRange_515_530" :  "(pow(x,2.2-0.4*log(x)))/10.",
@@ -884,15 +885,13 @@ class BiasApp(CombineApp):
                     ## ['pp', 'EBEB', 'dijet', 'testRange_2500_3500']
                     comp,cat,model,rng = toks
                     #cat = options.analyze_categories if len(options.analyze_categories)>0 else cat
-                    if not (len(options.analyze_categories)>0 and cat == options.analyze_categories[0]):
-                        continue
+                    if not (len(options.analyze_categories)>0 and cat == options.analyze_categories[0]):continue
                     tree = key.ReadObj()
                     toks.append(label)
                     nlabel = "_".join(toks)
                     slabel = "_".join([cat,model,label])
                     slabel2 = "_".join([cat,model,rng])
                     bias_func = None
-                    print slabel2
                     if slabel2 in options.bias_param:
                         bias_func = ROOT.TF1("err_correction",options.bias_param[slabel2],0,2e+6)
                     #    bias_func.Print()
@@ -919,7 +918,7 @@ class BiasApp(CombineApp):
                     
                     tree.Draw("bias>>h_bias_%s(501,-5.005,5.005)" % nlabel )
                     hb = ROOT.gDirectory.Get("h_bias_%s" % nlabel )
-                    print hb
+                    #print hb
                     hb.Fit("gaus","L+Q")
                     nentries= hb.GetEntries()
                     if not options.dont_draw:
@@ -1006,14 +1005,18 @@ class BiasApp(CombineApp):
         leg.SetFillStyle(0)
         profiles[keys[0]].GetXaxis().SetRangeUser(xfirst,xlast)
         bprofiles[keys[0]].GetXaxis().SetRangeUser(xfirst,xlast)                    
+        profiles[keys[0]].GetXaxis().SetTitleOffset( 0.9 )
+        bprofiles[keys[0]].GetXaxis().SetTitleOffset( 0.9 )
         ckeys = sorted(cprofiles.keys())
         print "ckeys",ckeys
         if len(ckeys) > 0:
             cprofiles[ckeys[0]].GetXaxis().SetRangeUser(xfirst,xlast)                  
+            cprofiles[ckeys[0]].GetXaxis().SetTitleOffset( 0.9 )
         first = True
         cstyles = copy(styles)
         fits = []
         ## for key,profile in profiles.iteritems():
+        #if options.alternative_bias: maximum=ROOT.TGraphErrors()
         for key in keys:
             profile = profiles[key]
             if options.legend_labels:
@@ -1022,7 +1025,7 @@ class BiasApp(CombineApp):
                 leg.AddEntry(profile,"%s"%key.rsplit("_",1)[1] ,"pe")
                 leg.SetHeader("%s"%key.rsplit("_",1)[0])
             profile.Sort()
-            profile.Print()
+         ##   profile.Print()
             style = cstyles.pop(0)            
             ## ## func = ROOT.TF1("bfunc","(x>[0])*( [1]/([0]+x)+[2] )")
             ## func = ROOT.TF1("bfunc","[0]*pow(x/%f,[1])+[2]"% max(600,xfirst),max(600,xfirst),xlast)
@@ -1040,7 +1043,7 @@ class BiasApp(CombineApp):
             style_utils.apply( profile, style )
             if not options.legend_labels:leg.AddEntry(profile,key,"pe")
             if first:
-                profile.Draw("APE")
+                profile.Draw("AP")
                 profile.GetXaxis().SetMoreLogLabels()
                 profile.GetXaxis().SetTitle("mass")
                 ## profile.GetYaxis().SetRangeUser(0.001,0.3)
@@ -1049,11 +1052,32 @@ class BiasApp(CombineApp):
                 profile.GetYaxis().SetTitle("| n_{fit} - n_{true} | / GeV")
                 ## profile.GetYaxis().SetTitle("| n_{fit} - n_{true} |")
                 first = False
+                if options.alternative_bias: maximum=ROOT.TGraphErrors(profile)
             else:
-                profile.Draw("PE")
+                profile.Draw("P")
+                if options.alternative_bias:
+                    for point in range(maximum.GetN()):
+                        x,xp, y,yp = ROOT.Double(0), ROOT.Double(0),ROOT.Double(0), ROOT.Double(0)   
+                        maximum.GetPoint(point,x,y)
+                        profile.GetPoint(point,xp,yp)
+                        if yp > y and x==xp: maximum.SetPoint(point,x,yp)
             ## fit.Draw("same")
         leg.Draw("same")
-        
+        if options.alternative_bias:
+            mcanv = ROOT.TCanvas("profile_bias_maximum","profile_bias_maximum")
+            mcanv.SetLogx()
+            mcanv.SetLogy()
+            mcanv.SetGridy()
+            self.keep(mcanv)
+            mcanv.cd()
+            maximum.GetXaxis().SetRangeUser(xfirst,xlast)
+            maximum.GetYaxis().SetTitle("max(| n_{fit} - n_{true} |) / GeV")
+            maximum.GetXaxis().SetMoreLogLabels()
+            maximum.GetXaxis().SetTitle("mass")
+            maximum.GetYaxis().SetRangeUser(0.00001,0.2)
+            maximum.GetXaxis().SetTitleOffset( 0.9 )
+            maximum.Draw("AP")
+
         bcanv = ROOT.TCanvas("profile_pull","profile_pull")
         bcanv.SetLogx()
         bcanv.SetGridy()
