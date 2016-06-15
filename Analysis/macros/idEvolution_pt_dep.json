@@ -1,0 +1,14 @@
+{
+    "categories": [
+        "isEB := abs(scEta)<1.5", 
+        "isEE := abs(scEta)>1.5"
+    ], 
+    "variables": [
+        "egPhotonIso[1000,-10,50]",
+	"egChargedHadronIso[1000,-10,50]"
+    ],
+
+    "fitMedian" : true,
+    "rhoCorr" : true
+}
+
