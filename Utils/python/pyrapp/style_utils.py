@@ -18,9 +18,11 @@ def xtitle(h,tit):
 # -----------------------------------------------------------------------------------------------------------
 def ytitle(h,tit):
     ## print "ytitle", h.GetName(), tit
-    binw = h.GetBinWidth(1) if not getattr(h,"isDensity",False) else h.isDensity
-    h.GetYaxis().SetTitle( tit % { "binw" : binw } )
-    # h.GetYaxis().SetTitle(tit)
+    try:
+        binw = h.GetBinWidth(1) if not getattr(h,"isDensity",False) else h.isDensity
+        h.GetYaxis().SetTitle( tit % { "binw" : binw } )
+    except:
+        h.GetYaxis().SetTitle(tit)
 
 # -----------------------------------------------------------------------------------------------------------
 def ztitle(h,tit):
@@ -42,6 +44,7 @@ def logy(h,ymin=None):
 
 # -----------------------------------------------------------------------------------------------------------
 def overflow(h,limit=None):
+    from math import sqrt
     if not limit:
         limitBin=h.GetXaxis().GetLast()
     else:
@@ -57,7 +60,7 @@ def overflow(h,limit=None):
         h.SetBinContent(ibin,0.)
         h.SetBinError(ibin,0.)
     h.SetBinContent(limitBin,sumw)
-    h.SetBinError(limitBin,sumw2)
+    h.SetBinError(limitBin,sqrt(sumw2))
 
 # -----------------------------------------------------------------------------------------------------------
 def rebin(h,rebin):
@@ -140,6 +143,20 @@ def addCmsLumi(canv,period,pos,extraText=None):
     ROOT.CMS_lumi(canv,period,pos)
 
 
+def addCatLabel(canv,cat=None,x1=0.19,y1=0.81,x2=0.26,y2=0.91):
+    if not cat:
+        cat = canv.GetName().rsplit("_",1)[-1]
+    pt=ROOT.TPaveText(x1,y1,x2,y2,"nbNDC")    
+    pt.SetFillStyle(0)
+    pt.SetLineColor(ROOT.kWhite)
+    pt.AddText(cat)
+    canv.cd()
+    pt.Draw("same")
+    setattr(canv,"objs",getattr(canv,"objs",[]))
+    canv.objs.append(pt)
+    return canv
+
+
 # -----------------------------------------------------------------------------------------------------------
 def printIntegral(h,xmin=None,xmax=None):
     try:
@@ -155,10 +172,14 @@ def printIntegral(h,xmin=None,xmax=None):
         pass
 
 # -----------------------------------------------------------------------------------------------------------
-def printMean(h):
+def printMean(h,xmin=None,xmax=None):
     try:
-                
-        print("Mean %s: %2.4g" % (h.GetName(), h.GetMean() ))
+        if xmin and xmax:
+            first,last=h.GetXaxis().GetFirst(),h.GetXaxis().GetLast()
+            h.GetXaxis().SetRangeUser(xmin,xmax)
+        print("Mean %s(%s,%s): %2.4g" % (h.GetName(), str(xmin), str(xmax), h.GetMean() ))
+        if xmin and xmax:
+            h.GetXaxis().SetRange(first,second)
     except:
         pass
         

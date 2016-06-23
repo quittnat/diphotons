@@ -20,10 +20,10 @@ while [[ $1 == -* ]]; do
 	    sig_file="$1 $2"
 	    shift
 	    ;;
-	--bkg-file) 
-	    bkg_file="$1 $2"
-	    shift
-	    ;;
+	### --bkg-file) 
+	###     bkg_file="$1 $2"
+	###     shift
+	##    ;;
 	-O)
 	    target="$2"
 	    shift
