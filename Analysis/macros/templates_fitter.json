@@ -9,9 +9,9 @@
 	"fit2DTruth" : { "fit" : "2D",
 		"templates" : { "mix:kDSinglePho2DMC" : {}, "mix:kDSinglePho2D" : {}},
                 "categories" : ["EBEB","EBEE"],
-                "components": ["pf","ff",  ["pp",{ "2D" : {},"template_mc:2D":{}}] 
+                "components": [["pp",{ "2D" : {},"template_mc:2D":{}}], "pf","ff" 
                 ],
-                "weight_cut": "weight <1000.",
+                "weight_cut": "weight <100.",
 		"redo" : true,
                 "_plot_variables":{"subleadScEta": [-2.5,-2.0,-1.5,-1.0,-0.5,0.0,0.5,1.0,1.5,2.0,2.5],"leadScEta":[-2.5,-2.0,-1.5,-1.0,-0.5,0.0,0.5,1.0,1.5,2.0,2.5],"subleadPt":[75,100,200,500,7000],"leadPt":[75,100,200,500,7000]},
                 "lowerLimitSigRegion2D": "0.",
@@ -44,7 +44,7 @@
         		"dimensions" :"2D", 
         		"observable": "templateNdim2d_unroll",
                 "components": ["pp","pf","ff"],
-                "weight_cut": "weight < 5.", 
+                "weight_cut": "weight < 100.", 
                 "limit_to_use_minos": 0.97, 
                 "lowerLimitSigRegion": "0.", 
                 "jppstart": "0.6", 
@@ -58,7 +58,7 @@
         		"dimensions" :"2D", 
         		"observable": "templateNdim2d_unroll",
                 "components": ["pp","pf"],
-                "weight_cut": "weight < 5.", 
+                "weight_cut": "weight < 100.", 
                 "jppstart": "0.6", 
                 "jpfstart": "0.4", 
                 "limit_to_use_minos": 0.97, 
@@ -87,7 +87,7 @@
             "categories" : ["EBEB","EBEE"],
             "templates":["reduced_template_mix" ],
             "components": ["pf","ff","pp"], 
-            "weight_cut": "weight < 5."
+            "weight_cut": "weight < 100."
     }
 
 }

@@ -147,7 +147,7 @@
             "ndim"       : 2,                                                                "#" : "number of dimensions for the template  ",
             "dataset_variables" : ["mgg","mass","mggEBEB:=mgg","mggEBEE:=mgg","mggGen:=genMass","leadPixSeed","subleadPixSeed","leadPt","subleadPt","leadEta","subleadEta","subleadPhi","leadPhi", "subleadPhoIsoEA","leadPhoIsoEA","subleadPhoIso","leadPhoIso","subleadSigmaIeIe","leadSigmaIeIe","leadPhi","subleadPhi", "leadScEta","subleadScEta","leadMatchType", "subleadMatchType", "subleadGenIso" , "subleadMatchType", "leadGenIso" , "leadMatchType"],      "#" : "additional variables to be stored      ",
             "store_trees" : true,	
-			"bins"       : [ "mass", [500.0,1300.0] ],                                       "#" : "kinematic bins in which the fit is run ",
+			"bins"       : [ "mass", [200.0,1300.0] ],                                       "#" : "kinematic bins in which the fit is run ",
             "template_binning" : [ 0.0,0.1, 5.0, 15.0 ],                                   "#" : "template varaible binning              ",
 
             "components" : [ "pp", "pf", "ff" ],                                             "#" : "list of fit components                 ",
@@ -179,8 +179,8 @@
             "#" :"MC truth selection.                                      ",
             "#" :"  This is applied to all fit categories in mc",
             "truth_selection" : {
-                "pp" : "leadPrompt  && subleadPrompt",
-                    "pf" : "(leadPrompt &&   subleadMatchType != 1 ) || (subleadPrompt  && leadMatchType !=1)",
+		    "pp" : "leadPrompt  && subleadPrompt",
+			"pf" : "(leadPrompt && subleadFake) || (subleadPrompt && leadFake)",
                     "ff" : " leadMatchType != 1 && subleadMatchType != 1"
             },
 
@@ -188,11 +188,12 @@
 
             "#" :"Template creation.                      ",
 	    "#" :"  Format is <component> : { <settings> }",
-            "templates" : {
+            "templates" : { 
                 "pp" : { 
 		        "sel"  : "cicNoChIso", "#" : "event selection",
                         "dataset" : ["data"],    "#" : "input dataset. can be data,mc or templates",
-                        "datasetmc" : ["data","mc"],    "#" : "input dataset. can be data,mc or templates",
+                        "_datasetmc" : ["data","mc"],    "#" : "input dataset. can be data,mc or templates",
+                        "datasetmc" : ["mc"],    "#" : "input dataset. can be data,mc or templates",
                         "jk":0.0,
                                     "#" : "list of fit components                 ",
                         "#" : "How to fill different categories. Logic is the same as for the 'fill' instructions above",
@@ -242,9 +243,11 @@
                             }
                 },
                 "pf" : { 
-		        "sel"  : "cicSBNoChIsoSingleSB", 
+		        "sel"  : "cicNoChIso",
+                        "preselection" : "mass > 13000.",
+		        "_sel"  : "cicSBNoChIsoSingleSB", 
                         "dataset" : ["templates"],    "#" : "input dataset. can be data,mc or templates",
-                        "datasetmc" : ["templates","templatesMC"],    "#" : "input dataset. can be data,mc or templates",
+                        "datasetmc" : ["templatesMC"],    "#" : "input dataset. can be data,mc or templates",
                         "#" : "pseudo-random swap, but taking care to take the random cone isolation for the signal-region photon",
                         "#" : "  and the photon isolation for the side-band one                                                  ",
                         "fill_categories" : { 
@@ -332,9 +335,11 @@
                                 }
                         }
                  },
-                 "ff" : { "sel"  : "cicSBNoChIsoDoubleSB",        
-                        "dataset" : ["templates"],    "#" : "input dataset. can be data,mc or templates",
-                        "datasetmc" : ["templates","templatesMC"],    "#" : "input dataset. can be data,mc or templates",
+                 "ff" : { "sel"  : "cicNoChIso",        
+                          "_sel"  : "cicSBNoChIsoDoubleSB", 
+                         "preselection" : "mass > 130000.",
+"#" : "tree needs to be there for mixing templates, selection and preselection adjusted accordingly",
+                        "datasetmc" : ["templatesMC"],    "#" : "input dataset. can be data,mc or templates",
                          "fill_categories" : {
                          "EBEB" :{ "TMath::Even(event)  &&  leadIsSB && subleadIsSB  " : [ "leadChIso", "subleadChIso" ],
                                  "! TMath::Even(event)  && leadIsSB && subleadIsSB ": [ "subleadChIso", "leadChIso" ]
@@ -426,11 +431,11 @@
 
 
     "mix" : { 
-	"kDSinglePho2D" : {
+	"_kDSinglePho2D" : {
         "jk_source": 0.0 ,
         "jk_target": 0.0 ,
 		"target" : "2D",
-		"ptLeadMin" : 75.0, "ptSubleadMin" : 75.0, "massMin" : 200.0,
+		"ptLeadMin" : 75.0, "ptSubleadMin" : 75.0, "massMin" : 230.0,
 		"pt" : "phoPt", "eta" : "phoEta", "phi" : "phoPhi", "energy" : "phoEnergy",
 		"sources" : { 
 		    "pf" : [ "singlePho:p", "singlePho:f" ],
@@ -470,7 +475,7 @@
         "jk_target": 0.0 ,
 
 		"target" : "2D:mc",
-		"ptLeadMin" : 75.0, "ptSubleadMin" : 75.0, "massMin" : 200.0,
+		"ptLeadMin" : 75.0, "ptSubleadMin" : 75.0, "massMin" : 230.0,
 		"pt" : "phoPt", "eta" : "phoEta", "phi" : "phoPhi", "energy" : "phoEnergy",
 		"sources" : { 
 		    "pf" : [ "singlePho:mc_p", "singlePho:mc_f" ],
