@@ -1,11 +1,31 @@
 #!/bin/env python
-
 from diphotons.Utils.pyrapp import *
 from optparse import OptionParser, make_option
 from copy import deepcopy as copy
 import os, sys, glob, json
-
+import array
 from auto_plotter import getObjects
+
+def scan1D(tree,x,label,xtitle):
+  tree.Draw('2*deltaNLL:%s'%x,'','')
+  gr = ROOT.gROOT.FindObject('Graph').Clone('gr_%s'%(label))
+  gr.SetTitle("")
+  gr.GetXaxis().SetTitle(xtitle)
+  gr.GetYaxis().SetTitle("-2 #Delta log L")
+
+  gr.Sort()
+  last = None
+  for i in range(gr.GetN(),0,-1):
+    if gr.GetX()[i-1] == last:
+      gr.RemovePoint(i-1)
+    last = gr.GetX()[i-1]
+  return gr
+
+def read1D(fin,x,label,xtitle):
+  tree = fin.Get('limit')
+  return scan1D(tree,x,label,xtitle)
+
+
 
 def guessLabel(name):
     if "EBEB" in name: return "EBEB"
@@ -53,17 +73,9 @@ class LimitPlot(PlotApp):
                             default=False),
                 make_option("--do-pvalues",action="store_true", dest="do_pvalues", 
                             default=False),
-                make_option("--compute-LEE",action="store_true", dest="compute_lee", 
-                            default=False,help="for the computation of lee, creates trees etc from scratch"),
-                make_option("--trial-factor",action="store_true", dest="trial_factor", 
-                            default=False,help="fits trial factor on distribution of maximum pvalues"),
-                make_option("--plot-LEE",action="store_true", dest="plot_lee", 
-                            default=False,help="plots the maximum signficance if trees already exist"),
-                make_option("--plot-locpval",action="store_true", dest="plot_locpval", 
-                            default=False,help="plots the local p value "),
-                make_option("--output-dir",action="store", dest="output_dir", 
-                            default="./"),
                 make_option("--do-comparison",action="store_true", dest="do_comparison", 
+                            default=False),
+                make_option("--do-nll",action="store_true", dest="do_nll", 
                             default=False),
                 make_option("--compare-expected",action="store_true", dest="compare_expected", 
                             default=False),
@@ -71,16 +83,22 @@ class LimitPlot(PlotApp):
                             default=[]),
                 make_option("--compare-label","--compare-labels",dest="compare_labels",action="callback",type="string", callback=optpars_utils.ScratchAppend(str),
                             default=[]),
+                make_option("--compare-obs",dest="compare_obs",action="callback",type="string", callback=optpars_utils.ScratchAppend(str),
+                            default=[]),
                 make_option("--asimov-expected",action="store_true", dest="asimov_expected", 
                             default=True),
                 make_option("--toys-expected",action="store_false", dest="asimov_expected", 
                             ),
                 make_option("--x-range",dest="x_range",action="callback",type="string", callback=optpars_utils.ScratchAppend(float),
                             default=[450.,5000.]),
+                make_option("--y-range",dest="y_range",action="callback",type="string", callback=optpars_utils.ScratchAppend(float),
+                            default=[]),
                 make_option("--legend",dest="legend",action="callback",type="string", callback=optpars_utils.ScratchAppend(float),
                             default=[0.56,0.51,0.86,0.76]),
                 make_option("-n","--label",action="store", dest="label", 
                             default=""),                
+                make_option("-m","--mass",action="store", dest="mass", type=float, 
+                            default=750.),                
                 make_option("-M","--method",action="store", dest="method", 
                             default="Asymptotic"),                
                 make_option("-U","--unblind",action="store_true", dest="unblind", 
@@ -93,15 +111,28 @@ class LimitPlot(PlotApp):
                             default={}),                
                 make_option("--fixed-x-section",action="store", dest="fixed_x_section", type="float", 
                             default=None), 
-                make_option("--nToys",action="store", dest="nToys",type="int", 
-                            default=None), 
-                make_option("--nJobs",action="store", dest="nJobs",type="int", 
-                            default=0), 
                 make_option("--fixed-x-section-ratio",action="store", dest="fixed_x_section_ratio", type="string", 
                             default=None), 
                 make_option("--use-fb",dest="use_fb", action="store_true", 
                             default=False), 
-                
+                make_option("--spin2",action="store_true", dest="spin2", 
+                            default=True),
+                make_option("--spin0",action="store_false", dest="spin2", 
+                            ),
+                make_option("--width-in-header",action="store_true", dest="width_in_header", 
+                            default=True),
+                make_option("--no-width-in-header",action="store_false", dest="width_in_header", 
+                            ),
+                make_option("--spin-in-header",action="store_true", dest="spin_in_header", 
+                            default=True),
+                make_option("--no-spin-in-header",action="store_false", dest="spin_in_header", 
+                            ),
+                make_option("--extra-lines-style", action="store", type="int", default=2, dest="extra_lines_style",
+                            ),
+                make_option("--xtitle",action="store", dest="xtitle", type="string", default=None,
+                            ),
+                make_option("--plot-average",action="store_true", dest="plot_average", 
+                            default=False),
             ])
         
         global ROOT, style_utils, RooFit
@@ -116,51 +147,46 @@ class LimitPlot(PlotApp):
         
         ROOT.gStyle.SetTitleYOffset(1.)
         ROOT.gStyle.SetTitleXOffset(1.15)
-        ROOT.gStyle.SetOptStat(111111)
 
-        ROOT.gSystem.AddIncludePath( "$ROOTSYS/include" )
+        if options.do_comparison or options.do_nll:
+            if len(options.compare_labels) > 0: assert( len(options.compare_labels) == len(options.compare_files) )
+            else: options.compare_labels = map(guessLabel, options.compare_files)
+            if len(options.compare_obs) == 0:
+              options.compare_obs = ["r"]*len(options.compare_files)
+            assert( len(options.compare_obs) == len(options.compare_files)  )
+            
+            self.compare = map(lambda x: (getObjects([self.open(x[0])]),x[1],x[2]), zip(options.compare_files,options.compare_labels,options.compare_obs) )
+
+        if options.do_nll:
+            self.plotNLLScan(options)
+            return
+
+        # ROOT.gSystem.AddIncludePath( "$ROOTSYS/include" )
         ROOT.gROOT.LoadMacro( "$CMSSW_BASE/src/HiggsAnalysis/CombinedLimit/test/plotting/bandUtils.cxx+" )
         
         self.loadXsections(options.x_sections)
 
         if options.do_comparison:
-            if len(options.compare_labels) > 0: assert( len(options.compare_labels) == len(options.compare_files) )
-            else: options.compare_labels = map(guessLabel, options.compare_files)
-            self.compare = map(lambda x: (getObjects([self.open(x[0])]),x[1]), zip(options.compare_files,options.compare_labels) )
             self.plotComparisons(options)
             return
 
         print options.couplings
-        if options.compute_lee or options.plot_lee or options.trial_factor:
-            flist = [ "%s/higgsCombine%s_k%s.%s.%d.root" % (options.input_dir, options.label, options.couplings[0],options.method,job)  for job in range(0,options.nJobs+1) ]
+        if len(options.couplings) == 0:
+            flist = glob.glob("%s/higgsCombine%s_k*.%s.root" % (options.input_dir, options.label, options.method) )
         else:
-            if len(options.couplings) == 0:
-                flist = glob.glob("%s/higgsCombine%s_k*.%s.root" % (options.input_dir, options.label, options.method) )
-            else:
-                flist = [ "%s/higgsCombine%s_k%s.%s.root" % (options.input_dir, options.label, coup, options.method) for coup in options.couplings ]
-        if options.plot_locpval:
-            flist =["%s/higgsCombine_%s.%s.root" % (options.input_dir, options.label,options.method)]
-        if not options.compute_lee: print options.input_dir, flist
+            flist = [ "%s/higgsCombine%s_k%s.%s.root" % (options.input_dir, options.label, coup, options.method) for coup in options.couplings ]
+        print options.input_dir, flist
             
         tflist = {}
-        tflist_job = {}
         for fname in flist:
             bname = os.path.basename(fname)
-            job = bname.replace(".root","").rsplit(".",1)[-1]
-            dname =options.input_dir
-            if options.compute_lee or options.plot_lee or options.trial_factor:
-                spin = dname.replace("combined","").split("_",-1)[1].replace("spin","")
-            else:
-                print "[WARNING] assume spin2 for labels "
-                spin=2
             coup = bname.split("_",1)
-            coup = coup[1].split(".")
-            coup = coup[0].replace("k","").split("_",2)[1]
             print coup
-            if options.plot_locpval:
-                sname = bname.rsplit("GeV",1)[1].split(".ProfileLikelihood",1)[0]
-                mname = bname.rsplit("GeV",1)[0].rsplit("_",1)[1]
-                print sname,mname
+            coup = coup[1].split(".")
+            print coup
+            coup = coup[0].replace("k","")
+            print coup
+            ## coup = bname.split("_",1)[1].split(".")[0].replace("k","")
             tfin = self.open(fname)
             if not tfin: 
                 print ("unable to open %s" % fname)
@@ -168,25 +194,9 @@ class LimitPlot(PlotApp):
             tree = tfin.Get("limit")
             if not tree: 
                 print ("unable to find limit tree in %s" % fname)
-                if options.compute_lee or options.plot_lee or options.trial_factor:
-                    continue
-                else:
-                    sys.exit(-1)
+                sys.exit(-1)
         
-            if options.compute_lee:
-               # if (coup=="all" and (spin=="0" or spin=="2")):holynr=(1286)*options.nToys
-                #elif (coup=="all" and (spin=="all")):holynr=(1286)*2*options.nToys
-                #elif ((coup=="001" or  coup=="01" or coup =="02") and (spin=="0" or spin=="2")):holynr=(428)*options.nToys
-                if (coup=="all" and (spin=="0" or spin=="2")):holynr=(404*3)*options.nToys
-                elif (coup=="all" and (spin=="all")):holynr=(404*3)*2*options.nToys
-                elif ((coup=="001" or  coup=="01" or coup =="02") and (spin=="0" or spin=="2")):holynr=(404)*options.nToys
-                else: holynr=1e15
-                if tree.GetEntries() < holynr:
-                    print "[WARNING ] job ", job, ": tree has not expected number of entries "
-                    continue
-                else: tflist_job[job] = tfin
-            else:
-                tflist[coup] = tfin
+            tflist[coup] = tfin
         
         self.graphs = []
         for coup,tfile in tflist.iteritems():
@@ -195,27 +205,86 @@ class LimitPlot(PlotApp):
                 print coup, tfile
                 self.plotLimit(options,coup,tfile)
             if options.do_pvalues:
-                observed = ROOT.theBand( tfile, 1, 0, ROOT.Observed, 0.95 )
-                self.plotPval(options,coup,spin,tfile,observed)
-        for job,tfile in tflist_job.iteritems():
-            if options.compute_lee: self.getPvalToys(options,coup,spin, job,tfile)
-               
+                self.plotPval(options,coup,tfile)
+                
         self.autosave()
-        if not (options.plot_lee or options.trial_factor or options.plot_locpval):
-            if options.compute_lee:
-                for job in range(0,options.nJobs+1):
-                    graphs = self.open("%s/graphs_%s_%s_%s.%s.root" % (options.input_dir,"_".join(options.couplings),spin,job,options.method),"recreate")
-            else:
-                if len(options.couplings) == 0:
-                    graphs = self.open("%s/graphs_%s.root" % (options.input_dir,options.method),"recreate") #makes one file with everyting
-                else:
-                    graphs = self.open("%s/graphs_%s_%s.root" % (options.input_dir,"_".join(options.couplings),options.method),"recreate")
-            graphs.cd()
-            for gr in self.graphs: gr.Write()
-            graphs.Close()
-        if (options.compute_lee or options.plot_lee or options.trial_factor) : self.plotLEE(options,coup,spin)
-        if  options.plot_locpval: self.plotLocpval(options,coup,sname,mname)
+
+        if len(options.couplings) == 0:
+            graphs = self.open("%s/graphs_%s.root" % (options.input_dir,options.method),"recreate")
+        else:
+            graphs = self.open("%s/graphs_%s_%s.root" % (options.input_dir,"_".join(options.couplings),options.method),"recreate")
+        graphs.cd()
+        for gr in self.graphs: gr.Write()
+        graphs.Close()
         
+
+    def getLegendHeader(self,kappa,g0):
+      txt = ""
+      if self.options.width_in_header:
+        if kappa >= 0.1:
+          txt += "#frac{#Gamma}{m} = %g #times 10^{-2}  " % (1.4*kappa*kappa*100.)
+        else:
+          txt += "#frac{#Gamma}{m} = %g #times 10^{-4}  " % (1.4*kappa*kappa*10000.)
+        
+      if self.options.spin_in_header:
+        if self.options.spin2:
+          txt += "J=2"
+          if g0: g0.GetXaxis().SetTitle("m_{G} (GeV)")
+        else:
+          txt += "J=0"
+          if g0: g0.GetXaxis().SetTitle("m_{S} (GeV)")
+      else:
+        if g0: g0.GetXaxis().SetTitle("m_{X} (GeV)")
+        
+      return txt
+
+
+    def plotNLLScan(self,options):
+        graphs = map(lambda x: (map(lambda z: scan1D(z,x[2],x[1],"#sigma^{13TeV} #upoint B_{#gamma #gamma} (fb)"),##"\sigma^{13TeV} \cdot BR_{\gamma \gamma}    (fb)"),
+                                    filter(lambda y: y.GetName() == "limit", x[0]))[0],x[1]), self.compare)
+        
+        styles = [ [["colors",ROOT.kBlack]], [["colors",ROOT.kBlue]], [["colors",ROOT.kRed]] ]
+        map(lambda x: style_utils.apply(x[0],[["SetMarkerSize",0.3],["SetLineWidth",2]]+styles.pop(0)), graphs)
+
+        canv = ROOT.TCanvas("nll_scan_%s" % options.label,"nll_scan_%s" % options.label)
+        legend = ROOT.TLegend(*options.legend)
+
+        g0 = graphs[0][0]
+        txt = ""
+        if options.spin2:
+          txt += "J=2"
+        else:
+          txt += "J=0"
+        legend.AddEntry(None,"m=%1.0f GeV, %s" % (options.mass,txt),"")
+        if len(options.couplings) == 1:
+          kappa = float("0.%s" % options.couplings[0][1:])
+          legend.AddEntry(None,"#frac{#Gamma}{m} = %g #times 10^{-2}" % (1.4*kappa*kappa*100.),"")
+        legend.AddEntry(None," ","")
+        ## if options.spin2:
+        ###     legend.AddEntry(None,"#tilde{#kappa} = %s" % kappa,"")
+        ### else:
+        ###     kappa = float(kappa)
+        ###     legend.AddEntry(None,"#frac{#Gamma}{m} = %g #times 10^{-2}" % (1.4*kappa*kappa*100.),"")
+        if len(options.x_range) != 0:
+          g0.GetXaxis().SetRangeUser(*options.x_range)
+        if len(options.y_range) != 0:
+          g0.GetYaxis().SetRangeUser(*options.y_range)
+          g0.GetYaxis().SetLimits(*options.y_range)
+        g0.Draw("ac")
+        for gr,nam in graphs:
+            legend.AddEntry(gr,nam,"l")
+            self.keep(gr)
+        for gr,nam in reversed(graphs):
+            gr.Draw("c")
+        legend.Draw("same")
+        
+        ## xmin,xmax = options.x_range
+
+        self.keep([canv,legend])
+        self.format(canv,options.postproc)
+
+
+
     def plotLimit(self,options,coup,tfile):
         ## TGraphAsymmErrors *theBand(TFile *file, int doSyst, int whichChannel, BandType type, double width=0.68) {
         if options.asimov_expected:
@@ -229,6 +298,8 @@ class LimitPlot(PlotApp):
         unit = "fb" if options.use_fb else "pb"
         basicStyle = [["SetMarkerSize",0.6],["SetLineWidth",3],
                        ["SetTitle",";m_{G} (GeV);95%% C.L. limit #sigma(pp#rightarrow G#rightarrow#gamma#gamma) (%s)" % unit]]
+        if not options.spin2:
+            basicStyle.append(["SetTitle",";m_{S} (GeV);95%% C.L. limit #sigma(pp#rightarrow S#rightarrow#gamma#gamma) (%s)" % unit])
         commonStyle = [[self.scaleByXsec,coup],"Sort"]+basicStyle
         ## expectedStyle = commonStyle+[["SetMarkerStyle",ROOT.kOpenCircle]]
         expectedStyle = commonStyle+[["SetMarkerSize",0]]
@@ -244,21 +315,26 @@ class LimitPlot(PlotApp):
       
         canv  = ROOT.TCanvas("limits_k%s"%coup,"limits_k%s"%coup)
         canv.SetLogx()
-        legend = ROOT.TLegend(0.6,0.6,0.9,0.9)
+        legend = ROOT.TLegend(0.55,0.58,0.85,0.88)
         expected95.Draw("AE3")        
         expected95.GetXaxis().SetRangeUser(450,5500)
         expected95.GetXaxis().SetMoreLogLabels()
         expected68.Draw("E3L")
         expected.Draw("L")
         kappa = "0."+coup[1:]
-        legend.AddEntry(None,"#tilde{#kappa} = %s" % kappa,"")
+        ### if options.spin2:
+        ###     legend.AddEntry(None,"#tilde{#kappa} = %s" % kappa,"")
+        ### else:
+        ###     kappa = float(kappa)
+        ###     legend.AddEntry(None,"#frac{#Gamma}{m} = %g #times 10^{-2}" % (1.4*kappa*kappa*100.),"")
+        legend.AddEntry(None,self.getLegendHeader(float(kappa),None),"")
         legend.AddEntry(expected,"Expected limit","l")
-        legend.AddEntry(expected68," \pm 1 \sigma","f")
-        legend.AddEntry(expected95," \pm 2 \sigma","f")
+        legend.AddEntry(expected68," #pm 1 #sigma","f")
+        legend.AddEntry(expected95," #pm 2 #sigma","f")
         if options.unblind:
-            observed.Draw("PL")
-            ## observed.Draw("L")
-            legend.AddEntry(observed,"Observed limit","l")
+          # observed.Draw("PL")
+          observed.Draw("L")
+          legend.AddEntry(observed,"Observed limit","l")
         if coup in self.xsections_:
             grav = self.xsections_[coup]
             style_utils.apply( grav, basicStyle+[["SetLineStyle",9],["colors",ROOT.myColorB2]] )
@@ -291,12 +367,35 @@ class LimitPlot(PlotApp):
         
         cobserved = map(lambda x: (filter(lambda y: y.GetName().endswith("_%s" % coup), x[0])[0],x[1]), observed)
         print cobserved
+#        if options.plot_average:
+#            observed_new=[]
+#            name_list=[]
+#            for gr,name in cobserved:
+#                grnew=ROOT.TGraph()
+#                grnew.SetName(gr.GetName())
+#                grnew.SetTitle(gr.GetTitle())
+#                allent=range(gr.GetN())
+#                i=0
+#                for point in allent[0::4]:
+#                    x1,x2,x3,x4,y1,y2,y3,y4 = ROOT.Double(0), ROOT.Double(0),ROOT.Double(0), ROOT.Double(0),ROOT.Double(0), ROOT.Double(0),ROOT.Double(0), ROOT.Double(0)   
+#                    gr.GetPoint(point,x1,y1)
+#                    gr.GetPoint(point+1,x2,y2)
+#                    gr.GetPoint(point+2,x3,y3)
+#                    gr.GetPoint(point+3,x4,y4)
+#                    grnew.SetPoint(i,(x1+x2+x3+x4)/4.,(y1+y2+y3+y4)/4.)
+#                    i=i+1
+               # grnew.Print("v")
+#                observed_new.append(grnew)
+#                name_list.append(name)
+#                self.keep(grnew,name)
+#            cobserved = zip(observed_new, name_list)
+ #           print cobserved
         
-        ## styles = [ [["colors",ROOT.kBlue]], [["colors",ROOT.kRed+1]], [["colors",ROOT.kMagenta-2]] ]
-        styles = [ [["colors",ROOT.kBlack]], [["colors",ROOT.kBlue],["SetLineStyle",2]], [["colors",ROOT.kRed],["SetLineStyle",2]] ]
+        ## styles = [ [["colors",ROOT.kBlue]], [["colors",ROOT.kRed+1]], [["colors",ROOT.kMagenta-2]] ] 
+        styles = [ [["colors",ROOT.kBlack]], [["colors",ROOT.kBlue],["SetLineStyle",options.extra_lines_style]], [["colors",ROOT.kRed],["SetLineStyle",options.extra_lines_style]] ]
         map(lambda x: style_utils.apply(x[0],[["SetMarkerSize",0.3],["SetLineWidth",2]]+styles.pop(0)), cobserved)
     
-        canv = ROOT.TCanvas("comparison_%s" % coup,"comparison_%s" % coup)
+        canv = ROOT.TCanvas("comparison_%s%s" % (options.label,coup),"comparison_%s%s"  % (options.label,coup) )
         legend = ROOT.TLegend(*options.legend)
         ## legend = ROOT.TLegend(0.56,0.51,0.86,0.76)
         ## legend = ROOT.TLegend(0.6,0.51,0.9,0.76)
@@ -304,15 +403,66 @@ class LimitPlot(PlotApp):
         ## legend = ROOT.TLegend(0.45,0.2,0.75,0.42)
         legend.SetFillStyle(0)
         kappa = "0."+coup[1:]
-        legend.AddEntry(None,"#tilde{#kappa} = %s" % kappa,"")
-        
         g0 = cobserved[0][0]
-        g0.GetXaxis().SetTitle("m_{G} (GeV)")
-        g0.Draw("apl")
-        for gr,nam in cobserved:
-            legend.AddEntry(gr,nam,"l")
-        for gr,nam in reversed(cobserved):
-            gr.Draw("pl")
+        if options.plot_average:
+            grnew=ROOT.TGraph()
+            allent=range(g0.GetN())
+            i=0
+            steps=40. #FIXME dont hardcode
+            end=295
+            for point in allent[0:end:int(steps)]:
+                xl=[]
+                yl=[]
+                xi=0
+                yi=0
+                for step in range(0,int(steps)):
+                    x,y=ROOT.Double(0),ROOT.Double(0)
+                    xl.append(x)
+                    yl.append(y)
+                    g0.GetPoint(point,xl[step],yl[step])
+                    xi=xl[step]+xi
+                    yi=yl[step]+yi
+                grnew.SetPoint(i,xi/steps,yi/steps)
+                i=i+1
+            for point in range(end,g0.GetN()):
+                x,y=ROOT.Double(0),ROOT.Double(0)
+                g0.GetPoint(point,x,y)
+                grnew.SetPoint(i,x,y)
+                i=i+1
+            g0=grnew
+            self.keep(grnew)
+            grnew.Print("v")
+        ### kappa = float(kappa)
+        ### if kappa >= 0.1:
+        ###   txt = "#frac{#Gamma}{m} = %g #times 10^{-2}" % (1.4*kappa*kappa*100.)
+        ### else:
+        ###   txt = "#frac{#Gamma}{m} = %g #times 10^{-4}" % (1.4*kappa*kappa*10000.)
+        ### 
+        ### if options.spin2:
+        ###   txt += "  J=2"
+        ###   g0.GetXaxis().SetTitle("m_{G} (GeV)")
+        ### else:
+        ###   txt += "  J=0"
+        ###   g0.GetXaxis().SetTitle("m_{S} (GeV)")
+        kappa = float(kappa)
+        txt = self.getLegendHeader(kappa,g0)
+        legend.AddEntry(None,txt,"")
+           
+        if options.xtitle:
+          g0.GetXaxis().SetTitle(options.xtitle)
+        if options.plot_average:
+            style_utils.apply(g0,[["SetMarkerSize",0.3],["SetLineWidth",2],["colors",ROOT.kBlack]]+styles.pop(0))
+            g0.Draw("aC")
+            legend.AddEntry(g0,"exp limit with bias","l")
+            g1=cobserved[1][0]
+            legend.AddEntry(g1,"exp limit without bias","l")
+            g1.Draw("l")
+        else:
+            g0.Draw("al")
+            for gr,nam in cobserved:
+                legend.AddEntry(gr,nam,"l")
+            for gr,nam in reversed(cobserved):
+                gr.Draw("l")
         legend.Draw("same")
         
         xmin,xmax = options.x_range
@@ -322,23 +472,28 @@ class LimitPlot(PlotApp):
         ## g0.GetXaxis().SetRangeUser(850,3000)
         g0.GetXaxis().SetRangeUser(xmin,xmax)
         g0.GetXaxis().SetMoreLogLabels()
-        canv.SetLogx()
+          
+        #canv.SetLogx()
         if options.do_pvalues:
             canv.SetLogy()
             g0.GetYaxis().SetRangeUser(1e-3,0.55)
-            self.drawLines(g0,xmin,xmax)
-            ## self.drawLines(g0,450,5000)
-            ## self.drawLines(g0,500,3000)
-            ## self.drawLines(g0,500,850)
-            ## self.drawLines(g0,850,3000)
+            ## g0.GetYaxis().SetRangeUser(1e-4,0.55)
+
+        if len(options.y_range) > 0:
+          ## print "AAAAAAAAAAAAAAAA"
+          g0.GetYaxis().SetRangeUser(*options.y_range)
+          g0.GetYaxis().SetLimits(*options.y_range)
+          
+        if options.do_pvalues:
+          self.drawLines(g0,xmin,xmax)
+          
         
         self.keep([canv,legend])
         self.format(canv,options.postproc)
         
     def drawLines(self,ref,xmin=450,xmax=5000):
         
-        spots = filter(lambda x: x>ref.GetYaxis().GetXmin(),  map(lambda x: (x,ROOT.RooStats.SignificanceToPValue(x)), xrange(1,5) ) )
-        
+        spots = filter(lambda y: y[1]>float(ref.GetYaxis().GetXmin()),  map(lambda x: (x,ROOT.RooStats.SignificanceToPValue(x)), xrange(1,5) ) )
         lines = map( lambda y: ROOT.TLine(xmin,y[1],xmax,y[1]), spots )
         map( lambda x: style_utils.apply(x,[["SetLineColor",ROOT.kGray+3],["SetLineStyle",7]]), lines )
         
@@ -347,264 +502,70 @@ class LimitPlot(PlotApp):
 
         map( lambda x: x.Draw("same"), lines+labels )
         self.keep(lines+labels)
-
-    def getPvalToys(self,options, coup,spin,ijob,tfile):
-        tree = tfile.Get("limit")
-        print "jobs ", ijob , " #toys ", options.nToys, "couplings", coup, " #masspoints " ,tree.GetEntries()/options.nToys
-        tp = ROOT.TNtuple("tree_pval_k%s_s%s_t%s_j%s" % (coup,spin,options.nToys, ijob),"tree_pval_k%s_s%s_t%s_j%s" % (coup,spin,options.nToys, ijob),"toy:pval" )
-        for itoy in range(1,options.nToys+1):
-            observed = ROOT.theBand( tfile, 1, 0, ROOT.ToyObserved, 0.95,itoy )
-            maxpval=ROOT.TMath.MinElement(observed.GetN(),observed.GetY())
-            tp.Fill(itoy,maxpval)
-           # print "itoy ", itoy , "max ", maxpval
-            self.plotPval(options,coup,spin,tfile,observed,itoy,ijob)
-        tp.SaveAs("%s/tree_pval_k%s_s%s_t%s_j%s.root" % (options.input_dir,coup,spin,options.nToys, ijob))
-
-    def plotLEE(self,options, coup,spin):
-        canv = ROOT.TCanvas("cqtoy","cqtoy")
-        histo=ROOT.TH1D("qtoy","qtoy",300,1.,5.)
-       # histo_pval=ROOT.TH1D("qtoy_pval","qtoy_pval",200,1e-4,0.5)
-        pmin=1e-6
-        pmax=0.08
-        histo_pval=ROOT.TH1D("qtoy_pval","qtoy_pval",200,pmin,pmax)
-        for ijob in range(0,options.nJobs):
-            fname= "%s/tree_pval_k%s_s%s_t%s_j%s.root" % (options.input_dir,coup,spin,options.nToys, ijob)
-            tfin = self.open(fname)
-            if not tfin: 
-                print ("unable to open %s" % fname)
-                continue
-            #tree = tfin.Get("tree_pval_k%s_s%s_t%s_j100" % (coup,spin,options.nToys))
-            tree = tfin.Get("tree_pval_k%s_s%s_t%s_j%s" % (coup,spin,options.nToys,ijob))
-            toyStyle = [["SetFillStyle",3004],["SetLineColor",ROOT.kRed]]
-            style_utils.apply(histo,[["SetTitle",";Max Significance ;Entries (Toys)"],["SetName","max significance k%s s%s" %(coup,spin)]]+toyStyle)
-            for toy in range(0,tree.GetEntries()):
-                tree.GetEntry(toy)
-                significance=ROOT.ROOT.Math.normal_quantile_c(tree.pval, 1.0)
-                histo.Fill(significance)
-                if options.trial_factor:
-                    histo_pval.Fill(tree.pval)
-        self.keep(histo_pval)
-        if spin=="0":
-            obsZ=2.856 
-            obsP=0.0021451# @ 756 GeV
-        elif (spin=="2" or spin== "all"):
-            obsZ=2.93149
-            obsP=0.00168668# @ 758 GeV
-        else: print "no oberved "
-        print "significance 2.9: pval: ", histo.Integral(histo.GetXaxis().FindBin(2.9),histo.GetXaxis().FindBin(histo.GetMaximumBin()))/histo.Integral()
-        integral=histo.Integral(histo.GetXaxis().FindBin(obsZ),histo.GetXaxis().FindBin(histo.GetMaximumBin()))/histo.Integral()
-        if options.trial_factor:
-            cdf=self.cdf(histo_pval,histo.GetNbinsX(),pmin,pmax) 
-            self.keep(cdf)
         
-        canv.cd()
-        histo.Rebin(5)
-        histo.Draw("HIST E2")
-        ROOT.gStyle.SetOptStat(111111)
-        lineObs=ROOT.TLine(obsZ,0.,obsZ,histo.GetMaximum())
-        lineObs.SetLineColor(ROOT.kBlack)
-        lineObs.SetLineWidth(3)
-        lineObs.Draw()
-        b=ROOT.TLatex()
-        b.SetNDC()
-        b.SetTextSize(0.035)
-        b.SetTextColor(ROOT.kBlack)
-        b.DrawLatex(0.65,0.5,"global pval: %.2e" % integral)
-        b.DrawLatex(0.65,0.4,"global Z: %4.2f" % ROOT.ROOT.Math.normal_quantile_c(integral,1.0))
-        b.DrawLatex(0.65,0.3,"trial factor: %d " %( integral/obsP))
-
-        canv.SaveAs("%s/LEE_k%s_s%s.root" % (options.output_dir,coup,spin))
-        canv.SaveAs("%s/LEE_k%s_s%s.png" % (options.output_dir,coup,spin))
-        canv.SaveAs("%s/LEE_k%s_s%s.pdf" % (options.output_dir,coup,spin))
-        self.keep( [canv,histo] )
-
-        if options.trial_factor:
-            ccdf = ROOT.TCanvas("ccdf","ccdf")
-            ccdf.cd()
-            ROOT.gStyle.SetOptStat(0)
-            pminfit=1e-5
-            pmaxfit=0.006
-            vsfit =ROOT.TF1("vsfit","[0]*x+[1]",pmin,pmax)
-            vsfit.SetParameters(60, 0)
-            cdf.Fit(vsfit,"R","",pminfit,pmaxfit)
-            cdf.GetXaxis().SetRangeUser(pminfit,pmaxfit)
-            cdf.GetXaxis().SetTitle("Min p-value")
-            cdf.GetYaxis().SetTitle("CDF")
-            cdf.Draw("HIST")
-            c=ROOT.TLatex()
-            c.SetNDC()
-            c.SetTextSize(0.04)
-            c.SetTextColor(ROOT.kBlack)
-            c.DrawLatex(0.45,0.4,"fit range pmin: %.2e ( z= %4.2f )" % (pminfit,ROOT.ROOT.Math.normal_quantile_c(pminfit,1.0)))
-            c.DrawLatex(0.55,0.3,"pmax: %.2e ( z= %4.2f )" % (pmaxfit,ROOT.ROOT.Math.normal_quantile_c(pmaxfit,1.0)))
-            c.DrawLatex(0.55,0.2,"trial factor: %d" % (vsfit.GetParameter(0)))
-
-            vsfit.Draw("SAME")
-       #     self.keep( [ccdf,cdf] )
-            ccdf.SaveAs("%s/cdf_pval_k%s_s%s.root" % (options.output_dir,coup,spin))
-            ccdf.SaveAs("%s/cdf_pval_k%s_s%s.png" % (options.output_dir,coup,spin))
-            ccdf.SaveAs("%s/cdf_pval_k%s_s%s.pdf" % (options.output_dir,coup,spin))
-            cpval = ROOT.TCanvas("cpval","cpval")
-            cpval.cd()
-            cpval.SetLogx()
-            ROOT.gStyle.SetOptStat(11111111)
-            histo_pval.Draw("HIST")
-            histo_pval.GetXaxis().SetTitle("Min p-value")
-            histo_pval.GetYaxis().SetTitle("Entries (Toys)")
-            cpval.SaveAs("%s/cpval_k%s_s%s.root" % (options.output_dir,coup,spin))
-            cpval.SaveAs("%s/cpval_k%s_s%s.png" % (options.output_dir,coup,spin))
-            cpval.SaveAs("%s/cpval_k%s_s%s.pdf" % (options.output_dir,coup,spin))
-
-
-    def plotLocpval(self,options,coup, sname,mname):
-        canv = ROOT.TCanvas("cqtoy","cqtoy")
-        canv2d = ROOT.TCanvas("cqtoy2d","cqtoy2d")
-        histo=ROOT.TH1D("qtoy","qtoy",500,0.,36.)
-        graph2d=ROOT.TGraph(histo.GetNbinsX())
-        fname= "%s/higgsCombine_spin2_k001_%sGeV%s.ProfileLikelihood.root" % (options.input_dir,mname,sname)
-        tfin = self.open(fname) #TODO difine mname and sname for input
-        if not tfin: 
-            print ("unable to open %s" % fname)
-        tree = tfin.Get("limit")
-        toyStyle = [["SetFillStyle",3004],["SetLineColor",ROOT.kRed]]
-       ## style_utils.apply(histo,[["SetTitle",";Significance ;Entries (Toys)"],["SetName","k%s s2 %s %s" %(coup,mname,sname)]]+toyStyle)
-        style_utils.apply(histo,[["SetTitle",";q ;Entries (Toys)"],["SetName","k%s s2 %s %s" %(coup,mname,sname)]]+toyStyle)
-
-        for toy in range(0,tree.GetEntries()):
-            tree.GetEntry(toy)
-            significance=ROOT.RooStats.PValueToSignificance(tree.limit)
-            histo.Fill(significance*significance)
-        if (sname=="_8_13TeV"):obsZ=3.35548#@750 GeV  p-value of background: 0.000396131  (Significance = 3.35548)
-        elif ((sname=="_13TeV" or sname=="_13TeV_freezeenergyScaleEBEBeig2" or sname=="_13TeV_freezeenergyScaleZeroEBEBeig1eig2" or sname=="_13TeV_freezeenergycorr" or sname =="_13TeV_freezebias" or sname=="_13TeV_freezeenergyScaleEBEB" ) and mname=="760"):obsZ=2.92222# @ 760 GeV p-value of background: 0.00173774 (Significance = 2.92222)
-        elif (sname=="_13TeV" and mname=="600"):obsZ=0.527256# @ 600 GeV  pvalue: 0.29900 Significance = 0.527256
-        elif (sname=="_13TeV" and mname=="520"):obsZ= 1.2542312# p-value of background: 0.104879
-        else: print "no oberved "
-        
-        for bin in range(1,histo.GetNbinsX()):
-            if (histo.GetBinContent(bin) >0.):
-                int=histo.Integral(bin,-1)/histo.Integral()
-                if (int <1.and int >0.):
-                    ints=ROOT.RooStats.PValueToSignificance(int)
-                    graph2d.SetPoint(bin-1,ints,pow(histo.GetXaxis().GetBinCenter(bin),0.5))
-        canv2d.cd()
-        canv2d.SetGridx()
-        canv2d.SetLogz()
-        canv2d.SetGridy()
-        graph2d.GetXaxis().SetTitle("Z_{toy}")
-        graph2d.GetYaxis().SetTitle("Z_{asymptotic}")
-      #  graph2d.GetYaxis().SetRangeUser(0.,6.)
-       # graph2d.GetXaxis().SetRangeUser(0.,6.)
-        graph2d.SetMarkerSize(1.3)
-        graph2d.SetMarkerStyle(20)
-        graph2d.Draw("AP")
-        gfit =ROOT.TF1("gfit","[0]*x+[1]",0.01,5)
-        graph2d.Fit(gfit,"R","",0.01,5)
-        gfit.SetLineColor(ROOT.kBlue)
-        gfit.SetLineStyle(2)
-        gfit.Draw("SAME")
-        c1=ROOT.TLatex()
-        c1.SetNDC()
-        c1.SetTextSize(0.04)
-        c1.SetTextColor(ROOT.kBlack)
-        c1.DrawLatex(0.55,0.2,"y offset: %2.2f" % (gfit.GetParameter(1)))
-        c1.DrawLatex(0.55,0.3,"slope: %2.2f" % (gfit.GetParameter(0)))
-        canv2d.SaveAs("%s/LocPVal2D_k%s_spin2_%s%s.root" % (options.output_dir,coup,mname,sname))
-        canv2d.SaveAs("%s/LocPVal2D_k%s_spin2_%s%s.png" % (options.output_dir,coup,mname,sname))
-        canv2d.SaveAs("%s/LocPVal2D_k%s_spin2_%s%s.pdf" % (options.output_dir,coup,mname,sname))
-        
-        
-        obsZ=obsZ*obsZ
-        integral=histo.Integral(histo.GetXaxis().FindBin(obsZ),-1)/histo.Integral()
-        canv.cd()
-        canv.SetLogy()
-        histo.Rebin(5)
-        histo.Draw("HIST E2")
-        chi2 =ROOT.TF1("chi2","[0]*ROOT::Math::chisquared_pdf(x,1)",1.0,25)
-        chi2_full =ROOT.TF1("chi2_full","[0]*1/(sqrt(x*2*3.14))*exp(-0.5*x)",1.0,25)
-        histo.Fit(chi2_full,"R","",1.0,25)
-        chi2_full.SetLineColor(ROOT.kBlue)
-        chi2.Draw("SAME")
-        chi2_full.Draw("SAME")
-
-        ROOT.gStyle.SetOptStat(111111)
-        lineObs=ROOT.TLine(obsZ,0.,obsZ,histo.GetMaximum())
-        lineObs.SetLineColor(ROOT.kBlack)
-        lineObs.SetLineWidth(3)
-        lineObs.Draw()
-        b=ROOT.TLatex()
-        b.SetNDC()
-        b.SetTextSize(0.035)
-        b.SetTextColor(ROOT.kBlack)
-        b.DrawLatex(0.75,0.5,"pval: %.2e" % integral)
-        b.DrawLatex(0.75,0.4,"Z: %4.2f" % ROOT.RooStats.PValueToSignificance(integral))
-
-        canv.SaveAs("%s/LocPVal_k%s_spin2_%s%s.root" % (options.output_dir,coup,mname,sname))
-        canv.SaveAs("%s/LocPVal_k%s_spin2_%s%s.png" % (options.output_dir,coup,mname,sname))
-        canv.SaveAs("%s/LocPVal_k%s_spin2_%s%s.pdf" % (options.output_dir,coup,mname,sname))
-        self.keep( [canv,canv2d,histo,graph2d] )
-
-
-    def cdf(self,histo,bins,min,max):
-        cdf=ROOT.TH1D("cdf","cdf",bins,min,max)
-        total = 0
-        for i in range(0,bins):
-            total =int(total + histo.GetBinContent(i))
-            for k in range(0,total):
-                cdf.AddBinContent(i)
-        norme = 1/histo.Integral()
-        print norme
-        cdf.Scale(norme)
-        return cdf
-
-    def plotPval(self,options,coup,spin,tfile,observed,itoy=0,ijob=0):
+    def plotPval(self,options,coup,tfile):
+        observed = ROOT.theBand( tfile, 1, 0, ROOT.Observed, 0.95 )
         basicStyle = [["SetMarkerSize",0.6],["SetLineWidth",3],
                        ["SetTitle",";m_{G} (GeV);p_{0}"]]
+        if not options.spin2:
+            basicStyle.append(["SetTitle",";m_{S} (GeV);p_{0}"])
         commonStyle = ["Sort"]+basicStyle
         observedStyle = commonStyle+[["SetMarkerStyle",ROOT.kFullCircle],["colors",ROOT.kBlue]]
-        if(itoy==0):style_utils.apply(observed,[["SetName","observed_%s"%coup]]+observedStyle)
-        else:       style_utils.apply(observed,[["SetName","observed_%s_%s"%(coup,itoy)]]+observedStyle)
+        
+        style_utils.apply(observed,[["SetName","observed_%s"%coup]]+observedStyle)
       
         
         xmin,xmax = options.x_range
-        if(itoy==0):canv  = ROOT.TCanvas("pvalues_k%s_s%s"%(coup,spin),"pvalues_k%s_s%s"%(coup,spin))
-        else:       canv  = ROOT.TCanvas("pvalues_k%s_s%s_t%s_j%s"%(coup,spin,itoy,ijob),"pvalues_k%s_s%s_t%s_j%s"%(coup,spin,itoy,ijob))
+        canv  = ROOT.TCanvas("pvalues_k%s"%coup,"pvalues_k%s"%coup)
         canv.SetLogy()
         canv.SetLogx()
         ## legend = ROOT.TLegend(0.5,0.6,0.8,0.75)
         ## legend = ROOT.TLegend(0.6,0.6,0.9,0.75)
-        legend = ROOT.TLegend(0.56,0.6,0.86,0.75)
+        ## legend = ROOT.TLegend(0.56,0.6,0.86,0.75)
+        legend = ROOT.TLegend(*options.legend)
         legend.SetFillStyle(0)
         kappa = "0."+coup[1:]
         observed.Draw("apl")
         ## observed.Draw("al")
         ## observed.GetYaxis().SetRangeUser(1e-5,0.55)
         observed.GetYaxis().SetRangeUser(1e-3,0.55)
-        ## observed.GetXaxis().SetRangeUser(450,3000)
-        ## observed.GetXaxis().SetRangeUser(450,5000)
+        if len(options.y_range) > 0:
+          ## print "AAAAAAAAAAAAAAAA"
+          observed.GetYaxis().SetRangeUser(*options.y_range)
+          observed.GetYaxis().SetLimits(*options.y_range)
+
         observed.GetXaxis().SetRangeUser(xmin,xmax)
         observed.GetXaxis().SetMoreLogLabels()
         
         ## xmin,xmax=observed.GetXaxis().GetXmin(),observed.GetXaxis().GetXmax()
         ## xmin,xmax=450,3000
         # xmin,xmax=450,5000
-        spots = filter(lambda x: x>observed.GetYaxis().GetXmin(),  map(lambda x: (x,ROOT.RooStats.SignificanceToPValue(x)), xrange(1,5) ) )
-        
-        lines = map( lambda y: ROOT.TLine(xmin,y[1],xmax,y[1]), spots )
-        map( lambda x: style_utils.apply(x,[["SetLineColor",ROOT.kGray+3],["SetLineStyle",7]]), lines )
+        ### spots = filter(lambda x: x>observed.GetYaxis().GetXmin(),  map(lambda x: (x,ROOT.RooStats.SignificanceToPValue(x)), xrange(1,5) ) )
+        ### 
+        ### lines = map( lambda y: ROOT.TLine(xmin,y[1],xmax,y[1]), spots )
+        ### map( lambda x: style_utils.apply(x,[["SetLineColor",ROOT.kGray+3],["SetLineStyle",7]]), lines )
+        ### 
+        ### labels = map( lambda y: ROOT.TLatex(xmax*1.01,y[1]*0.9,"#color[%d]{%d #sigma}" % (ROOT.kGray+2,y[0])), spots )
+        ### map( lambda x: style_utils.apply(x,[["SetTextSize",0.05]]), labels )
+        ### 
+        ### map( lambda x: x.Draw("same"), lines+labels )
 
-        labels = map( lambda y: ROOT.TLatex(xmax*1.01,y[1]*0.9,"#color[%d]{%d #sigma}" % (ROOT.kGray+2,y[0])), spots )
-        map( lambda x: style_utils.apply(x,[["SetTextSize",0.05]]), labels )
+        self.drawLines(observed,xmin,xmax)
 
-        map( lambda x: x.Draw("same"), lines+labels )
-        self.keep(lines+labels)
+        ## self.keep(lines+labels)
         
-        legend.AddEntry(None,"#tilde{#kappa} = %s" % kappa,"")
+        if options.spin2:
+            legend.AddEntry(None,"#tilde{#kappa} = %s" % kappa,"")
+        else:
+            kappa = float(kappa)
+            legend.AddEntry(None,"#frac{#Gamma}{m} = %g #times 10^{-2}" % (1.4*kappa*kappa*100.),"")
         legend.AddEntry(observed,"Observed p_{0}","l")
         
         self.keep(legend,True)
         legend.Draw()
         
         self.graphs.extend([observed])
+        
         self.keep( [canv,observed] )
         self.format(canv,options.postproc)
 
@@ -744,3 +705,4 @@ class LimitPlot(PlotApp):
 if __name__ == "__main__":
     app = LimitPlot()
     app.run()
+
