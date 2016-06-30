@@ -24,7 +24,7 @@ def addPreshowerEnergy(variables):
                                                                      ("superCluster.preshowerEnergyPlane2","preshowerEnergyPlane2")]) ),
     
 
-def addRegressionInput(variables)
+def addRegressionInput(variables):
     regInputs = [
         ("superCluster.clustersSize","scClustersSize"),
         ("superCluster.seed.energy","scSeedEnergy"),
