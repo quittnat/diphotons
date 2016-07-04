@@ -7,7 +7,7 @@ import os
 
 from pprint import pprint
 from fnmatch import fnmatch
-
+#from templates_maker import TemplatesApp  
 from math import floor,sqrt
 import array
 
@@ -27,6 +27,10 @@ def matchAny(patterns,name):
     for p in patterns: 
         if name == p or fnmatch(name,p): return True
     return False
+def modifyTuple(tup, ix, val):
+    lst=list(tup)
+    lst[ix]=[val]
+    return tuple(lst)
 
 def rescaleHisto(histo,scale):
     if scale:
@@ -101,6 +105,8 @@ class AutoPlot(PyRApp):
                             default=[]),
                 make_option("--rename",action="callback", dest="rename", type="string", callback=optpars_utils.ScratchAppend(),
                                                 default=[],help="renaming of histogram process"),
+                make_option("--merge",action="callback", dest="merge", type="string", callback=optpars_utils.ScratchAppend(),
+                                                default=[],help="merge two trees"),
                 make_option("--asymError",action="store_true", dest="asym_error",default=False),
                 make_option("--move",action="callback", dest="move", type="string", callback=optpars_utils.ScratchAppend(),
                             default=[]),
@@ -224,20 +230,39 @@ class AutoPlot(PyRApp):
 
     # -------------------------------------------------------------------------------------------------------
     def mkTreeHistos(self,folder,tree):
-
         objects = map( lambda x: (x[1],x[4],bookhisto(folder,x,tree.GetName()),x[0]), self.histos )
         return objects
         
     # -------------------------------------------------------------------------------------------------------
     def mkAllHistos(self,target):
         folder,trees = target
-        
         return folder,map(lambda x: (x,self.mkTreeHistos(folder,x)), trees )
     
     # -------------------------------------------------------------------------------------------------------
     def fillAllHistograms(self,target):
         folder, histos = target
         return folder,map(lambda x: self.fillHistograms(*x), histos )
+  
+    def mergeTrees(self,trees,name):
+        #nam=trees[len(trees)-1].GetName()
+        #for n in name:
+        #    nam="%s"%nam.split(n,-1)[0]
+        #mergedTrees=self.treeData(nam)
+        treesList=ROOT.TList()
+       # treesList.append(mergedTrees)
+        for y in trees:
+            for n in name: 
+                if n in y.GetName():treesList.append(y)
+            print "[INFO] tree with entries: ", y.GetEntries()
+        mergedTrees=ROOT.TTree.MergeTrees(treesList)
+        nam=mergedTrees.GetName()
+        for n in name:
+            nam="%s"%nam.split(n,-1)[0]
+        mergedTrees.SetNameTitle(nam,nam)
+        #    ROOT.TTree.MergeTrees(treesList,"")
+        print "[INFO] mergedTree",mergedTrees, "with " ,mergedTrees.GetEntries(), "entries"
+        
+        return mergedTrees
 
     # -------------------------------------------------------------------------------------------------------
     def fillHistograms(self,tree,histos):
@@ -289,7 +314,7 @@ class AutoPlot(PyRApp):
         from flashgg.Taggers.dumperConfigTools import parseHistoDef
 
         for alias in options.aliases:
-            name,vdef = [ t.lstrip(" ").rstrip(" ").lstrip("\t").rstrip("\t") for t in alias.split(":=",1) ]
+            name,vdef = [ t.lstrip(" ").rstrip(" ").lstrip("\t").rstrip("\t") for t in aliassplit(":=",1) ]
             self.aliases[name] = vdef
 
         self.histos = map( parseHistoDef, options.histograms )
@@ -304,7 +329,7 @@ class AutoPlot(PyRApp):
             prescale = ps.split(":")
             self.prescale[prescale[0]]=int(prescale[1])
         print self.destinations
-        
+       #TODO correct naming 
         output = self.open(options.output,"recreate")
         
         # open input files
@@ -314,12 +339,22 @@ class AutoPlot(PyRApp):
         trees = map(lambda x:  (x,getObjects([x],types=["TTree"])), inputs )
         if len(options.processes) > 0: 
             trees = map(lambda x: (x[0],filter(lambda y: matchAny(options.processes,y.GetName()),x[1])), trees )
+            if options.merge:
+                for i in range(len(trees)):
+                    if trees[i][1]:
+                        print i, trees[i][1]
+                        mergedTrees=self.mergeTrees(trees[i][1],options.merge) 
+                return
+                print mergedTrees
+                self.keep(mergedTrees)
+                trees[0]=modifyTuple(trees[0],1,mergedTrees)
+            print trees
         map(lambda x: map(self.setAliases, x[1]), trees)
         # book output folders
         outputs = map( lambda x: (mktdir(output,os.path.join(self.getDestination(os.path.basename(os.path.dirname(x[0].GetPath()))),"histograms")), x[1]), trees  )
+        print "outputs",outputs
         # and histograms
         histograms = map(self.mkAllHistos, outputs )
-        
         filled = map(self.fillAllHistograms, histograms)
         
         #getlist of histo name
@@ -334,8 +369,8 @@ class AutoPlot(PyRApp):
             print histos
             if options.asym_error:
                 for h in set(reduce(lambda x,y: x+y, histos, [])):
-                    if "LowR9mass_up" in h.GetName():hup=h
-                    if "LowR9" and "_low" in h.GetName():hlow=h
+                    if "mass_up" in h.GetName():hup=h
+                    elif "mass_low" in h.GetName():hlow=h
                 print "[INFO] apply asymmetric errors for:"
                 hasym = hup.Clone("%s" % (hup.GetName().replace("_up","")))
                 hasym.SetTitle("%s" % (hup.GetTitle().replace("_up","")))
@@ -343,19 +378,7 @@ class AutoPlot(PyRApp):
                 for bin in range(1,hasym.GetNbinsX()+1):
                     hasym.SetBinError(bin,(hup.GetBinError(bin)+hlow.GetBinError(bin))/2.)
                 hasym.Write(hasym.GetName(),ROOT.TObject.kWriteDelete)
-                for h in set(reduce(lambda x,y: x+y, histos, [])):
-                    if "HighR9" and "_up" in h.GetName():huph=h
-                    if "HighR9" and "_low" in h.GetName():hlowh=h
-                hasymh = huph.Clone("%s" % (huph.GetName().replace("_up","")))
-                hasymh.SetTitle("%s" % (huph.GetTitle().replace("_up","")))
-                hasymh.SetNameTitle(hasymh.GetName().replace("Data",options.rename[0]),hasymh.GetTitle().replace("Data",options.rename[0]))
-                
-                for bin in range(1,hasymh.GetNbinsX()+1):
-                    hasymh.SetBinError(bin,(huph.GetBinError(bin)+hlowh.GetBinError(bin))/2.)
-                hasymh.Write(hasymh.GetName(),ROOT.TObject.kWriteDelete)
                 print hasym.GetName()
-                print hasymh.GetName()
-                
                 
             for h in set(reduce(lambda x,y: x+y, histos, [])):
                 if options.rename:
