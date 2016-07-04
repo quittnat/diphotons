@@ -317,39 +317,41 @@ class AutoPlot(PyRApp):
         map(lambda x: map(self.setAliases, x[1]), trees)
         # book output folders
         outputs = map( lambda x: (mktdir(output,os.path.join(self.getDestination(os.path.basename(os.path.dirname(x[0].GetPath()))),"histograms")), x[1]), trees  )
-        # and histogras
+        # and histograms
         histograms = map(self.mkAllHistos, outputs )
         
         filled = map(self.fillAllHistograms, histograms)
         
+        #getlist of histo name
+        # filter up down, remove prefix, and use UNIQUE -histo asym
+        
+
+
         for folder,histos in filled:
             print
             print folder.GetPath()
             folder.cd()
             print histos
             if options.asym_error:
-                #TODO improve write correctly without mass and low/highR9
                 for h in set(reduce(lambda x,y: x+y, histos, [])):
                     if "LowR9mass_up" in h.GetName():hup=h
-                    if "LowR9mass_low" in h.GetName():hlow=h
+                    if "LowR9" and "_low" in h.GetName():hlow=h
                 print "[INFO] apply asymmetric errors for:"
                 hasym = hup.Clone("%s" % (hup.GetName().replace("_up","")))
                 hasym.SetTitle("%s" % (hup.GetTitle().replace("_up","")))
                 hasym.SetNameTitle(hasym.GetName().replace("Data",options.rename[0]),hasym.GetTitle().replace("Data",options.rename[0]))
                 for bin in range(1,hasym.GetNbinsX()+1):
                     hasym.SetBinError(bin,(hup.GetBinError(bin)+hlow.GetBinError(bin))/2.)
-                    print hup.GetBinError(bin),hlow.GetBinError(bin), hasym.GetBinError(bin)
                 hasym.Write(hasym.GetName(),ROOT.TObject.kWriteDelete)
                 for h in set(reduce(lambda x,y: x+y, histos, [])):
-                    if "HighR9mass_up" in h.GetName():huph=h
-                    if "HighR9mass_low" in h.GetName():hlowh=h
+                    if "HighR9" and "_up" in h.GetName():huph=h
+                    if "HighR9" and "_low" in h.GetName():hlowh=h
                 hasymh = huph.Clone("%s" % (huph.GetName().replace("_up","")))
                 hasymh.SetTitle("%s" % (huph.GetTitle().replace("_up","")))
                 hasymh.SetNameTitle(hasymh.GetName().replace("Data",options.rename[0]),hasymh.GetTitle().replace("Data",options.rename[0]))
                 
                 for bin in range(1,hasymh.GetNbinsX()+1):
                     hasymh.SetBinError(bin,(huph.GetBinError(bin)+hlowh.GetBinError(bin))/2.)
-                    print huph.GetBinError(bin),hlowh.GetBinError(bin), hasymh.GetBinError(bin)
                 hasymh.Write(hasymh.GetName(),ROOT.TObject.kWriteDelete)
                 print hasym.GetName()
                 print hasymh.GetName()

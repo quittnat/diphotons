@@ -646,9 +646,9 @@ class TemplatesApp(PlotApp):
                                 self.store_[tree_temp.GetName()] = tree_temp
                                 print"template%s%s_%i_%s_%s" % (dat,component,j,name,cat), self.rooData("template%s%s_%i_%s_%s" % (dat,component,j,name,cat),autofill=True,cloneFrom="template%s%s_%s_%s" % (dat,component,name,cat)).sumEntries()
                 
-         #               else: 
-         #                   print "template -%s - %s" % (component,cat), self.rooData("template%s%s_%s_%s" % (dat,component,name,cat) ).sumEntries()
-         #                   print "number of entries template %s - %s" % (component,cat), self.rooData("template%s%s_%s_%s" % (dat,component,name,cat) ).numEntries()
+                        else: 
+                            print "template -%s - %s" % (component,cat), self.rooData("template%s%s_%s_%s" % (dat,component,name,cat) ).sumEntries()
+                            print "number of entries template %s - %s" % (component,cat), self.rooData("template%s%s_%s_%s" % (dat,component,name,cat) ).numEntries()
                     print 
                     print "--------------------------------------------------------------------------------------------------------------------------"
                     print

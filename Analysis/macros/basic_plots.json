@@ -76,7 +76,7 @@
 
 	      ["ggjet_iso","#gamma #gamma",
 	      [["colors","myColorB1"],["SetLineWidth",2],["SetFillStyle",1001],["Scale",1],["legopt","f"],["SetFillColor","myColorB3tr"]],
-	      { "GGJets_M_60To13000_13TeV:__infile__/%(sel)s" : [] }
+	      { "GGJets_M_60To13000_Pt_50_sherpa_13TeV:__infile__/%(sel)s" : [] }
 	      ]
 
 ],
@@ -175,7 +175,7 @@
         "EE"       : ["EEHighR9","EELowR9"]
 	}, 
     "groups": {
-        "EE"       : ["EEHighR9","EELowR9"]
+        "EB"       : ["EBHighR9","EBLowR9"]
 	}, 
 
 
@@ -314,7 +314,9 @@
 					  ["xrange",[320.0,1600.0]],["rebin",[[320,360,440,500,800,1000,1600]]],
 					  ["xrange",[320.0,1600.0]],["rebin",[[320,355,444,500,600,800,1000,1600]]],
 					  ["xrange",[320.0,1600.0]],["rebin",[[320,355,444,500,600,800,1600]]],
+					  ["xrange",[320.0,1600.0]],["rebin",[[320,355,444,500,600,800,1600]]],
 					  ["xrange",[230.0,1600.0]],["rebin",[[230,253,282,332,409,500,600,800,1600]]],
+					  ["xrange",[320.0,1600.0]],["rebin",[[320,355,444,500,600,800,1600]]],
 					  "density",["ytitle","Events / %(binw)s GeV"]
 					]
 					,null,null]
@@ -323,9 +325,9 @@
 
 					],
     "plots": [
-	      ["mass"			,[["xtitle","m_{#gamma #gamma} (GeV)"],
-					  ["xrange",[320.0,1600.0]],["rebin",[[320,355,444,500,600,800,1600]]],
-					  ["density",20],["ytitle","Events / (%(binw)s GeV)"]
+	      ["mass"			,[["xtitle","#it{m}_{#gamma#gamma} (GeV)"],
+					  ["xrange",[230.0,1600.0]],["rebin",[[230,253,282,332,409,500,600,800,1600]]],
+					  ["density",20],["scaleLabel",1.3],["ytitle","Events / %(binw)s GeV "]
 					]
 					,null,null],
 
@@ -470,10 +472,9 @@
     ],
 
     "postproc" : {
-    	       "notused" : [["addCmsLumi",[4,1,"Preliminary"]]],
-    	       "*" : [["addCmsLumi",[4,1,"Unpublished"]],["addCat",["EBEE"]]],
-    	       "notused" : [["addCat",["EBEB"]]],
-    	       "*EE" : [["addCat",["EBEE"]]]
+    	       "*" : [["addCmsLumi",[4,1,"Preliminary"]]],
+    	       "*EE" : [["addCat",["EBEE"]]],
+    	       "*EBEB" : [["addCat",["EBEB"]]]
 	       }	
     
 }

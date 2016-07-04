@@ -9,7 +9,7 @@
 	"fit2DTruth" : { "fit" : "2D",
 		"templates" : { "mix:kDSinglePho2DMC" : {}, "mix:kDSinglePho2D" : {}},
                 "categories" : ["EBEB","EBEE"],
-                "components": [["pp",{ "2D" : {},"template_mc:2D":{}}], "pf","ff" 
+                "components": ["pf","ff",["pp",{ "2D" : {},"template_mc:2D":{}}]
                 ],
                 "weight_cut": "weight <100.",
 		"redo" : true,
@@ -40,7 +40,7 @@
                 "categories" :["EB","EE"]
     },
    "nominalFit":{
-        "3_components":{
+        "_3_components":{
         		"dimensions" :"2D", 
         		"observable": "templateNdim2d_unroll",
                 "components": ["pp","pf","ff"],
@@ -54,7 +54,7 @@
 				"jackknife_pp":false,
 		"mass_binning" :"mass[13000,0.0,13000.0]"
          },
-        "_2_components":{
+        "2_components":{
         		"dimensions" :"2D", 
         		"observable": "templateNdim2d_unroll",
                 "components": ["pp","pf"],
@@ -78,8 +78,8 @@
                 "upperend_lastbin":1600,
                 "lowerend_lastbin":800,
                 "blindingpoint":500,
-                "syserrorEBEB":0.087,
-                "syserrorEBEE":0.144,
+                "syserrorEBEB":0.086,
+                "syserrorEBEE":0.11,
                 "categories" :["EBEE","EBEB"]
     },
     "build3d":{
