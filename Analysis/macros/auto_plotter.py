@@ -27,10 +27,12 @@ def matchAny(patterns,name):
     for p in patterns: 
         if name == p or fnmatch(name,p): return True
     return False
+#-----------------------------------------------------------------------------
 def modifyTuple(tup, ix, val):
     lst=list(tup)
     lst[ix]=[val]
     return tuple(lst)
+#-----------------------------------------------------------------------------
 
 def rescaleHisto(histo,scale):
     if scale:
@@ -242,14 +244,11 @@ class AutoPlot(PyRApp):
     def fillAllHistograms(self,target):
         folder, histos = target
         return folder,map(lambda x: self.fillHistograms(*x), histos )
+    # -------------------------------------------------------------------------------------------------------
   
-    def mergeTrees(self,trees,name):
-        #nam=trees[len(trees)-1].GetName()
-        #for n in name:
-        #    nam="%s"%nam.split(n,-1)[0]
-        #mergedTrees=self.treeData(nam)
+    def mergeTrees(self,trees,name,output):
+        tempFile= self.open("tempFile.root","recreate")
         treesList=ROOT.TList()
-       # treesList.append(mergedTrees)
         for y in trees:
             for n in name: 
                 if n in y.GetName():treesList.append(y)
@@ -259,9 +258,9 @@ class AutoPlot(PyRApp):
         for n in name:
             nam="%s"%nam.split(n,-1)[0]
         mergedTrees.SetNameTitle(nam,nam)
-        #    ROOT.TTree.MergeTrees(treesList,"")
         print "[INFO] mergedTree",mergedTrees, "with " ,mergedTrees.GetEntries(), "entries"
-        
+        output.cd()
+        self.keep(mergedTrees)
         return mergedTrees
 
     # -------------------------------------------------------------------------------------------------------
@@ -329,7 +328,6 @@ class AutoPlot(PyRApp):
             prescale = ps.split(":")
             self.prescale[prescale[0]]=int(prescale[1])
         print self.destinations
-       #TODO correct naming 
         output = self.open(options.output,"recreate")
         
         # open input files
@@ -343,16 +341,11 @@ class AutoPlot(PyRApp):
                 for i in range(len(trees)):
                     if trees[i][1]:
                         print i, trees[i][1]
-                        mergedTrees=self.mergeTrees(trees[i][1],options.merge) 
-                return
-                print mergedTrees
-                self.keep(mergedTrees)
+                        mergedTrees=self.mergeTrees(trees[i][1],options.merge,output) 
                 trees[0]=modifyTuple(trees[0],1,mergedTrees)
-            print trees
         map(lambda x: map(self.setAliases, x[1]), trees)
         # book output folders
         outputs = map( lambda x: (mktdir(output,os.path.join(self.getDestination(os.path.basename(os.path.dirname(x[0].GetPath()))),"histograms")), x[1]), trees  )
-        print "outputs",outputs
         # and histograms
         histograms = map(self.mkAllHistos, outputs )
         filled = map(self.fillAllHistograms, histograms)
