@@ -192,6 +192,7 @@ doDoublePho0T=False
 invertEleVeto=False
 ## dumpBits=["HLT_DoublePhoton60","HLT_DoublePhoton85","HLT_Photon250_NoHE","HLT_Photon165_HE","HLT_ECALHT800"]
 dumpBits=["HLT_DoublePhoton60","HLT_ECALHT800"]
+#dumpBits=["HLT_DoublePhoton60"]
 askTriggerOnMc=False
 extraSysModules=[]
 

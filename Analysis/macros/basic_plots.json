@@ -126,7 +126,7 @@
 	      				]
 					,null,null],
 
-	      ["nvtx"			,[["Rebin",2],["ytitle","Events / bin"],["xtitle","N_{vtx}"],["overflow",[null]]	      				
+	      ["nvtx"			,[["ytitle","Events / bin"],["xtitle","N_{vtx}"],["overflow",[null]]	      				
 	      				]
 					,null,null],
 
@@ -210,11 +210,11 @@
         ["cicNoSigmaIetaIeta","noSiEiE",["mass","leadSigmaIeIe","subleadSigmaIeIe"]]
     ],
 
-    "_selections" : [
-        ["cic","cic","mass"]
+    "selections" : [
+        ["cic","cic","nvtx"]
     ],
 
-    "selections" : [
+    "_selections" : [
         ["cic",""],
         ["cicNoChIso","noChIso"],
         ["cicNoSigmaIetaIeta","noSiEiE",["mass","leadSigmaIeIe","subleadSigmaIeIe"]],
