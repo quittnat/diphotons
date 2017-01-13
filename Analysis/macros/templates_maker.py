@@ -154,6 +154,8 @@ class TemplatesApp(PlotApp):
                                     default=None,help="default: %default"),
                         make_option("--prepare-data",dest="prep_data",action="store_true",
                                     default=False,help="prepare templates only with data, no mc, signals, or templatesMC,mctruth)"),
+                        make_option("--prepare-no-mctruth",dest="no_mctruth",action="store_true",
+                                    default=False,help="prepare templates only with data, no mc, signals, or templatesMC,mctruth)"),
                         make_option("--prepare-signal",dest="prep_signal",action="store_true",
                                     default=False,help="generate signal trees (overrides --prepare-nosignal)"),
                         make_option("--prepare-nosignal",dest="prep_nosig",action="store_true",
@@ -511,7 +513,7 @@ class TemplatesApp(PlotApp):
             bins            = fit["bins"]
             components      = fit["components"]
             categories      = fit["categories"]
-            if not (options.prep_data or options.prep_signal):
+            if not (options.prep_data or options.prep_signal or options.no_mctruth):
                 truth_selection = fit["truth_selection"]
             if not (options.prep_data or options.prep_nosig) or options.prep_signal:
                 signals         = fit.get("signals",[])
@@ -564,7 +566,7 @@ class TemplatesApp(PlotApp):
                     self.buildRooDataSet(sigTrees,sig,name,fit,categories,fulllist,weight,preselection,storeTrees)
             
           ## prepare truth templates
-            if not (options.prep_data or options.prep_signal):
+            if not (options.prep_data or options.prep_signal or options.no_mctruth):
                 for truth,sel in truth_selection.iteritems():
                     cut = ROOT.TCut(preselection)
                     cut *= ROOT.TCut(sel)
@@ -576,7 +578,7 @@ class TemplatesApp(PlotApp):
               
             print
           ## sanity check
-            if not (options.prep_data or options.prep_signal):
+            if not (options.prep_data or options.prep_signal or options.no_mctruth):
                 for cat in categories.keys():
                     catCounts = {}
                     catCounts["tot"] = self.rooData("mc_%s_%s" % (name,cat) ).sumEntries()
