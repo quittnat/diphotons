@@ -413,7 +413,7 @@ class TemplatesFitApp(TemplatesApp):
     def histounroll(self,templatelist,template_binning,isoargs,comp,cat,mcut_s,prepfit,sigRegionlow,sigRegionup,extra_shape_unc=None,plot=True):
         pad_it=0
         c1=ROOT.TCanvas("d2hist_%s" % cat,"2d hists per category",1400,1000) 
-        c1.Divide(1,2)
+       # c1.Divide(1,2)
         histlistunroll=[]
         print
         print "roll out" 
@@ -424,7 +424,8 @@ class TemplatesFitApp(TemplatesApp):
    #     print"template_binning", template_binning
         for tempur in templatelist:
             pad_it+=1
-            temp2d=ROOT.TH2F("d2%s" % (tempur.GetName()),"d2%s" % (tempur.GetName()),len(template_binning)-1,template_binning,len(template_binning)-1,template_binning)
+            #temp2d=ROOT.TH2F("d2%s" % (tempur.GetName()),"d2%s" % (tempur.GetName()),len(template_binning)-1,template_binning,len(template_binning)-1,template_binning)
+            temp2d=ROOT.TH2F("d2%s" % (tempur.GetName()),"d2%s" % (tempur.GetName()),3,0,15,3,0,15)
             tempur.fillHistogram(temp2d,ROOT.RooArgList(isoargs))
             print "integral 2d  histo", temp2d.Integral()
             temp2dx=temp2d.ProjectionX("%s_X" %tempur.GetName())
@@ -487,6 +488,9 @@ class TemplatesFitApp(TemplatesApp):
             if plot and "template_pp" in tempur.GetTitle():
                 c1.cd(pad_it)
                 ROOT.gPad.SetLogz()
+                
+                temp2d.GetXaxis().SetTitle("I_{Ch}(#gamma^{1}) (GeV)")
+                temp2d.GetYaxis().SetTitle("I_{Ch}(#gamma^{2}) (GeV)")
                 temp2d.Draw("COLZ")
                 temp2d.GetZaxis().SetRangeUser(1e-8,1)
             bin=0
@@ -787,7 +791,8 @@ class TemplatesFitApp(TemplatesApp):
         ymax = 5.
         histlist[histstart].GetYaxis().SetLabelSize( histlist[histstart].GetYaxis().GetLabelSize() * canv.GetWh() / ROOT.gPad.GetWh() )
         k=0
-        minX=-0.5
+        minX=-1.0
+        minX2=3.0
         if dim1:histlist[histstart].GetXaxis().SetTitle(title[-17:])
         histlist[histstart].GetYaxis().SetLabelSize( 1.5*histlist[histstart].GetYaxis().GetLabelSize() * canv.GetWh() / ROOT.gPad.GetWh() )
         histlist[histstart].GetYaxis().SetTitleSize(1.2*histlist[histstart].GetYaxis().GetTitleSize() * canv.GetWh() / ROOT.gPad.GetWh() )
@@ -803,7 +808,7 @@ class TemplatesFitApp(TemplatesApp):
             mctruth_expectedStyle =  [["SetFillStyle",3004],["SetFillColorAlpha",(ROOT.kRed,0.0)],["SetLineColor",ROOT.kRed]]
             mc_expectedStyle =[["SetFillStyle",3004],["SetFillColorAlpha",(ROOT.kAzure+2,0.0)],["SetLineColor",ROOT.kAzure+2]]
             data_expectedStyle =[["SetLineWidth",3],["SetMarkerStyle",20],["SetMarkerSize",2.0],["SetMarkerColor",ROOT.kBlack],["SetLineColor",ROOT.kBlack]]
-            ratio_expectedStyle =[["SetLineWidth",3],["SetMarkerStyle",34],["SetMarkerSize",1.3],["SetMarkerColor",ROOT.kAzure+2],["SetLineColor",ROOT.kAzure+2]]
+            ratio_expectedStyle =[["SetLineWidth",5],["SetMarkerStyle",34],["SetMarkerSize",2.5],["SetMarkerColor",ROOT.kAzure+2],["SetLineColor",ROOT.kAzure+2]]
             if "mctruth" in histlist[i].GetName():
                 style_utils.apply(histlist[i],mctruth_expectedStyle)
                 if i==histstart:histlist[i].Draw("E2")
@@ -827,10 +832,12 @@ class TemplatesFitApp(TemplatesApp):
           #  ymax = max(ymax,histlist[histstart].GetMaximum())
             #histlist[i].GetYaxis().SetRangeUser(1e-4,ymax*2.)
             histlist[i].GetXaxis().SetRangeUser(minX,15.)
+            histlist[i].GetXaxis().SetLimits(minX2,15.)
           #  b.DrawLatex(0.45,.94,"#int L dt=1.7 /fb  CMS PRELIMINARY")
         if "unroll" in title:
             ymin = 1.e-5
             histlist[i].GetXaxis().SetRangeUser(minX,9.)
+            canv.Update()
             histlist[histstart].GetYaxis().SetRangeUser(ymin,ymax)
          #   histlist[histstart].GetYaxis().SetLimits(ymin*0.5,ymax)
         leg.Draw()
@@ -850,6 +857,7 @@ class TemplatesFitApp(TemplatesApp):
             ratios.GetYaxis().SetTitle("MC_{temp}/MC_{truth}")
             ratios.GetYaxis().SetNdivisions(505)
             ratios.GetXaxis().SetRangeUser(minX,15.)
+            ratios.GetXaxis().SetLimits(minX2,15.)
             ratios.GetYaxis().SetRangeUser(0.,3.5)
             if not  "unroll" in title:
                 ID=ID+1
@@ -1314,6 +1322,8 @@ class TemplatesFitApp(TemplatesApp):
         ff2d.Scale(entries*pu_ff)
         
         c1=ROOT.TCanvas("d2hist_%s" % cat,"2d hists per category") 
+        data2d.GetXaxis().SetTitle("I_{Ch}(#gamma^{1}) (GeV)")
+        data2d.GetYaxis().SetTitle("I_{Ch}(#gamma^{2}) (GeV)")
         data2d.Draw("COLZ") 
         
         cfitx=ROOT.TCanvas("cfitxproj_%s" % cat,"projection of the fit") 
@@ -1813,14 +1823,17 @@ class TemplatesFitApp(TemplatesApp):
                         if data:
                   #      g_ratiopp.SetPoint(mb,massbin,(pp_p-tree_truthpp.frac_pu)/pp_err)
                             g_ratiopp.SetPoint(mb,massbin,(pp_p-tree_mctruth.purity_pp)/(sqrt(pp_errlow**2+pp_errhigh**2)))
-                            g_ratiopp.SetPointError(mb,0.,0.,pp_errlow,pp_errhigh)
+                            g_ratiopp.SetPointError(mb,0.,masserror,pp_errlow,pp_errhigh)
                         if not data:
                             pullpp=(tree_templatemc.purity_pp-tree_mctruth.purity_pp)/sqrt(tree_templatemc.err_pplow**2+tree_templatemc.err_pphigh**2)
                             mctruthpullpp=(tree_truthpp.frac_pu-tree_mctruth.purity_pp)/sqrt(tree_mctruth.err_pplow**2+tree_mctruth.err_pphigh**2)
                             cicpullpp=(tree_templatemc.purity_pp-tree_truthpp.frac_pu)/sqrt(tree_templatemc.err_pplow**2+tree_templatemc.err_pphigh**2)
                             g_pullpp.SetPoint(mb,massbin,pullpp)
+                            g_pullpp.SetPointError(mb,masserror,masserror,tree_templatemc.err_pplow,tree_templatemc.err_pphigh)
                             g_cicpullpp.SetPoint(mb,massbin,cicpullpp)
+                            g_cicpullpp.SetPointError(mb,masserror,masserror,0.,0.)
                             g_mctruthpullpp.SetPoint(mb,massbin,mctruthpullpp)
+                            g_mctruthpullpp.SetPointError(mb,masserror,masserror,0.,0.)
                             h_pullpp.Fill(pullpp)
                         g_mctruthpf.SetPoint(mb,massbin,tree_mctruth.purity_pf)
                         g_mctruthff.SetPoint(mb,massbin,tree_mctruth.purity_ff)
@@ -1891,9 +1904,9 @@ class TemplatesFitApp(TemplatesApp):
     def plotClosure(self,cat,pu_val,opt,name,g_templatepp=None,g_templatepf=None,g_templateff=None,g_ratiopp=None,g_mctruthpp=None,g_mctruthpf=None,g_mctruthff=None):
         leg = ROOT.TLegend(0.4,0.7,0.8,0.9)
         leg.SetNColumns(2)
-        basicStyle = [["SetMarkerSize",1.3],["SetLineWidth",2],["SetLineStyle",1]]
+        basicStyle = [["SetMarkerSize",2.0],["SetLineWidth",4],["SetLineStyle",1]]
         mc_expectedStyle = basicStyle+ [["SetMarkerStyle",ROOT.kFullTriangleUp],["SetTitle",";m_{#gamma #gamma} (GeV);Fraction"]]
-        ratio_expectedStyle =  [["SetMarkerStyle",ROOT.kFullTriangleUp]]
+        ratio_expectedStyle =  [["SetMarkerStyle",34],["SetMarkerSize",3.0],["SetLineWidth",4],["SetLineStyle",1]]
         mctruth_expectedStyle = basicStyle+ [["SetMarkerStyle",ROOT.kOpenCircle],["SetLineStyle",ROOT.kDashed],["SetTitle",";m_{#gamma #gamma} (GeV);Fraction"]]
         cpu = ROOT.TCanvas("cpu_%s_%s_%s_%s" % (opt,cat,pu_val,name),"cpu_%s_%s_%s_%s" %(opt,cat,pu_val,name),1400,1000)
         cpu.Divide(1,2)
@@ -1985,9 +1998,9 @@ class TemplatesFitApp(TemplatesApp):
 
     ## ------------------------------------------------------------------------------------------------------------
     def plotPurityMassbins(self,cat,pu_val,opt,name,g_templatepp=None,g_templatepf=None,g_templateff=None,g_syspp=None,g_syspf=None,g_sysff=None,g_mctruthpp=None,g_mctruthpf=None,g_mctruthff=None,g_ratiopp=None):
-        basicStyle = [["SetMarkerSize",1.3],["SetLineWidth",4]]
+        basicStyle = [["SetMarkerSize",2.0],["SetLineWidth",4]]
         data_expectedStyle = basicStyle+ [["SetMarkerStyle",ROOT.kFullTriangleUp],["SetLineStyle",1],["SetTitle",";#it{m}_{#gamma#gamma} (GeV);Fraction"]]
-        ratio_expectedStyle = [["SetMarkerStyle",ROOT.kFullTriangleUp]]
+        ratio_expectedStyle = basicStyle+[["SetMarkerStyle",34]]
         mctruth_expectedStyle = basicStyle+ [["SetMarkerStyle",ROOT.kOpenCircle],["SetLineStyle",ROOT.kDashed],["SetTitle",";m_{#gamma#gamma} (GeV);Fraction"]]
         if g_mctruthpp:
             leg = ROOT.TLegend(0.4,0.7,0.8,0.9)
@@ -2296,8 +2309,8 @@ class TemplatesFitApp(TemplatesApp):
         leg.AddEntry(g_ratio,"JK error","l")
         ROOT.gPad.SetPad(0., 0.4, 1., 1.0)
         ROOT.gPad.SetLogx()
-        g_puerr.SetMarkerSize(1.3)
-        g_puerr.SetMarkerStyle(20)
+        g_puerr.SetMarkerSiz34MarkerStyle(20)
+         #   ratios.GetXaxis().SetRangeUser(minX,15.)
         g_puerr.SetLineWidth(2)
         g_ratio.SetLineWidth(2)
         g_ratio.SetMarkerColor(ROOT.kRed+1)
